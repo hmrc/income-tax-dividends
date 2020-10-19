@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.incometaxdividends.controllers
+package common
 
-import javax.inject.{Inject, Singleton}
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import uk.gov.hmrc.incometaxdividends.config.AppConfig
+object EnrolmentKeys {
+  val Individual = "HMRC-MTD-IT"
+  val Agent = "HMRC-AS-AGENT"
+}
 
-import scala.concurrent.Future
-
-@Singleton()
-class MicroserviceHelloWorldController @Inject()(appConfig: AppConfig, cc: ControllerComponents)
-    extends BackendController(cc) {
-
-  def hello(): Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok("Hello world"))
-  }
+object EnrolmentIdentifiers {
+  val individualId = "MTDITID"
+  val agentReference = "AgentReferenceNumber"
 }
