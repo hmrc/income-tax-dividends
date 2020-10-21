@@ -20,18 +20,17 @@ import controllers.predicates.AuthorisedAction
 import javax.inject.Inject
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import services.{AuthService, SubmittedDividendsService}
+import services.SubmittedDividendsService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext
 
 class SubmittedDividendsController @Inject()(submittedDividendsService: SubmittedDividendsService,
                                              cc: ControllerComponents,
-                                             authService: AuthService,
                                              authorisedAction: AuthorisedAction)
                                             (implicit ec: ExecutionContext) extends BackendController(cc){
 
-  def getSubmittedDividends(nino: String, taxYear:Int): Action[AnyContent] = authorisedAction.async { implicit user =>
+  def getSubmittedDividends(nino: String, taxYear:Int, mtditid: String): Action[AnyContent] = authorisedAction.async(mtditid) { implicit user =>
       submittedDividendsService.getSubmittedDividends(nino,taxYear).map{
         case Right(dividendsModel) => Ok(Json.toJson(dividendsModel))
         case Left(_) => InternalServerError

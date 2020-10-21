@@ -1,3 +1,19 @@
+/*
+ * Copyright 2020 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 
 package helpers
 
@@ -7,6 +23,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, delete, equal
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
+import play.api.inject.guice.GuiceApplicationBuilder
 
 trait WireMockHelper {
 
@@ -16,7 +33,17 @@ trait WireMockHelper {
   lazy val wmConfig: WireMockConfiguration = wireMockConfig().port(wiremockPort)
   lazy val wireMockServer = new WireMockServer(wmConfig)
 
+  lazy val connectedServices: Seq[String] = Seq("dividends")
 
+  def servicesToUrlConfig: Seq[(String, String)] = connectedServices
+    .map(service => s"microservice.services.$service.base-url" -> s"http://localhost:$wiremockPort")
+
+  implicit lazy val app = GuiceApplicationBuilder()
+    .configure(
+      ("auditing.consumer.baseUri.port" -> wiremockPort) +:
+        servicesToUrlConfig: _*
+    )
+    .build()
 
   def startWiremock(): Unit = {
     wireMockServer.start()

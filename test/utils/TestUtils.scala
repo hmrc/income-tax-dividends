@@ -19,22 +19,26 @@ package utils
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, Materializer}
 import com.codahale.metrics.SharedMetricRegistries
+import common.{EnrolmentIdentifiers, EnrolmentKeys}
 import config.AppConfig
+import controllers.predicates.AuthorisedAction
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.BeforeAndAfterEach
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.{BeforeAndAfterEach, Matchers}
+import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.mvc.{AnyContentAsEmpty, ControllerComponents, Result}
+import play.api.mvc.{AnyContentAsEmpty, ControllerComponents, DefaultActionBuilder, Result}
 import play.api.test.{FakeRequest, Helpers}
 import services.AuthService
 import uk.gov.hmrc.auth.core._
+import uk.gov.hmrc.auth.core.authorise.Predicate
+import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
+import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Awaitable, ExecutionContext, Future}
 
-trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOneAppPerSuite with BeforeAndAfterEach {
+trait TestUtils extends PlaySpec with MockFactory with GuiceOneAppPerSuite with BeforeAndAfterEach {
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -55,6 +59,8 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
   implicit val mockExecutionContext: ExecutionContext = ExecutionContext.Implicits.global
   implicit val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit val mockAuthService: AuthService = new AuthService(mockAuthConnector)
+  val defaultActionBuilder: DefaultActionBuilder = DefaultActionBuilder(mockControllerComponents.parsers.default)
+  val authorisedAction = new AuthorisedAction(mockAppConfig)(mockAuthConnector, defaultActionBuilder, mockControllerComponents)
 
 
   def status(awaitable: Future[Result]): Int = await(awaitable).header.status
@@ -64,5 +70,37 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
     await(awaited.body.consumeData.map(_.utf8String))
   }
 
+  //noinspection ScalaStyle
+  def mockAuth() = {
+    val enrolments = Enrolments(Set(
+      Enrolment(EnrolmentKeys.Individual, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.individualId, "1234567890")), "Activated"),
+      Enrolment(EnrolmentKeys.Agent, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.agentReference, "0987654321")), "Activated")
+    ))
+    (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
+      .expects(*, *, *, *)
+      .returning(Future.successful(new ~(enrolments, None)))
+  }
+
+  //noinspection ScalaStyle
+  def mockAuthAsAgent() = {
+    val enrolments = Enrolments(Set(
+      Enrolment(EnrolmentKeys.Individual, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.individualId, "1234567890")), "Activated"),
+      Enrolment(EnrolmentKeys.Agent, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.agentReference, "0987654321")), "Activated")
+    ))
+    (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
+      .expects(*, Retrievals.allEnrolments and Retrievals.affinityGroup, *, *)
+      .returning(Future.successful(new ~(enrolments, Some(AffinityGroup.Agent))))
+
+    (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
+      .expects(*, *, *, *)
+      .returning(Future.successful(enrolments))
+  }
+
+  //noinspection ScalaStyle
+  def mockAuthReturnException(exception: Exception) = {
+    (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
+      .expects(*, *, *, *)
+      .returning(Future.failed(exception))
+  }
 }
 

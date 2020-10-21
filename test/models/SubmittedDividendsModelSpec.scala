@@ -32,7 +32,7 @@ class SubmittedDividendsModelSpec extends TestUtils {
   "submittedDividends" should {
 
     "parse to Json" in {
-      Json.toJson(model) shouldBe jsonModel
+      Json.toJson(model) mustBe jsonModel
     }
 
     "parse from Json" in {

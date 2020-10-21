@@ -43,7 +43,7 @@ class SubmittedDividendsServiceSpec extends TestUtils {
 
       val result = await(service.getSubmittedDividends("12345678", 1234))
 
-      result shouldBe expectedResult
+      result mustBe expectedResult
 
     }
   }

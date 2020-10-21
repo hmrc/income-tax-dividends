@@ -2,79 +2,75 @@
 package connectors
 
 import connectors.httpParsers.submittedDividendsHttpParser._
+import helpers.WiremockSpec
 import models.SubmittedDividendsModel
+import org.scalatestplus.play.PlaySpec
+import play.api.http.Status._
 import play.api.libs.json.Json
-import play.mvc.Http.Status._
-import utils.IntegrationTest
+import uk.gov.hmrc.http.HeaderCarrier
 
-class SubmittedDividendsConnectorSpec extends IntegrationTest {
+class SubmittedDividendsConnectorSpec extends PlaySpec with WiremockSpec{
 
- lazy val connector : SubmittedDividendsConnector = app.injector.instanceOf[SubmittedDividendsConnector]
+  lazy val connector: SubmittedDividendsConnector = app.injector.instanceOf[SubmittedDividendsConnector]
 
   val nino: String = "123456789"
-  val taxYear: Int = 1234
-  val dividends: BigDecimal = 123456.78
+  val taxYear: Int = 1999
+  val dividendResult: BigDecimal = 123456.78
 
-  "The submittedDividendsConnector" should {
-    "return a submittedDividendsModel" when {
+  ".SubmittedDividendsConnector" should {
+    "return a SubmittedDividendsModel" when {
       "all values are present" in {
+        val expectedResult = SubmittedDividendsModel(dividendResult, dividendResult)
 
-        val expectedResult = SubmittedDividendsModel(dividends,dividends)
+        stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", OK, Json.toJson(expectedResult).toString())
 
-        stubGet(s"/income-tax/nino/$nino/income-source/{incomeSourceType}/annual/$taxYear", OK, Json.toJson(expectedResult).toString)
+        implicit val hc = HeaderCarrier()
+        val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
 
-        val result = await(connector.getSubmittedDividends(nino, taxYear))
-
-        result shouldBe Right(expectedResult)
-      }
-
-      "return a SubmittedDividendsInvalidJsonException" in {
-
-        val invalidJson = Json.obj(
-          "dividends" -> "",
-          "ukDividends" -> ""
-        )
-
-        val expectedResult = SubmittedDividendsInvalidJsonException
-
-        stubGet(s"/income-tax/nino/$nino/income-source/{incomeSourceType}/annual/$taxYear", OK, invalidJson.toString())
-
-        val result = await(connector.getSubmittedDividends(nino, taxYear))
-
-        result shouldBe Left(expectedResult)
-      }
-
-      "return a SubmittedDividendsNotFoundException" in {
-
-        val expectedResult = SubmittedDividendsNotFoundException
-
-        stubGet(s"/income-tax/nino/$nino/income-source/{incomeSourceType}/annual/$taxYear", NOT_FOUND, "{}")
-        val result = await(connector.getSubmittedDividends(nino, taxYear))
-
-        result shouldBe Left(expectedResult)
-      }
-
-      "return a SubmittedDividendsServiceUnavailableException" in {
-
-        val expectedResult = SubmittedDividendsServiceUnavailableException
-
-        stubGet(s"/income-tax/nino/$nino/income-source/{incomeSourceType}/annual/$taxYear", SERVICE_UNAVAILABLE, "{}")
-        val result = await(connector.getSubmittedDividends(nino, taxYear))
-
-        result shouldBe Left(expectedResult)
-      }
-
-      "return a SubmittedDividendsUnhandledException" in {
-
-        val expectedResult = SubmittedDividendsUnhandledException
-
-        stubGet(s"/income-tax/nino/$nino/income-source/{incomeSourceType}/annual/$taxYear", BAD_REQUEST, "{}")
-        val result = await(connector.getSubmittedDividends(nino, taxYear))
-
-        result shouldBe Left(expectedResult)
+        result mustBe Right(expectedResult)
       }
     }
+
+    "return a SubmittedDividendsInvalidJsonException" in {
+      val invalidJson = Json.obj(
+        "ukDividends" -> ""
+      )
+
+      val expectedResult = SubmittedDividendsInvalidJsonException
+
+      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", OK, invalidJson.toString())
+      implicit val hc = HeaderCarrier()
+      val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
+
+      result mustBe Left(expectedResult)
+    }
+    "return a SubmittedDividendsServiceUnavailableException" in {
+      val expectedResult = SubmittedDividendsServiceUnavailableException
+
+      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", SERVICE_UNAVAILABLE, "{}")
+      implicit val hc = HeaderCarrier()
+      val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
+
+      result mustBe Left(expectedResult)
+    }
+    "return a SubmittedDividendsNotFoundException" in {
+      val expectedResult = SubmittedDividendsNotFoundException
+
+      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", NOT_FOUND, "{}")
+      implicit val hc = HeaderCarrier()
+      val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
+
+      result mustBe Left(expectedResult)
+    }
+    "return a SubmittedDividendsUnhandledException" in {
+      val expectedResult = SubmittedDividendsUnhandledException
+
+      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", BAD_REQUEST, "{}")
+      implicit val hc = HeaderCarrier()
+      val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
+
+      result mustBe Left(expectedResult)
+    }
+
   }
-
-
 }
