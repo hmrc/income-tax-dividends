@@ -18,7 +18,7 @@ package services
 
 import com.codahale.metrics.SharedMetricRegistries
 import connectors.SubmittedDividendsConnector
-import connectors.httpParsers.submittedDividendsHttpParser.{SubmittedDividendsInvalidJsonException, SubmittedDividendsResponse}
+import connectors.httpParsers.SubmittedDividendsHttpParser.{SubmittedDividendsInvalidJsonException, SubmittedDividendsResponse}
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.TestUtils
 

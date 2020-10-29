@@ -1,7 +1,7 @@
 
 package connectors
 
-import connectors.httpParsers.submittedDividendsHttpParser._
+import connectors.httpParsers.SubmittedDividendsHttpParser._
 import helpers.WiremockSpec
 import models.SubmittedDividendsModel
 import org.scalatestplus.play.PlaySpec

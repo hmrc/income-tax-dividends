@@ -16,7 +16,7 @@
 
 package controllers
 
-import connectors.httpParsers.submittedDividendsHttpParser.{SubmittedDividendsInvalidJsonException, SubmittedDividendsResponse}
+import connectors.httpParsers.SubmittedDividendsHttpParser.{SubmittedDividendsInvalidJsonException, SubmittedDividendsResponse}
 import models.SubmittedDividendsModel
 import org.scalamock.handlers.CallHandler3
 import play.api.test.FakeRequest

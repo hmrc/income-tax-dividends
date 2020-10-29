@@ -19,7 +19,7 @@ package services
 import connectors.SubmittedDividendsConnector
 import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.http.HeaderCarrier
-import connectors.httpParsers.submittedDividendsHttpParser.SubmittedDividendsResponse
+import connectors.httpParsers.SubmittedDividendsHttpParser.SubmittedDividendsResponse
 
 import scala.concurrent.Future
 

@@ -20,7 +20,7 @@ import models.SubmittedDividendsModel
 import play.api.http.Status.{NOT_FOUND, OK, SERVICE_UNAVAILABLE}
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 
-object submittedDividendsHttpParser {
+object SubmittedDividendsHttpParser {
   type SubmittedDividendsResponse = Either[SubmittedDividendsException, SubmittedDividendsModel]
 
   implicit object SubmittedDividendsHttpReads extends HttpReads[SubmittedDividendsResponse] {
