@@ -14,17 +14,30 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.incometaxdividends.config
+package models
 
-import javax.inject.{Inject, Singleton}
-import play.api.Configuration
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import com.codahale.metrics.SharedMetricRegistries
+import play.api.libs.json.{JsObject, Json}
+import utils.TestUtils
 
-@Singleton
-class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) {
+class SubmittedDividendsModelSpec extends TestUtils {
+  SharedMetricRegistries.clear()
 
-  val authBaseUrl: String = servicesConfig.baseUrl("auth")
+  val model: SubmittedDividendsModel = SubmittedDividendsModel(123456.78,123456.78)
+  val jsonModel: JsObject = Json.obj(
+    "ukDividends" -> 123456.78,
+    "otherUkDividends" -> 123456.78
+  )
 
-  val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
-  val graphiteHost: String     = config.get[String]("microservice.metrics.graphite.host")
+  "submittedDividends" should {
+
+    "parse to Json" in {
+      Json.toJson(model) mustBe jsonModel
+    }
+
+    "parse from Json" in {
+      jsonModel.as[SubmittedDividendsModel]
+    }
+  }
+
 }

@@ -1,3 +1,3 @@
 # microservice specific routes
 
-GET        /hello-world             uk.gov.hmrc.incometaxdividends.controllers.MicroserviceHelloWorldController.hello
+GET        /submittedDividends              controllers.SubmittedDividendsController.getSubmittedDividends(nino:String, taxYear: Int, mtditid: String)
