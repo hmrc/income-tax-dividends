@@ -45,7 +45,7 @@ class AuthorisedAction @Inject()(
 
 
   def async(mtdItId: String)(block: User[AnyContent] => Future[Result]): Action[AnyContent] = defaultActionBuilder.async { implicit request =>
-    implicit lazy val headerCarrier: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, Some(request.session))
+    implicit lazy val headerCarrier: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers)
     authorised.retrieve(allEnrolments and affinityGroup) {
       case enrolments ~ Some(AffinityGroup.Agent) =>
         checkAuthorisation(block, enrolments, mtdItId, isAgent = true)(request, headerCarrier)
