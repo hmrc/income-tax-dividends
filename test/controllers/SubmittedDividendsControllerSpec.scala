@@ -37,7 +37,7 @@ class SubmittedDividendsControllerSpec extends TestUtils {
   private val fakeGetRequest = FakeRequest("GET", "/").withSession("MTDITID" -> "12234567890")
 
   def mockGetSubmittedDividendsValid(): CallHandler3[String, Int, HeaderCarrier, Future[SubmittedDividendsResponse]] = {
-    val validSubmittedDividends: SubmittedDividendsResponse = Right(SubmittedDividendsModel(12345.67,12345.67))
+    val validSubmittedDividends: SubmittedDividendsResponse = Right(SubmittedDividendsModel(Some(12345.67),Some(12345.67)))
     (submittedDividendsService.getSubmittedDividends(_: String, _: Int)(_: HeaderCarrier))
       .expects(*, *, *)
       .returning(Future.successful(validSubmittedDividends))

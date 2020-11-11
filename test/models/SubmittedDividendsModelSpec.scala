@@ -23,7 +23,7 @@ import utils.TestUtils
 class SubmittedDividendsModelSpec extends TestUtils {
   SharedMetricRegistries.clear()
 
-  val model: SubmittedDividendsModel = SubmittedDividendsModel(123456.78,123456.78)
+  val model: SubmittedDividendsModel = SubmittedDividendsModel(Some(123456.78),Some(123456.78))
   val jsonModel: JsObject = Json.obj(
     "ukDividends" -> 123456.78,
     "otherUkDividends" -> 123456.78

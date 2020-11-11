@@ -15,7 +15,7 @@ class SubmittedDividendsConnectorSpec extends PlaySpec with WiremockSpec{
 
   val nino: String = "123456789"
   val taxYear: Int = 1999
-  val dividendResult: BigDecimal = 123456.78
+  val dividendResult: Option[BigDecimal] = Some(123456.78)
 
   ".SubmittedDividendsConnector" should {
     "return a SubmittedDividendsModel" when {
