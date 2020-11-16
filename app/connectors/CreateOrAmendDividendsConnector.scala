@@ -17,19 +17,21 @@
 package connectors
 
 import config.AppConfig
-import connectors.httpParsers.SubmittedDividendsHttpParser.SubmittedDividendsResponse
+import connectors.httpParsers.CreateOrAmendDividendsHttpParser.CreateOrAmendDividendsResponse
 import javax.inject.Inject
+import models.CreateOrAmendDividendsModel
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class SubmittedDividendsConnector @Inject() (val http: HttpClient,
-                                             val config: AppConfig)(implicit ec:ExecutionContext) {
+class CreateOrAmendDividendsConnector @Inject()(http: HttpClient, config: AppConfig)(implicit ec: ExecutionContext) {
 
-  def getSubmittedDividends(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[SubmittedDividendsResponse] = {
-    val incomeSourcesUri: String = config.desBaseUrl + s"/income-tax/nino/$nino/income-source/dividends/" +
+  def createOrAmendDividends(
+                             nino: String, taxYear: Int, dividendsModel: CreateOrAmendDividendsModel
+                           )(implicit hc: HeaderCarrier): Future[CreateOrAmendDividendsResponse] = {
+    val createOrAmendDividendsUrl: String = config.desBaseUrl + s"/income-tax/nino/$nino/income-source/dividends/" +
       s"annual/$taxYear"
-    http.GET[SubmittedDividendsResponse](incomeSourcesUri)
+    http.POST[CreateOrAmendDividendsModel, CreateOrAmendDividendsResponse](createOrAmendDividendsUrl, dividendsModel)
   }
 
 }
