@@ -16,8 +16,28 @@
 
 package models
 
-import play.api.mvc.{Request, WrappedRequest}
+import com.codahale.metrics.SharedMetricRegistries
+import play.api.libs.json.{JsObject, Json}
+import utils.TestUtils
 
-case class User[T](mtditid: String, arn: Option[String])(implicit val request: Request[T]) extends WrappedRequest[T](request) {
-  def isAgent: Boolean = arn.nonEmpty
+class CreateOrAmendDividendsModelSpec extends TestUtils {
+  SharedMetricRegistries.clear()
+
+  val model: CreateOrAmendDividendsModel = CreateOrAmendDividendsModel(Some(123456.78),Some(123456.78))
+  val jsonModel: JsObject = Json.obj(
+    "ukDividends" -> 123456.78,
+    "otherUkDividends" -> 123456.78
+  )
+
+  "CreateOrAmendDividends" should {
+
+    "parse to Json" in {
+      Json.toJson(model) mustBe jsonModel
+    }
+
+    "parse from Json" in {
+      jsonModel.as[CreateOrAmendDividendsModel]
+    }
+  }
+
 }
