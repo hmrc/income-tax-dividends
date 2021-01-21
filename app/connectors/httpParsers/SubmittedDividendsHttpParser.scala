@@ -16,36 +16,30 @@
 
 package connectors.httpParsers
 
-import models.SubmittedDividendsModel
-import play.api.http.Status.{NOT_FOUND, OK, SERVICE_UNAVAILABLE}
+import models.{DesErrorBodyModel, DesErrorModel, SubmittedDividendsModel}
+import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 
 object SubmittedDividendsHttpParser {
-  type SubmittedDividendsResponse = Either[SubmittedDividendsException, SubmittedDividendsModel]
+  type SubmittedDividendsResponse = Either[DesErrorModel, SubmittedDividendsModel]
 
   implicit object SubmittedDividendsHttpReads extends HttpReads[SubmittedDividendsResponse] {
     override def read(method: String, url: String, response: HttpResponse): SubmittedDividendsResponse = {
       response.status match {
         case OK => response.json.validate[SubmittedDividendsModel].fold[SubmittedDividendsResponse](
           jsonErrors =>
-            Left(SubmittedDividendsInvalidJsonException),
+            Left(DesErrorModel(OK, DesErrorBodyModel.parsingError)),
           parsedModel =>
             Right(parsedModel)
         )
-        case NOT_FOUND => Left(SubmittedDividendsNotFoundException)
-        case SERVICE_UNAVAILABLE => Left(SubmittedDividendsServiceUnavailableException)
-        case _ => Left(SubmittedDividendsUnhandledException)
+        case _ => response.json.validate[DesErrorBodyModel].fold[SubmittedDividendsResponse](
+          jsonErrors =>
+            Left(DesErrorModel(response.status, DesErrorBodyModel.parsingError)),
+          parsedError =>
+            Left(DesErrorModel(response.status, parsedError))
+        )
       }
     }
   }
-
-
-  sealed trait SubmittedDividendsException
-
-  object SubmittedDividendsInvalidJsonException extends SubmittedDividendsException
-  object SubmittedDividendsServiceUnavailableException extends SubmittedDividendsException
-  object SubmittedDividendsNotFoundException extends SubmittedDividendsException
-  object SubmittedDividendsUnhandledException extends SubmittedDividendsException
-
 
 }

@@ -18,6 +18,7 @@ package controllers
 
 import controllers.predicates.AuthorisedAction
 import javax.inject.Inject
+import play.api.Logger
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.SubmittedDividendsService
@@ -30,10 +31,15 @@ class SubmittedDividendsController @Inject()(submittedDividendsService: Submitte
                                              authorisedAction: AuthorisedAction)
                                             (implicit ec: ExecutionContext) extends BackendController(cc){
 
+  private val logger = Logger.logger
+
   def getSubmittedDividends(nino: String, taxYear:Int, mtditid: String): Action[AnyContent] = authorisedAction.async(mtditid) { implicit user =>
       submittedDividendsService.getSubmittedDividends(nino,taxYear).map{
         case Right(dividendsModel) => Ok(Json.toJson(dividendsModel))
-        case Left(_) => InternalServerError
+        case Left(errorModel) =>
+          logger.error(s"[SubmittedDividendsController][getSubmittedDividends] From DES: ${errorModel.desBody}")
+          Status(errorModel.status)(Json.toJson(errorModel.desBody))
       }
   }
+
 }

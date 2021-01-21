@@ -16,8 +16,8 @@
 
 package controllers
 
-import connectors.httpParsers.SubmittedDividendsHttpParser.{SubmittedDividendsInvalidJsonException, SubmittedDividendsResponse}
-import models.SubmittedDividendsModel
+import connectors.httpParsers.SubmittedDividendsHttpParser.SubmittedDividendsResponse
+import models.{DesErrorBodyModel, DesErrorModel, SubmittedDividendsModel}
 import org.scalamock.handlers.CallHandler3
 import play.api.test.FakeRequest
 import services.SubmittedDividendsService
@@ -34,6 +34,10 @@ class SubmittedDividendsControllerSpec extends TestUtils {
   val nino :String = "123456789"
   val mtdItID :String = "123123123"
   val taxYear: Int = 1234
+  val badRequestModel = DesErrorBodyModel("INVALID_NINO", "Nino is invalid")
+  val notFoundModel = DesErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find income source")
+  val serverErrorModel = DesErrorBodyModel("SERVER_ERROR", "Internal server error")
+  val serviceUnavailableErrorModel = DesErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable")
   private val fakeGetRequest = FakeRequest("GET", "/").withSession("MTDITID" -> "12234567890")
 
   def mockGetSubmittedDividendsValid(): CallHandler3[String, Int, HeaderCarrier, Future[SubmittedDividendsResponse]] = {
@@ -43,14 +47,33 @@ class SubmittedDividendsControllerSpec extends TestUtils {
       .returning(Future.successful(validSubmittedDividends))
   }
 
-  def mockGetSubmittedDividendsInvalid(): CallHandler3[String, Int, HeaderCarrier, Future[SubmittedDividendsResponse]] = {
-    val invalidSubmittedDividends: SubmittedDividendsResponse = Left(SubmittedDividendsInvalidJsonException)
+  def mockGetSubmittedDividendsBadRequest(): CallHandler3[String, Int, HeaderCarrier, Future[SubmittedDividendsResponse]] = {
+    val invalidSubmittedDividends: SubmittedDividendsResponse = Left(DesErrorModel(BAD_REQUEST, badRequestModel))
     (submittedDividendsService.getSubmittedDividends(_: String, _: Int)(_: HeaderCarrier))
       .expects(*, *, *)
       .returning(Future.successful(invalidSubmittedDividends))
   }
 
+  def mockGetSubmittedDividendsNotFound(): CallHandler3[String, Int, HeaderCarrier, Future[SubmittedDividendsResponse]] = {
+    val invalidSubmittedDividends: SubmittedDividendsResponse = Left(DesErrorModel(NOT_FOUND, notFoundModel))
+    (submittedDividendsService.getSubmittedDividends(_: String, _: Int)(_: HeaderCarrier))
+      .expects(*, *, *)
+      .returning(Future.successful(invalidSubmittedDividends))
+  }
 
+  def mockGetSubmittedDividendsServerError(): CallHandler3[String, Int, HeaderCarrier, Future[SubmittedDividendsResponse]] = {
+    val invalidSubmittedDividends: SubmittedDividendsResponse = Left(DesErrorModel(INTERNAL_SERVER_ERROR, serverErrorModel))
+    (submittedDividendsService.getSubmittedDividends(_: String, _: Int)(_: HeaderCarrier))
+      .expects(*, *, *)
+      .returning(Future.successful(invalidSubmittedDividends))
+  }
+
+  def mockGetSubmittedDividendsServiceUnavailable(): CallHandler3[String, Int, HeaderCarrier, Future[SubmittedDividendsResponse]] = {
+    val invalidSubmittedDividends: SubmittedDividendsResponse = Left(DesErrorModel(SERVICE_UNAVAILABLE, serviceUnavailableErrorModel))
+    (submittedDividendsService.getSubmittedDividends(_: String, _: Int)(_: HeaderCarrier))
+      .expects(*, *, *)
+      .returning(Future.successful(invalidSubmittedDividends))
+  }
 
   "calling .getSubmittedDividends" should {
 
@@ -75,26 +98,90 @@ class SubmittedDividendsControllerSpec extends TestUtils {
       }
 
     }
+
     "without existing dividend sources" should {
 
-      "return an InternalServerError response when called as an individual" in {
+      "return an NotFound response when called as an individual" in {
         val result = {
           mockAuth()
-          mockGetSubmittedDividendsInvalid()
+          mockGetSubmittedDividendsNotFound()
           submittedDividendsController.getSubmittedDividends(nino, taxYear, mtdItID)(fakeGetRequest)
         }
-        status(result) mustBe INTERNAL_SERVER_ERROR
+        status(result) mustBe NOT_FOUND
       }
 
-      "return an InternalServerError response when called as an agent" in {
+      "return an NotFound response when called as an agent" in {
         val result = {
           mockAuthAsAgent()
-          mockGetSubmittedDividendsInvalid()
+          mockGetSubmittedDividendsNotFound()
+          submittedDividendsController.getSubmittedDividends(nino, taxYear, mtdItID)(fakeGetRequest)
+        }
+        status(result) mustBe NOT_FOUND
+      }
+
+    }
+
+    "with an invalid NINO" should {
+
+      "return an BadRequest response when called as an individual" in {
+        val result = {
+          mockAuth()
+          mockGetSubmittedDividendsBadRequest()
+          submittedDividendsController.getSubmittedDividends(nino, taxYear, mtdItID)(fakeGetRequest)
+        }
+        status(result) mustBe BAD_REQUEST
+      }
+
+      "return an BadRequest response when called as an agent" in {
+        val result = {
+          mockAuthAsAgent()
+          mockGetSubmittedDividendsBadRequest()
+          submittedDividendsController.getSubmittedDividends(nino, taxYear, mtdItID)(fakeGetRequest)
+        }
+        status(result) mustBe BAD_REQUEST
+      }
+    }
+
+    "with something that causes and internal server error in DES" should {
+
+      "return an BadRequest response when called as an individual" in {
+        val result = {
+          mockAuth()
+          mockGetSubmittedDividendsServerError()
           submittedDividendsController.getSubmittedDividends(nino, taxYear, mtdItID)(fakeGetRequest)
         }
         status(result) mustBe INTERNAL_SERVER_ERROR
       }
 
+      "return an BadRequest response when called as an agent" in {
+        val result = {
+          mockAuthAsAgent()
+          mockGetSubmittedDividendsServerError()
+          submittedDividendsController.getSubmittedDividends(nino, taxYear, mtdItID)(fakeGetRequest)
+        }
+        status(result) mustBe INTERNAL_SERVER_ERROR
+      }
+    }
+
+    "with an unavailable service" should {
+
+      "return an Service_Unavailable response when called as an individual" in {
+        val result = {
+          mockAuth()
+          mockGetSubmittedDividendsServiceUnavailable()
+          submittedDividendsController.getSubmittedDividends(nino, taxYear, mtdItID)(fakeGetRequest)
+        }
+        status(result) mustBe SERVICE_UNAVAILABLE
+      }
+
+      "return an Service_Unavailable response when called as an agent" in {
+        val result = {
+          mockAuthAsAgent()
+          mockGetSubmittedDividendsServiceUnavailable()
+          submittedDividendsController.getSubmittedDividends(nino, taxYear, mtdItID)(fakeGetRequest)
+        }
+        status(result) mustBe SERVICE_UNAVAILABLE
+      }
     }
 
   }
