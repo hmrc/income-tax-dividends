@@ -30,12 +30,12 @@ class SubmittedDividendsConnectorSpec extends PlaySpec with WiremockSpec{
       }
     }
 
-    "return a Parsing error ok response" in {
+    "return a Parsing error INTERNAL_SERVER_ERROR response" in {
       val invalidJson = Json.obj(
         "ukDividends" -> ""
       )
 
-      val expectedResult = DesErrorModel(OK, DesErrorBodyModel.parsingError)
+      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
 
       stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", OK, invalidJson.toString())
       implicit val hc = HeaderCarrier()
@@ -52,6 +52,16 @@ class SubmittedDividendsConnectorSpec extends PlaySpec with WiremockSpec{
       val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
 
       stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", INTERNAL_SERVER_ERROR, invalidJson.toString())
+      implicit val hc = HeaderCarrier()
+      val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
+
+      result mustBe Left(expectedResult)
+    }
+
+    "return a NO_CONTENT" in {
+      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+
+      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", NO_CONTENT, "{}")
       implicit val hc = HeaderCarrier()
       val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
 
