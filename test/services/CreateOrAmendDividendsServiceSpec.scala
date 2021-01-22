@@ -42,7 +42,7 @@ class CreateOrAmendDividendsServiceSpec extends TestUtils {
         .expects("12345678", 1234, *, *)
         .returning(Future.successful(expectedResult))
 
-      val result = await(service.createOrAmendDividends("12345678", 12345, CreateOrAmendDividendsModel(Some(12345.6655), None)))
+      val result = await(service.createOrAmendDividends("12345678", 1234, CreateOrAmendDividendsModel(Some(12345.66), None)))
 
       result mustBe expectedResult
 
