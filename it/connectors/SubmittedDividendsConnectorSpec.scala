@@ -1,9 +1,8 @@
 
 package connectors
 
-import connectors.httpParsers.SubmittedDividendsHttpParser._
 import helpers.WiremockSpec
-import models.SubmittedDividendsModel
+import models.{DesErrorBodyModel, DesErrorModel, SubmittedDividendsModel}
 import org.scalatestplus.play.PlaySpec
 import play.api.http.Status._
 import play.api.libs.json.Json
@@ -31,12 +30,12 @@ class SubmittedDividendsConnectorSpec extends PlaySpec with WiremockSpec{
       }
     }
 
-    "return a SubmittedDividendsInvalidJsonException" in {
+    "return a Parsing error INTERNAL_SERVER_ERROR response" in {
       val invalidJson = Json.obj(
         "ukDividends" -> ""
       )
 
-      val expectedResult = SubmittedDividendsInvalidJsonException
+      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
 
       stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", OK, invalidJson.toString())
       implicit val hc = HeaderCarrier()
@@ -44,33 +43,87 @@ class SubmittedDividendsConnectorSpec extends PlaySpec with WiremockSpec{
 
       result mustBe Left(expectedResult)
     }
-    "return a SubmittedDividendsServiceUnavailableException" in {
-      val expectedResult = SubmittedDividendsServiceUnavailableException
 
-      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", SERVICE_UNAVAILABLE, "{}")
+    "return a parsing error, internal server error" in {
+      val invalidJson = Json.obj(
+        "ukDividends" -> ""
+      )
+
+      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+
+      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", INTERNAL_SERVER_ERROR, invalidJson.toString())
       implicit val hc = HeaderCarrier()
       val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
 
       result mustBe Left(expectedResult)
     }
-    "return a SubmittedDividendsNotFoundException" in {
-      val expectedResult = SubmittedDividendsNotFoundException
 
-      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", NOT_FOUND, "{}")
+    "return a NO_CONTENT" in {
+      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+
+      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", NO_CONTENT, "{}")
       implicit val hc = HeaderCarrier()
       val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
 
       result mustBe Left(expectedResult)
     }
-    "return a SubmittedDividendsUnhandledException" in {
-      val expectedResult = SubmittedDividendsUnhandledException
 
-      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", BAD_REQUEST, "{}")
+    "return a Bad Request" in {
+      val responseBody = Json.obj(
+        "code" -> "INVALID_NINO",
+        "description" -> "Nino is invalid"
+      )
+      val expectedResult = DesErrorModel(400, DesErrorBodyModel("INVALID_NINO", "Nino is invalid"))
+
+      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", BAD_REQUEST, responseBody.toString())
       implicit val hc = HeaderCarrier()
       val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
 
       result mustBe Left(expectedResult)
     }
+
+    "return a Not found" in {
+      val responseBody = Json.obj(
+        "code" -> "NOT_FOUND_INCOME_SOURCE",
+        "description" -> "Can't find income source"
+      )
+      val expectedResult = DesErrorModel(404, DesErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find income source"))
+
+      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", NOT_FOUND, responseBody.toString())
+      implicit val hc = HeaderCarrier()
+      val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
+
+      result mustBe Left(expectedResult)
+    }
+
+    "return an Internal server error" in {
+      val responseBody = Json.obj(
+        "code" -> "SERVER_ERROR",
+        "description" -> "Internal server error"
+      )
+      val expectedResult = DesErrorModel(500, DesErrorBodyModel("SERVER_ERROR", "Internal server error"))
+
+      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", INTERNAL_SERVER_ERROR, responseBody.toString())
+      implicit val hc = HeaderCarrier()
+      val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
+
+      result mustBe Left(expectedResult)
+    }
+
+    "return a Service Unavailable" in {
+      val responseBody = Json.obj(
+        "code" -> "SERVICE_UNAVAILABLE",
+        "description" -> "Service is unavailable"
+      )
+      val expectedResult = DesErrorModel(503, DesErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable"))
+
+      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", SERVICE_UNAVAILABLE, responseBody.toString())
+      implicit val hc = HeaderCarrier()
+      val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
+
+      result mustBe Left(expectedResult)
+    }
+
 
   }
 }

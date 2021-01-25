@@ -16,36 +16,60 @@
 
 package connectors.httpParsers
 
-import models.SubmittedDividendsModel
-import play.api.http.Status.{NOT_FOUND, OK, SERVICE_UNAVAILABLE}
+import models.{DesErrorBodyModel, DesErrorModel, SubmittedDividendsModel}
+import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
+import utils.PagerDutyHelper.PagerDutyKeys._
+import utils.PagerDutyHelper.pagerDutyLog
 
 object SubmittedDividendsHttpParser {
-  type SubmittedDividendsResponse = Either[SubmittedDividendsException, SubmittedDividendsModel]
+  type SubmittedDividendsResponse = Either[DesErrorModel, SubmittedDividendsModel]
 
   implicit object SubmittedDividendsHttpReads extends HttpReads[SubmittedDividendsResponse] {
+
     override def read(method: String, url: String, response: HttpResponse): SubmittedDividendsResponse = {
       response.status match {
         case OK => response.json.validate[SubmittedDividendsModel].fold[SubmittedDividendsResponse](
-          jsonErrors =>
-            Left(SubmittedDividendsInvalidJsonException),
-          parsedModel =>
-            Right(parsedModel)
+          jsonErrors => {
+            pagerDutyLog(BAD_SUCCESS_JSON_FROM_DES, Some(s"[SubmittedDividendsHttpParser][read] Invalid Json from DES."))
+            Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
+          },
+          parsedModel => Right(parsedModel)
         )
-        case NOT_FOUND => Left(SubmittedDividendsNotFoundException)
-        case SERVICE_UNAVAILABLE => Left(SubmittedDividendsServiceUnavailableException)
-        case _ => Left(SubmittedDividendsUnhandledException)
+        case INTERNAL_SERVER_ERROR =>
+          pagerDutyLog(INTERNAL_SERVER_ERROR_FROM_DES, logMessage(response))
+          handleDESError(response)
+        case SERVICE_UNAVAILABLE =>
+          pagerDutyLog(SERVICE_UNAVAILABLE_FROM_DES, logMessage(response))
+          handleDESError(response)
+        case BAD_REQUEST | NOT_FOUND =>
+          pagerDutyLog(FOURXX_RESPONSE_FROM_DES, logMessage(response))
+          handleDESError(response)
+        case _ =>
+          pagerDutyLog(UNEXPECTED_RESPONSE_FROM_DES, logMessage(response))
+          handleDESError(response, Some(INTERNAL_SERVER_ERROR))
+      }
+    }
+
+    private def logMessage(response:HttpResponse): Option[String] ={
+      Some(s"[SubmittedDividendsHttpParser][read] Received ${response.status} from DES. Body:${response.body}")
+    }
+
+    private def handleDESError(response: HttpResponse, statusOverride: Option[Int] = None):SubmittedDividendsResponse = {
+      val status = statusOverride.getOrElse(response.status)
+
+      try {
+        response.json.validate[DesErrorBodyModel].fold[SubmittedDividendsResponse](
+          jsonErrors => {
+            pagerDutyLog(UNEXPECTED_RESPONSE_FROM_DES, Some(s"[SubmittedDividendsHttpParser][read] Unexpected Json from DES."))
+            Left(DesErrorModel(status, DesErrorBodyModel.parsingError))
+          },
+          parsedError => Left(DesErrorModel(status, parsedError))
+        )
+      } catch {
+        case _: Exception => Left(DesErrorModel(status, DesErrorBodyModel.parsingError))
       }
     }
   }
-
-
-  sealed trait SubmittedDividendsException
-
-  object SubmittedDividendsInvalidJsonException extends SubmittedDividendsException
-  object SubmittedDividendsServiceUnavailableException extends SubmittedDividendsException
-  object SubmittedDividendsNotFoundException extends SubmittedDividendsException
-  object SubmittedDividendsUnhandledException extends SubmittedDividendsException
-
 
 }

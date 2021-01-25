@@ -18,7 +18,8 @@ package services
 
 import com.codahale.metrics.SharedMetricRegistries
 import connectors.SubmittedDividendsConnector
-import connectors.httpParsers.SubmittedDividendsHttpParser.{SubmittedDividendsInvalidJsonException, SubmittedDividendsResponse}
+import connectors.httpParsers.SubmittedDividendsHttpParser.SubmittedDividendsResponse
+import models.SubmittedDividendsModel
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.TestUtils
 
@@ -35,7 +36,7 @@ class SubmittedDividendsServiceSpec extends TestUtils {
 
     "return the connector response" in {
 
-      val expectedResult: SubmittedDividendsResponse = Left(SubmittedDividendsInvalidJsonException)
+      val expectedResult: SubmittedDividendsResponse = Right(SubmittedDividendsModel(Some(20.00), Some(20.00)))
 
       (connector.getSubmittedDividends(_: String, _: Int)(_: HeaderCarrier))
         .expects("12345678", 1234, *)
