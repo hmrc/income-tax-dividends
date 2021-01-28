@@ -18,9 +18,10 @@ package controllers
 
 import connectors.httpParsers.CreateOrAmendDividendsHttpParser.CreateOrAmendDividendsResponse
 import controllers.predicates.AuthorisedAction
+
 import javax.inject.Inject
 import models.CreateOrAmendDividendsModel
-import play.api.libs.json.JsSuccess
+import play.api.libs.json.{JsSuccess, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.CreateOrAmendDividendsService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -42,7 +43,7 @@ class CreateOrAmendDividendsController @Inject()(createOrAmendDividendsService: 
   def responseHandler(serviceResponse: Future[CreateOrAmendDividendsResponse]): Future[Result] ={
     serviceResponse.map {
       case Right(responseModel) => NoContent
-      case Left(error) => InternalServerError
+      case Left(errorModel) => Status(errorModel.status)(Json.toJson(errorModel.desBody))
     }
   }
 }

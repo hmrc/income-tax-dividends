@@ -19,7 +19,7 @@ package services
 import com.codahale.metrics.SharedMetricRegistries
 import connectors.CreateOrAmendDividendsConnector
 import connectors.httpParsers.CreateOrAmendDividendsHttpParser.CreateOrAmendDividendsResponse
-import models.CreateOrAmendDividendsModel
+import models.{CreateOrAmendDividendsModel, CreateOrAmendDividendsResponseModel}
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.TestUtils
 
@@ -36,7 +36,7 @@ class CreateOrAmendDividendsServiceSpec extends TestUtils {
 
     "return the connector response" in {
 
-      val expectedResult: CreateOrAmendDividendsResponse = Right(true)
+      val expectedResult: CreateOrAmendDividendsResponse = Right(CreateOrAmendDividendsResponseModel("transactionRef"))
 
       (connector.createOrAmendDividends(_: String, _: Int, _: CreateOrAmendDividendsModel)(_: HeaderCarrier))
         .expects("12345678", 1234, *, *)
