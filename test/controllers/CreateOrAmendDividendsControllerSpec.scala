@@ -16,8 +16,8 @@
 
 package controllers
 
-import connectors.httpParsers.CreateOrAmendDividendsHttpParser.{CreateOrAmendDividendsResponse, CreateOrAmendDividendsServiceUnavailableException}
-import models.CreateOrAmendDividendsModel
+import connectors.httpParsers.CreateOrAmendDividendsHttpParser.CreateOrAmendDividendsResponse
+import models.{CreateOrAmendDividendsModel, CreateOrAmendDividendsResponseModel, DesErrorBodyModel, DesErrorModel}
 import org.scalamock.handlers.CallHandler4
 import play.api.http.Status._
 import play.api.libs.json.{JsValue, Json}
@@ -35,25 +35,49 @@ class CreateOrAmendDividendsControllerSpec extends TestUtils {
   val nino: String = "123456789"
   val mtdItID: String = "123123123"
   val taxYear: Int = 1234
+  val badRequestModel = DesErrorBodyModel("INVALID_NINO", "Nino is invalid")
+  val notFoundModel = DesErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find income source")
+  val serverErrorModel = DesErrorBodyModel("SERVER_ERROR", "Internal server error")
+  val serviceUnavailableErrorModel = DesErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable")
   private val fakeGetRequest = FakeRequest("PUT", "/").withSession("MTDITID" -> "12234567890")
 
   val jsonBody: JsValue = Json.parse("""{"ukDividends": 12345.99, "otherUkDividends": 123456.99}""")
   val invalidJsonBody: JsValue = Json.parse("""{"notukDividends": 12345.99, "nototherUkDividends": 123456.99}""")
 
   def mockCreateOrAmendDividendsValid(): CallHandler4[String, Int, CreateOrAmendDividendsModel, HeaderCarrier, Future[CreateOrAmendDividendsResponse]] = {
-    val response: CreateOrAmendDividendsResponse = Right(true)
+    val response: CreateOrAmendDividendsResponse = Right(CreateOrAmendDividendsResponseModel("transactionRef"))
     (createOrAmendDividendsService.createOrAmendDividends(_: String, _: Int, _: CreateOrAmendDividendsModel)(_: HeaderCarrier))
       .expects(*, *, *, *)
       .returning(Future.successful(response))
   }
 
-  def mockGetSubmittedDividendsInvalid(): CallHandler4[String, Int, CreateOrAmendDividendsModel, HeaderCarrier, Future[CreateOrAmendDividendsResponse]] = {
-    val response: CreateOrAmendDividendsResponse = Left(CreateOrAmendDividendsServiceUnavailableException)
+  def mockCreateOrAmendDividendsBadRequest(): CallHandler4[String, Int, CreateOrAmendDividendsModel, HeaderCarrier, Future[CreateOrAmendDividendsResponse]] = {
+    val response: CreateOrAmendDividendsResponse = Left(DesErrorModel(BAD_REQUEST, badRequestModel))
     (createOrAmendDividendsService.createOrAmendDividends(_: String, _: Int, _: CreateOrAmendDividendsModel)(_: HeaderCarrier))
       .expects(*, *, *, *)
       .returning(Future.successful(response))
   }
 
+  def mockCreateOrAmendDividendsNotFound(): CallHandler4[String, Int, CreateOrAmendDividendsModel, HeaderCarrier, Future[CreateOrAmendDividendsResponse]] = {
+    val response = Left(DesErrorModel(NOT_FOUND, notFoundModel))
+    (createOrAmendDividendsService.createOrAmendDividends(_: String, _: Int, _: CreateOrAmendDividendsModel)(_: HeaderCarrier))
+      .expects(*, *, *, *)
+      .returning(Future.successful(response))
+  }
+
+  def mockCreateOrAmendDividendsServerError(): CallHandler4[String, Int, CreateOrAmendDividendsModel, HeaderCarrier, Future[CreateOrAmendDividendsResponse]] = {
+    val response = Left(DesErrorModel(INTERNAL_SERVER_ERROR, serverErrorModel))
+    (createOrAmendDividendsService.createOrAmendDividends(_: String, _: Int, _: CreateOrAmendDividendsModel)(_: HeaderCarrier))
+      .expects(*, *, *, *)
+      .returning(Future.successful(response))
+  }
+
+  def mockCreateOrAmendDividendsServiceUnavailable(): CallHandler4[String, Int, CreateOrAmendDividendsModel, HeaderCarrier, Future[CreateOrAmendDividendsResponse]] = {
+    val response = Left(DesErrorModel(SERVICE_UNAVAILABLE, serviceUnavailableErrorModel))
+    (createOrAmendDividendsService.createOrAmendDividends(_: String, _: Int, _: CreateOrAmendDividendsModel)(_: HeaderCarrier))
+      .expects(*, *, *, *)
+      .returning(Future.successful(response))
+  }
 
   "calling .createOrAmendDividends" should {
 
@@ -66,7 +90,7 @@ class CreateOrAmendDividendsControllerSpec extends TestUtils {
       status(result) mustBe NO_CONTENT
     }
 
-    "return an OK 200 response when called as an agent" in {
+    "return a 204 No Content response when called as an agent" in {
       val result = {
         mockAuthAsAgent()
         mockCreateOrAmendDividendsValid()
@@ -75,7 +99,7 @@ class CreateOrAmendDividendsControllerSpec extends TestUtils {
       status(result) mustBe NO_CONTENT
     }
 
-    "return an badRequest response when called as an individual" in {
+    "return an badRequest response when called as an individual with an invalid request body" in {
       val result = {
         mockAuth()
         createOrAmendDividendsController.createOrAmendDividends(nino, taxYear, mtdItID)(fakeGetRequest.withJsonBody(invalidJsonBody))
@@ -83,10 +107,46 @@ class CreateOrAmendDividendsControllerSpec extends TestUtils {
       status(result) mustBe BAD_REQUEST
     }
 
+    "return a badRequest response when called as an individual and DES returns badRequest" in {
+      val result = {
+        mockAuth()
+        mockCreateOrAmendDividendsBadRequest()
+        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear, mtdItID)(fakeGetRequest.withJsonBody(jsonBody))
+      }
+      status(result) mustBe BAD_REQUEST
+    }
+
+    "return an badRequest response when called as an agent and DES returns badRequest" in {
+      val result = {
+        mockAuthAsAgent()
+        mockCreateOrAmendDividendsBadRequest()
+        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear, mtdItID)(fakeGetRequest.withJsonBody(jsonBody))
+      }
+      status(result) mustBe BAD_REQUEST
+    }
+
+    "return a notFound response when called as an individual and DES returns badRequest" in {
+      val result = {
+        mockAuth()
+        mockCreateOrAmendDividendsNotFound()
+        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear, mtdItID)(fakeGetRequest.withJsonBody(jsonBody))
+      }
+      status(result) mustBe NOT_FOUND
+    }
+
+    "return an notFound response when called as an agent and DES returns badRequest" in {
+      val result = {
+        mockAuthAsAgent()
+        mockCreateOrAmendDividendsNotFound()
+        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear, mtdItID)(fakeGetRequest.withJsonBody(jsonBody))
+      }
+      status(result) mustBe NOT_FOUND
+    }
+
     "return an InternalServerError response when called as an individual" in {
       val result = {
         mockAuth()
-        mockGetSubmittedDividendsInvalid()
+        mockCreateOrAmendDividendsServerError()
         createOrAmendDividendsController.createOrAmendDividends(nino, taxYear, mtdItID)(fakeGetRequest.withJsonBody(jsonBody))
       }
       status(result) mustBe INTERNAL_SERVER_ERROR
@@ -95,12 +155,28 @@ class CreateOrAmendDividendsControllerSpec extends TestUtils {
     "return an InternalServerError response when called as an agent" in {
       val result = {
         mockAuthAsAgent()
-        mockGetSubmittedDividendsInvalid()
+        mockCreateOrAmendDividendsServerError()
         createOrAmendDividendsController.createOrAmendDividends(nino, taxYear, mtdItID)(fakeGetRequest.withJsonBody(jsonBody))
       }
       status(result) mustBe INTERNAL_SERVER_ERROR
     }
 
+    "return an ServiceUnavailable response when called as an individual" in {
+      val result = {
+        mockAuth()
+        mockCreateOrAmendDividendsServiceUnavailable()
+        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear, mtdItID)(fakeGetRequest.withJsonBody(jsonBody))
+      }
+      status(result) mustBe SERVICE_UNAVAILABLE
+    }
 
+    "return an ServiceUnavailable response when called as an agent" in {
+      val result = {
+        mockAuthAsAgent()
+        mockCreateOrAmendDividendsServiceUnavailable()
+        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear, mtdItID)(fakeGetRequest.withJsonBody(jsonBody))
+      }
+      status(result) mustBe SERVICE_UNAVAILABLE
+    }
   }
 }

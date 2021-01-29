@@ -44,20 +44,6 @@ class SubmittedDividendsConnectorSpec extends PlaySpec with WiremockSpec{
       result mustBe Left(expectedResult)
     }
 
-    "return a parsing error, internal server error" in {
-      val invalidJson = Json.obj(
-        "ukDividends" -> ""
-      )
-
-      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
-
-      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", INTERNAL_SERVER_ERROR, invalidJson.toString())
-      implicit val hc = HeaderCarrier()
-      val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
-
-      result mustBe Left(expectedResult)
-    }
-
     "return a NO_CONTENT" in {
       val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
 
@@ -124,6 +110,41 @@ class SubmittedDividendsConnectorSpec extends PlaySpec with WiremockSpec{
       result mustBe Left(expectedResult)
     }
 
+    "return an Internal Server Error when DES throws an unexpected result" in {
+      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
 
+      stubGetWithoutResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", NO_CONTENT)
+      implicit val hc: HeaderCarrier = HeaderCarrier()
+      val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
+
+      result mustBe Left(expectedResult)
+    }
+
+    "return an Internal Server Error when DES throws an unexpected result that is parsable" in {
+      val responseBody = Json.obj(
+        "code" -> "SERVICE_UNAVAILABLE",
+        "description" -> "Service is unavailable"
+      )
+      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR,  DesErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable"))
+
+      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", CONFLICT, responseBody.toString())
+      implicit val hc: HeaderCarrier = HeaderCarrier()
+      val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
+
+      result mustBe Left(expectedResult)
+    }
+
+    "return an Internal Server Error when DES throws an unexpected result that isn't parsable" in {
+      val responseBody = Json.obj(
+        "code" -> "SERVICE_UNAVAILABLE"
+      )
+      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR,  DesErrorBodyModel.parsingError)
+
+      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", CONFLICT, responseBody.toString())
+      implicit val hc: HeaderCarrier = HeaderCarrier()
+      val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
+
+      result mustBe Left(expectedResult)
+    }
   }
 }
