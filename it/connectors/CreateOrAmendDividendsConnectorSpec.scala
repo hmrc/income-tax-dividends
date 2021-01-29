@@ -46,14 +46,14 @@ class CreateOrAmendDividendsConnectorSpec extends PlaySpec with WiremockSpec{
       result mustBe Left(expectedResult)
     }
 
-    "return a Not Found" in {
+    "return a Forbidden" in {
       val responseBody = Json.obj(
         "code" -> "NOT_FOUND_INCOME_SOURCE",
         "description" -> "Can't find income source"
       )
-      val expectedResult = DesErrorModel(404, DesErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find income source"))
+      val expectedResult = DesErrorModel(403, DesErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find income source"))
 
-      stubPostWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", NOT_FOUND, Json.toJson(updateDividendsModel).toString(), responseBody.toString())
+      stubPostWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", FORBIDDEN, Json.toJson(updateDividendsModel).toString(), responseBody.toString())
       implicit val hc = HeaderCarrier()
       val result = await(connector.createOrAmendDividends(nino, taxYear, updateDividendsModel)(hc))
 
