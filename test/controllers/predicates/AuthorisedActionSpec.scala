@@ -22,8 +22,7 @@ import play.api.http.Status._
 import play.api.mvc.Results._
 import play.api.mvc.{AnyContent, Result}
 import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
-import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
+import uk.gov.hmrc.auth.core.retrieve.Retrieval
 import uk.gov.hmrc.auth.core.{Enrolment, EnrolmentIdentifier, Enrolments, _}
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.TestUtils
@@ -109,7 +108,6 @@ class AuthorisedActionSpec extends TestUtils {
     ".agentAuthenticated" should {
 
       val block: User[AnyContent] => Future[Result] = user => Future.successful(Ok(s"${user.mtditid} ${user.arn.get}"))
-      val arn = "0987654321"
 
       "perform the block action" when {
 
