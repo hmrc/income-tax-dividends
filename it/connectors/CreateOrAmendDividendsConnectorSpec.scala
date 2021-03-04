@@ -64,7 +64,7 @@ class CreateOrAmendDividendsConnectorSpec extends PlaySpec with WiremockSpec{
     "return a Forbidden" in {
       val responseBody = Json.obj(
         "code" -> "NOT_FOUND_INCOME_SOURCE",
-        "description" -> "Can't find income source"
+        "reason" -> "Can't find income source"
       )
       val expectedResult = DesErrorModel(403, DesErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find income source"))
 
@@ -78,7 +78,7 @@ class CreateOrAmendDividendsConnectorSpec extends PlaySpec with WiremockSpec{
     "return a Internal Server Error" in {
       val responseBody = Json.obj(
         "code" -> "SERVER_ERROR",
-        "description" -> "Internal server error"
+        "reason" -> "Internal server error"
       )
       val expectedResult = DesErrorModel(500, DesErrorBodyModel("SERVER_ERROR", "Internal server error"))
 
@@ -92,7 +92,7 @@ class CreateOrAmendDividendsConnectorSpec extends PlaySpec with WiremockSpec{
     "return a Service Unavailable" in {
       val responseBody = Json.obj(
         "code" -> "SERVICE_UNAVAILABLE",
-        "description" -> "Service is unavailable"
+        "reason" -> "Service is unavailable"
       )
       val expectedResult = DesErrorModel(503, DesErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable"))
 
@@ -116,7 +116,7 @@ class CreateOrAmendDividendsConnectorSpec extends PlaySpec with WiremockSpec{
     "return an Internal Server Error when DES throws an unexpected result that is parsable" in {
       val responseBody = Json.obj(
         "code" -> "SERVICE_UNAVAILABLE",
-        "description" -> "Service is unavailable"
+        "reason" -> "Service is unavailable"
       )
       val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR,  DesErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable"))
 
