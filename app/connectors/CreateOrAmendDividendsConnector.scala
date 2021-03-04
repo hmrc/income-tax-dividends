@@ -24,14 +24,18 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class CreateOrAmendDividendsConnector @Inject()(http: HttpClient, config: AppConfig)(implicit ec: ExecutionContext) {
+class CreateOrAmendDividendsConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends DesConnector {
 
   def createOrAmendDividends(
                              nino: String, taxYear: Int, dividendsModel: CreateOrAmendDividendsModel
                            )(implicit hc: HeaderCarrier): Future[CreateOrAmendDividendsResponse] = {
-    val createOrAmendDividendsUrl: String = config.desBaseUrl + s"/income-tax/nino/$nino/income-source/dividends/" +
+    val createOrAmendDividendsUrl: String = appConfig.desBaseUrl + s"/income-tax/nino/$nino/income-source/dividends/" +
       s"annual/$taxYear"
-    http.POST[CreateOrAmendDividendsModel, CreateOrAmendDividendsResponse](createOrAmendDividendsUrl, dividendsModel)
-  }
 
+    def desCall(implicit hc: HeaderCarrier): Future[CreateOrAmendDividendsResponse] = {
+      http.POST[CreateOrAmendDividendsModel, CreateOrAmendDividendsResponse](createOrAmendDividendsUrl, dividendsModel)
+    }
+
+    desCall(desHeaderCarrier)
+  }
 }
