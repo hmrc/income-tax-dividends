@@ -57,7 +57,7 @@ class SubmittedDividendsConnectorSpec extends PlaySpec with WiremockSpec{
     "return a Bad Request" in {
       val responseBody = Json.obj(
         "code" -> "INVALID_NINO",
-        "description" -> "Nino is invalid"
+        "reason" -> "Nino is invalid"
       )
       val expectedResult = DesErrorModel(400, DesErrorBodyModel("INVALID_NINO", "Nino is invalid"))
 
@@ -71,7 +71,7 @@ class SubmittedDividendsConnectorSpec extends PlaySpec with WiremockSpec{
     "return a Not found" in {
       val responseBody = Json.obj(
         "code" -> "NOT_FOUND_INCOME_SOURCE",
-        "description" -> "Can't find income source"
+        "reason" -> "Can't find income source"
       )
       val expectedResult = DesErrorModel(404, DesErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find income source"))
 
@@ -85,7 +85,7 @@ class SubmittedDividendsConnectorSpec extends PlaySpec with WiremockSpec{
     "return an Internal server error" in {
       val responseBody = Json.obj(
         "code" -> "SERVER_ERROR",
-        "description" -> "Internal server error"
+        "reason" -> "Internal server error"
       )
       val expectedResult = DesErrorModel(500, DesErrorBodyModel("SERVER_ERROR", "Internal server error"))
 
@@ -99,7 +99,7 @@ class SubmittedDividendsConnectorSpec extends PlaySpec with WiremockSpec{
     "return a Service Unavailable" in {
       val responseBody = Json.obj(
         "code" -> "SERVICE_UNAVAILABLE",
-        "description" -> "Service is unavailable"
+        "reason" -> "Service is unavailable"
       )
       val expectedResult = DesErrorModel(503, DesErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable"))
 
@@ -123,7 +123,7 @@ class SubmittedDividendsConnectorSpec extends PlaySpec with WiremockSpec{
     "return an Internal Server Error when DES throws an unexpected result that is parsable" in {
       val responseBody = Json.obj(
         "code" -> "SERVICE_UNAVAILABLE",
-        "description" -> "Service is unavailable"
+        "reason" -> "Service is unavailable"
       )
       val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR,  DesErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable"))
 

@@ -26,7 +26,7 @@ class DesErrorBodyModelSpec extends TestUtils {
   val model: DesErrorBodyModel = DesErrorBodyModel("SERVER_ERROR", "Service is unavailable")
   val jsonModel: JsObject = Json.obj(
     "code" -> "SERVER_ERROR",
-    "description" -> "Service is unavailable"
+    "reason" -> "Service is unavailable"
   )
 
   "submittedDividendsExceptionModel" should {
