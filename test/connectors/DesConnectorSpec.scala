@@ -24,7 +24,7 @@ import utils.TestUtils
 class DesConnectorSpec extends TestUtils{
 
   class FakeConnector(override val appConfig: AppConfig) extends DesConnector {
-    def headerCarrierTest(hc: HeaderCarrier) = desHeaderCarrier(hc)
+    def headerCarrierTest(hc: HeaderCarrier): HeaderCarrier = desHeaderCarrier(hc)
   }
   val connector = new FakeConnector(appConfig = mockAppConfig)
 
