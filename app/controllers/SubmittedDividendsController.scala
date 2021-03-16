@@ -33,7 +33,7 @@ class SubmittedDividendsController @Inject()(submittedDividendsService: Submitte
   def getSubmittedDividends(nino: String, taxYear:Int, mtditid: String): Action[AnyContent] = authorisedAction.async(mtditid) { implicit user =>
       submittedDividendsService.getSubmittedDividends(nino,taxYear).map{
         case Right(dividendsModel) => Ok(Json.toJson(dividendsModel))
-        case Left(errorModel) => Status(errorModel.status)(Json.toJson(errorModel.desBody))
+        case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
       }
   }
 

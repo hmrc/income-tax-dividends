@@ -16,24 +16,24 @@
 
 package connectors.httpParsers
 
-import models.{CreateOrAmendDividendsResponseModel, DesErrorBodyModel, DesErrorModel}
-import play.api.http.Status.{BAD_REQUEST, FORBIDDEN, INTERNAL_SERVER_ERROR, OK, SERVICE_UNAVAILABLE}
+import models.{CreateOrAmendDividendsResponseModel, DesErrorModel}
+import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
-import utils.PagerDutyHelper.PagerDutyKeys.{BAD_SUCCESS_JSON_FROM_DES, FOURXX_RESPONSE_FROM_DES, INTERNAL_SERVER_ERROR_FROM_DES, SERVICE_UNAVAILABLE_FROM_DES, UNEXPECTED_RESPONSE_FROM_DES}
-import utils.PagerDutyHelper.{getCorrelationId, pagerDutyLog}
+import utils.PagerDutyHelper.PagerDutyKeys.{FOURXX_RESPONSE_FROM_DES,
+  INTERNAL_SERVER_ERROR_FROM_DES, SERVICE_UNAVAILABLE_FROM_DES, UNEXPECTED_RESPONSE_FROM_DES}
+import utils.PagerDutyHelper.pagerDutyLog
 
-object CreateOrAmendDividendsHttpParser {
+object CreateOrAmendDividendsHttpParser extends DESParser {
   type CreateOrAmendDividendsResponse = Either[DesErrorModel, CreateOrAmendDividendsResponseModel]
+
+  override val parserName: String = "CreateOrAmendDividendsHttpParser"
 
   implicit object CreateOrAmendDividendsHttpReads extends HttpReads[CreateOrAmendDividendsResponse] {
     override def read(method: String, url: String, response: HttpResponse): CreateOrAmendDividendsResponse = {
       response.status match {
         case OK =>
           response.json.validate[CreateOrAmendDividendsResponseModel].fold[CreateOrAmendDividendsResponse](
-            jsonErrors => {
-              pagerDutyLog(BAD_SUCCESS_JSON_FROM_DES, Some(s"[CreateOrAmendDividendsHttpParser][read] Invalid Json from DES."))
-              Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
-            },
+            jsonErrors => badSuccessJsonFromDES,
             parsedModel => Right(parsedModel)
           )
         case INTERNAL_SERVER_ERROR =>
@@ -51,25 +51,4 @@ object CreateOrAmendDividendsHttpParser {
       }
     }
   }
-
-  private def logMessage(response:HttpResponse): Option[String] ={
-    Some(s"[CreateOrAmendDividendsHttpParser][read] Received ${response.status} from DES. Body:${response.body}" + getCorrelationId(response))
-  }
-
-  private def handleDESError(response: HttpResponse, statusOverride: Option[Int] = None):CreateOrAmendDividendsResponse = {
-    val status = statusOverride.getOrElse(response.status)
-
-    try {
-      response.json.validate[DesErrorBodyModel].fold[CreateOrAmendDividendsResponse](
-        jsonErrors => {
-          pagerDutyLog(UNEXPECTED_RESPONSE_FROM_DES, Some(s"[CreateOrAmendDividendsHttpParser][read] Unexpected Json from DES."))
-          Left(DesErrorModel(status, DesErrorBodyModel.parsingError))
-        },
-        parsedError => Left(DesErrorModel(status, parsedError))
-      )
-    } catch {
-      case _: Exception => Left(DesErrorModel(status, DesErrorBodyModel.parsingError))
-    }
-  }
-
 }

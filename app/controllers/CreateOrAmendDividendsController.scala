@@ -43,7 +43,7 @@ class CreateOrAmendDividendsController @Inject()(createOrAmendDividendsService: 
   def responseHandler(serviceResponse: Future[CreateOrAmendDividendsResponse]): Future[Result] ={
     serviceResponse.map {
       case Right(responseModel) => NoContent
-      case Left(errorModel) => Status(errorModel.status)(Json.toJson(errorModel.desBody))
+      case Left(errorModel) => Status(errorModel.status)(Json.toJson(errorModel.toJson))
     }
   }
 }

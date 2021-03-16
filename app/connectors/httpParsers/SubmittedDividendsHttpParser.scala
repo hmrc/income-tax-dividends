@@ -16,24 +16,23 @@
 
 package connectors.httpParsers
 
-import models.{DesErrorBodyModel, DesErrorModel, SubmittedDividendsModel}
+import models.{DesErrorModel, SubmittedDividendsModel}
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.PagerDutyKeys._
-import utils.PagerDutyHelper.{getCorrelationId, pagerDutyLog}
+import utils.PagerDutyHelper.pagerDutyLog
 
-object SubmittedDividendsHttpParser {
+object SubmittedDividendsHttpParser extends DESParser {
   type SubmittedDividendsResponse = Either[DesErrorModel, SubmittedDividendsModel]
+
+  override val parserName: String = "SubmittedDividendsHttpParser"
 
   implicit object SubmittedDividendsHttpReads extends HttpReads[SubmittedDividendsResponse] {
 
     override def read(method: String, url: String, response: HttpResponse): SubmittedDividendsResponse = {
       response.status match {
         case OK => response.json.validate[SubmittedDividendsModel].fold[SubmittedDividendsResponse](
-          jsonErrors => {
-            pagerDutyLog(BAD_SUCCESS_JSON_FROM_DES, Some(s"[SubmittedDividendsHttpParser][read] Invalid Json from DES."))
-            Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
-          },
+          jsonErrors => badSuccessJsonFromDES,
           parsedModel => Right(parsedModel)
         )
         case INTERNAL_SERVER_ERROR =>
@@ -50,26 +49,5 @@ object SubmittedDividendsHttpParser {
           handleDESError(response, Some(INTERNAL_SERVER_ERROR))
       }
     }
-
-    private def logMessage(response:HttpResponse): Option[String] ={
-      Some(s"[SubmittedDividendsHttpParser][read] Received ${response.status} from DES. Body:${response.body}" + getCorrelationId(response))
-    }
-
-    private def handleDESError(response: HttpResponse, statusOverride: Option[Int] = None):SubmittedDividendsResponse = {
-      val status = statusOverride.getOrElse(response.status)
-
-      try {
-        response.json.validate[DesErrorBodyModel].fold[SubmittedDividendsResponse](
-          jsonErrors => {
-            pagerDutyLog(UNEXPECTED_RESPONSE_FROM_DES, Some(s"[SubmittedDividendsHttpParser][read] Unexpected Json from DES."))
-            Left(DesErrorModel(status, DesErrorBodyModel.parsingError))
-          },
-          parsedError => Left(DesErrorModel(status, parsedError))
-        )
-      } catch {
-        case _: Exception => Left(DesErrorModel(status, DesErrorBodyModel.parsingError))
-      }
-    }
   }
-
 }

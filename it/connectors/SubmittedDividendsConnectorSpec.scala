@@ -17,7 +17,7 @@
 package connectors
 
 import helpers.WiremockSpec
-import models.{DesErrorBodyModel, DesErrorModel, SubmittedDividendsModel}
+import models.{DesErrorBodyModel, DesErrorModel, DesErrorsBodyModel, SubmittedDividendsModel}
 import org.scalatestplus.play.PlaySpec
 import play.api.http.Status._
 import play.api.libs.json.Json
@@ -43,6 +43,27 @@ class SubmittedDividendsConnectorSpec extends PlaySpec with WiremockSpec{
 
         result mustBe Right(expectedResult)
       }
+    }
+
+    "DES Returns multiple errors" in {
+      val expectedResult = DesErrorModel(BAD_REQUEST, DesErrorsBodyModel(Seq(
+        DesErrorBodyModel("INVALID_IDTYPE","ID is invalid"),
+        DesErrorBodyModel("INVALID_IDTYPE_2","ID 2 is invalid"))))
+
+      val responseBody = Json.obj(
+        "failures" -> Json.arr(
+          Json.obj("code" -> "INVALID_IDTYPE",
+            "reason" -> "ID is invalid"),
+          Json.obj("code" -> "INVALID_IDTYPE_2",
+            "reason" -> "ID 2 is invalid")
+        )
+      )
+      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", BAD_REQUEST, responseBody.toString())
+
+      implicit val hc: HeaderCarrier = HeaderCarrier()
+      val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
+
+      result mustBe Left(expectedResult)
     }
 
     "return a Parsing error INTERNAL_SERVER_ERROR response" in {

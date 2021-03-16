@@ -19,6 +19,7 @@ package models
 import com.codahale.metrics.SharedMetricRegistries
 import play.api.libs.json.{JsObject, Json}
 import utils.TestUtils
+import controllers.Assets.SERVICE_UNAVAILABLE
 
 class DesErrorBodyModelSpec extends TestUtils {
   SharedMetricRegistries.clear()
@@ -29,6 +30,15 @@ class DesErrorBodyModelSpec extends TestUtils {
     "reason" -> "Service is unavailable"
   )
 
+  val errorsJsModel: JsObject = Json.obj(
+    "failures" -> Json.arr(
+      Json.obj("code" -> "SERVICE_UNAVAILABLE",
+        "reason" -> "The service is currently unavailable"),
+      Json.obj("code" -> "INTERNAL_SERVER_ERROR",
+        "reason" -> "The service is currently facing issues.")
+    )
+  )
+
   "submittedDividendsExceptionModel" should {
 
     "parse to json" in {
@@ -37,6 +47,22 @@ class DesErrorBodyModelSpec extends TestUtils {
 
     "parse from Json" in {
       jsonModel.as[SubmittedDividendsModel]
+    }
+  }
+
+  "The DesErrorModel" should {
+
+    val model = DesErrorModel(SERVICE_UNAVAILABLE, DesErrorBodyModel("SERVER_ERROR","Service is unavailable"))
+    val errorsModel = DesErrorModel(SERVICE_UNAVAILABLE, DesErrorsBodyModel(Seq(
+      DesErrorBodyModel("SERVICE_UNAVAILABLE","The service is currently unavailable"),
+      DesErrorBodyModel("INTERNAL_SERVER_ERROR","The service is currently facing issues.")
+    )))
+
+    "parse to Json" in {
+      model.toJson mustBe jsonModel
+    }
+    "parse to Json for multiple errors" in {
+      errorsModel.toJson mustBe errorsJsModel
     }
   }
 
