@@ -17,10 +17,10 @@
 package connectors.httpParsers
 
 import models.{CreateOrAmendDividendsResponseModel, DesErrorBodyModel, DesErrorModel}
-import play.api.http.Status.{BAD_REQUEST, INTERNAL_SERVER_ERROR, OK, SERVICE_UNAVAILABLE, FORBIDDEN}
+import play.api.http.Status.{BAD_REQUEST, FORBIDDEN, INTERNAL_SERVER_ERROR, OK, SERVICE_UNAVAILABLE}
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.PagerDutyKeys.{BAD_SUCCESS_JSON_FROM_DES, FOURXX_RESPONSE_FROM_DES, INTERNAL_SERVER_ERROR_FROM_DES, SERVICE_UNAVAILABLE_FROM_DES, UNEXPECTED_RESPONSE_FROM_DES}
-import utils.PagerDutyHelper.pagerDutyLog
+import utils.PagerDutyHelper.{getCorrelationId, pagerDutyLog}
 
 object CreateOrAmendDividendsHttpParser {
   type CreateOrAmendDividendsResponse = Either[DesErrorModel, CreateOrAmendDividendsResponseModel]
@@ -53,7 +53,7 @@ object CreateOrAmendDividendsHttpParser {
   }
 
   private def logMessage(response:HttpResponse): Option[String] ={
-    Some(s"[CreateOrAmendDividendsHttpParser][read] Received ${response.status} from DES. Body:${response.body}")
+    Some(s"[CreateOrAmendDividendsHttpParser][read] Received ${response.status} from DES. Body:${response.body}" + getCorrelationId(response))
   }
 
   private def handleDESError(response: HttpResponse, statusOverride: Option[Int] = None):CreateOrAmendDividendsResponse = {
