@@ -33,13 +33,13 @@ class CreateOrAmendDividendsControllerSpec extends TestUtils {
   val createOrAmendDividendsService: CreateOrAmendDividendsService = mock[CreateOrAmendDividendsService]
   val createOrAmendDividendsController = new CreateOrAmendDividendsController(createOrAmendDividendsService, mockControllerComponents, authorisedAction)
   val nino: String = "123456789"
-  val mtdItID: String = "123123123"
+  val mtditid: String = "123123123"
   val taxYear: Int = 1234
-  val badRequestModel = DesErrorBodyModel("INVALID_NINO", "Nino is invalid")
-  val notFoundModel = DesErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find income source")
-  val serverErrorModel = DesErrorBodyModel("SERVER_ERROR", "Internal server error")
-  val serviceUnavailableErrorModel = DesErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable")
-  private val fakeGetRequest = FakeRequest("PUT", "/").withSession("MTDITID" -> "12234567890")
+  val badRequestModel: DesErrorBodyModel = DesErrorBodyModel("INVALID_NINO", "Nino is invalid")
+  val notFoundModel: DesErrorBodyModel = DesErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find income source")
+  val serverErrorModel: DesErrorBodyModel = DesErrorBodyModel("SERVER_ERROR", "Internal server error")
+  val serviceUnavailableErrorModel: DesErrorBodyModel = DesErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable")
+  private val fakeGetRequest = FakeRequest("PUT", "/").withSession("MTDITID" -> "12234567890").withHeaders("mtditid" -> mtditid)
 
   val jsonBody: JsValue = Json.parse("""{"ukDividends": 12345.99, "otherUkDividends": 123456.99}""")
   val invalidJsonBody: JsValue = Json.parse("""{"notukDividends": 12345.99, "nototherUkDividends": 123456.99}""")
@@ -72,7 +72,8 @@ class CreateOrAmendDividendsControllerSpec extends TestUtils {
       .returning(Future.successful(response))
   }
 
-  def mockCreateOrAmendDividendsServiceUnavailable(): CallHandler4[String, Int, CreateOrAmendDividendsModel, HeaderCarrier, Future[CreateOrAmendDividendsResponse]] = {
+  def mockCreateOrAmendDividendsServiceUnavailable()
+  : CallHandler4[String, Int, CreateOrAmendDividendsModel, HeaderCarrier, Future[CreateOrAmendDividendsResponse]] = {
     val response = Left(DesErrorModel(SERVICE_UNAVAILABLE, serviceUnavailableErrorModel))
     (createOrAmendDividendsService.createOrAmendDividends(_: String, _: Int, _: CreateOrAmendDividendsModel)(_: HeaderCarrier))
       .expects(*, *, *, *)
@@ -85,7 +86,7 @@ class CreateOrAmendDividendsControllerSpec extends TestUtils {
       val result = {
         mockAuth()
         mockCreateOrAmendDividendsValid()
-        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear, mtdItID)(fakeGetRequest.withJsonBody(jsonBody))
+        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
       }
       status(result) mustBe NO_CONTENT
     }
@@ -94,7 +95,7 @@ class CreateOrAmendDividendsControllerSpec extends TestUtils {
       val result = {
         mockAuthAsAgent()
         mockCreateOrAmendDividendsValid()
-        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear, mtdItID)(fakeGetRequest.withJsonBody(jsonBody))
+        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
       }
       status(result) mustBe NO_CONTENT
     }
@@ -102,7 +103,7 @@ class CreateOrAmendDividendsControllerSpec extends TestUtils {
     "return an badRequest response when called as an individual with an invalid request body" in {
       val result = {
         mockAuth()
-        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear, mtdItID)(fakeGetRequest.withJsonBody(invalidJsonBody))
+        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear)(fakeGetRequest.withJsonBody(invalidJsonBody))
       }
       status(result) mustBe BAD_REQUEST
     }
@@ -111,7 +112,7 @@ class CreateOrAmendDividendsControllerSpec extends TestUtils {
       val result = {
         mockAuth()
         mockCreateOrAmendDividendsBadRequest()
-        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear, mtdItID)(fakeGetRequest.withJsonBody(jsonBody))
+        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
       }
       status(result) mustBe BAD_REQUEST
     }
@@ -120,7 +121,7 @@ class CreateOrAmendDividendsControllerSpec extends TestUtils {
       val result = {
         mockAuthAsAgent()
         mockCreateOrAmendDividendsBadRequest()
-        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear, mtdItID)(fakeGetRequest.withJsonBody(jsonBody))
+        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
       }
       status(result) mustBe BAD_REQUEST
     }
@@ -129,7 +130,7 @@ class CreateOrAmendDividendsControllerSpec extends TestUtils {
       val result = {
         mockAuth()
         mockCreateOrAmendDividendsNotFound()
-        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear, mtdItID)(fakeGetRequest.withJsonBody(jsonBody))
+        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
       }
       status(result) mustBe NOT_FOUND
     }
@@ -138,7 +139,7 @@ class CreateOrAmendDividendsControllerSpec extends TestUtils {
       val result = {
         mockAuthAsAgent()
         mockCreateOrAmendDividendsNotFound()
-        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear, mtdItID)(fakeGetRequest.withJsonBody(jsonBody))
+        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
       }
       status(result) mustBe NOT_FOUND
     }
@@ -147,7 +148,7 @@ class CreateOrAmendDividendsControllerSpec extends TestUtils {
       val result = {
         mockAuth()
         mockCreateOrAmendDividendsServerError()
-        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear, mtdItID)(fakeGetRequest.withJsonBody(jsonBody))
+        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
       }
       status(result) mustBe INTERNAL_SERVER_ERROR
     }
@@ -156,7 +157,7 @@ class CreateOrAmendDividendsControllerSpec extends TestUtils {
       val result = {
         mockAuthAsAgent()
         mockCreateOrAmendDividendsServerError()
-        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear, mtdItID)(fakeGetRequest.withJsonBody(jsonBody))
+        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
       }
       status(result) mustBe INTERNAL_SERVER_ERROR
     }
@@ -165,7 +166,7 @@ class CreateOrAmendDividendsControllerSpec extends TestUtils {
       val result = {
         mockAuth()
         mockCreateOrAmendDividendsServiceUnavailable()
-        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear, mtdItID)(fakeGetRequest.withJsonBody(jsonBody))
+        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
       }
       status(result) mustBe SERVICE_UNAVAILABLE
     }
@@ -174,7 +175,7 @@ class CreateOrAmendDividendsControllerSpec extends TestUtils {
       val result = {
         mockAuthAsAgent()
         mockCreateOrAmendDividendsServiceUnavailable()
-        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear, mtdItID)(fakeGetRequest.withJsonBody(jsonBody))
+        createOrAmendDividendsController.createOrAmendDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
       }
       status(result) mustBe SERVICE_UNAVAILABLE
     }

@@ -1,4 +1,4 @@
 # microservice specific routes
 
-GET        /income-tax/nino/:nino/sources              controllers.SubmittedDividendsController.getSubmittedDividends(nino:String, taxYear: Int, mtditid: String)
-PUT        /income-tax/nino/:nino/sources              controllers.CreateOrAmendDividendsController.createOrAmendDividends(nino: String, taxYear: Int, mtditid: String)
+GET        /income-tax/nino/:nino/sources              controllers.SubmittedDividendsController.getSubmittedDividends(nino:String, taxYear: Int)
+PUT        /income-tax/nino/:nino/sources              controllers.CreateOrAmendDividendsController.createOrAmendDividends(nino: String, taxYear: Int)
