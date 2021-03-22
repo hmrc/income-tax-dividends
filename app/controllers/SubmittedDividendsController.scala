@@ -30,7 +30,7 @@ class SubmittedDividendsController @Inject()(submittedDividendsService: Submitte
                                              authorisedAction: AuthorisedAction)
                                             (implicit ec: ExecutionContext) extends BackendController(cc){
 
-  def getSubmittedDividends(nino: String, taxYear:Int, mtditid: String): Action[AnyContent] = authorisedAction.async(mtditid) { implicit user =>
+  def getSubmittedDividends(nino: String, taxYear:Int): Action[AnyContent] = authorisedAction.async { implicit user =>
       submittedDividendsService.getSubmittedDividends(nino,taxYear).map{
         case Right(dividendsModel) => Ok(Json.toJson(dividendsModel))
         case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)

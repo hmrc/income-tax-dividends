@@ -44,21 +44,29 @@ class AuthorisedAction @Inject()(
   implicit val executionContext: ExecutionContext = cc.executionContext
 
 
-  def async(mtdItId: String)(block: User[AnyContent] => Future[Result]): Action[AnyContent] = defaultActionBuilder.async { implicit request =>
+  def async(block: User[AnyContent] => Future[Result]): Action[AnyContent] = defaultActionBuilder.async { implicit request =>
+
     implicit lazy val headerCarrier: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers)
-    authorised.retrieve(allEnrolments and affinityGroup) {
-      case enrolments ~ Some(AffinityGroup.Agent) =>
-        checkAuthorisation(block, enrolments, mtdItId, isAgent = true)(request, headerCarrier)
-      case enrolments ~ _ =>
-        checkAuthorisation(block, enrolments, mtdItId)(request, headerCarrier)
-    } recover {
-      case _: NoActiveSession =>
-        logger.info("AgentPredicate][authoriseAsAgent] - No active session. Redirecting to Unauthorised")
-        Unauthorized("")
-      case _: AuthorisationException =>
-        logger.info(s"[AgentPredicate][authoriseAsAgent] - Agent does not have delegated authority for Client.")
-        Unauthorized("")
-    }
+
+    request.headers.get("mtditid").fold {
+      logger.warn("[AuthorisedAction][async] - No MTDITID in the header. Returning unauthorised.")
+      Future.successful(Unauthorized(""))
+    }(
+      mtditid =>
+        authorised.retrieve(allEnrolments and affinityGroup) {
+          case enrolments ~ Some(AffinityGroup.Agent) =>
+            checkAuthorisation(block, enrolments, mtditid, isAgent = true)(request, headerCarrier)
+          case enrolments ~ _ =>
+            checkAuthorisation(block, enrolments, mtditid)(request, headerCarrier)
+        } recover {
+          case _: NoActiveSession =>
+            logger.info("AuthorisedAction][async] - No active session. Redirecting to Unauthorised")
+            Unauthorized("")
+          case _: AuthorisationException =>
+            logger.info(s"[AuthorisedAction][async] - Agent does not have delegated authority for Client.")
+            Unauthorized("")
+        }
+    )
   }
 
 
@@ -90,15 +98,15 @@ class AuthorisedAction @Inject()(
         case Some(arn) =>
           block(User(mtdItId, Some(arn)))
         case None =>
-          logger.info("[AuthorisedAction][CheckAuthorisation] Agent with no HMRC-AS-AGENT enrolment. Rendering unauthorised view.")
+          logger.info("[AuthorisedAction][agentAuthentication] - Agent with no HMRC-AS-AGENT enrolment. Rendering unauthorised view.")
           Future.successful(Forbidden(""))
       }
     } recover {
       case _: NoActiveSession =>
-        logger.info("[AgentPredicate][authoriseAsAgent] - No active session. Redirecting to Unauthorised")
+        logger.info("[AuthorisedAction][agentAuthentication] - No active session. Redirecting to Unauthorised")
         Unauthorized("")
       case _: AuthorisationException =>
-        logger.info(s"[AgentPredicate][authoriseAsAgent] - Agent does not have delegated authority for Client.")
+        logger.info(s"[AuthorisedAction][agentAuthentication] - Agent does not have delegated authority for Client.")
         Unauthorized("")
     }
   }
@@ -110,7 +118,7 @@ class AuthorisedAction @Inject()(
         if enrolmentIdentifiers.exists(identifier => identifier.key == EnrolmentIdentifiers.individualId && identifier.value == mtditid) =>
         block(User(mtditid, None))
     } getOrElse {
-      logger.info("[AuthorisedAction][IndividualAuthentication] Non-agent with an invalid MTDITID.")
+      logger.info("[AuthorisedAction][individualAuthentication] - Non-agent with an invalid MTDITID.")
       Future.successful(Forbidden(""))
     }
   }

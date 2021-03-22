@@ -21,6 +21,7 @@ import models.User
 import play.api.http.Status._
 import play.api.mvc.Results._
 import play.api.mvc.{AnyContent, Result}
+import play.api.test.FakeRequest
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.Retrieval
 import uk.gov.hmrc.auth.core.{Enrolment, EnrolmentIdentifier, Enrolments, _}
@@ -252,7 +253,7 @@ class AuthorisedActionSpec extends TestUtils {
 
           lazy val result = {
             mockAuthAsAgent()
-            auth.async("1234567890")(block)(fakeRequest)
+            auth.async(block)(fakeRequest)
           }
 
           "should return an OK(200) status" in {
@@ -266,7 +267,7 @@ class AuthorisedActionSpec extends TestUtils {
 
           lazy val result = {
             mockAuth()
-            auth.async("1234567890")(block)(fakeRequest)
+            auth.async(block)(fakeRequest)
           }
 
           status(result) mustBe OK
@@ -281,25 +282,27 @@ class AuthorisedActionSpec extends TestUtils {
 
           lazy val result = {
             mockAuthReturnException(AuthException)
-            auth.async("1234567890")( block)
+            auth.async(block)
           }
           status(result(fakeRequest)) mustBe UNAUTHORIZED
         }
-
-      }
-
-      "return an Unauthorised" when {
 
         "the authorisation service returns a NoActiveSession exception" in {
           object NoActiveSession extends NoActiveSession("Some reason")
 
           lazy val result = {
             mockAuthReturnException(NoActiveSession)
-            auth.async("1234567890")(block)
+            auth.async(block)
           }
 
           status(result(fakeRequest)) mustBe UNAUTHORIZED
         }
+
+        "the mtditid is not in the header" in {
+          lazy val result = auth.async(block)(FakeRequest())
+          status(result) mustBe UNAUTHORIZED
+        }
+
       }
 
     }

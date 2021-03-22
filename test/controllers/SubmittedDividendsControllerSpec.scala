@@ -34,11 +34,11 @@ class SubmittedDividendsControllerSpec extends TestUtils {
   val nino :String = "123456789"
   val mtdItID :String = "123123123"
   val taxYear: Int = 1234
-  val badRequestModel = DesErrorBodyModel("INVALID_NINO", "Nino is invalid")
-  val notFoundModel = DesErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find income source")
-  val serverErrorModel = DesErrorBodyModel("SERVER_ERROR", "Internal server error")
-  val serviceUnavailableErrorModel = DesErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable")
-  private val fakeGetRequest = FakeRequest("GET", "/").withSession("MTDITID" -> "12234567890")
+  val badRequestModel: DesErrorBodyModel = DesErrorBodyModel("INVALID_NINO", "Nino is invalid")
+  val notFoundModel: DesErrorBodyModel = DesErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find income source")
+  val serverErrorModel: DesErrorBodyModel = DesErrorBodyModel("SERVER_ERROR", "Internal server error")
+  val serviceUnavailableErrorModel: DesErrorBodyModel = DesErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable")
+  private val fakeGetRequest = FakeRequest("GET", "/").withHeaders("mtditid" -> mtdItID)
 
   def mockGetSubmittedDividendsValid(): CallHandler3[String, Int, HeaderCarrier, Future[SubmittedDividendsResponse]] = {
     val validSubmittedDividends: SubmittedDividendsResponse = Right(SubmittedDividendsModel(Some(12345.67),Some(12345.67)))
@@ -83,7 +83,7 @@ class SubmittedDividendsControllerSpec extends TestUtils {
         val result = {
           mockAuth()
           mockGetSubmittedDividendsValid()
-          submittedDividendsController.getSubmittedDividends(nino, taxYear, mtdItID)(fakeGetRequest)
+          submittedDividendsController.getSubmittedDividends(nino, taxYear)(fakeGetRequest)
         }
         status(result) mustBe OK
       }
@@ -92,7 +92,7 @@ class SubmittedDividendsControllerSpec extends TestUtils {
         val result = {
           mockAuthAsAgent()
           mockGetSubmittedDividendsValid()
-          submittedDividendsController.getSubmittedDividends(nino, taxYear, mtdItID)(fakeGetRequest)
+          submittedDividendsController.getSubmittedDividends(nino, taxYear)(fakeGetRequest)
         }
         status(result) mustBe OK
       }
@@ -105,7 +105,7 @@ class SubmittedDividendsControllerSpec extends TestUtils {
         val result = {
           mockAuth()
           mockGetSubmittedDividendsNotFound()
-          submittedDividendsController.getSubmittedDividends(nino, taxYear, mtdItID)(fakeGetRequest)
+          submittedDividendsController.getSubmittedDividends(nino, taxYear)(fakeGetRequest)
         }
         status(result) mustBe NOT_FOUND
       }
@@ -114,7 +114,7 @@ class SubmittedDividendsControllerSpec extends TestUtils {
         val result = {
           mockAuthAsAgent()
           mockGetSubmittedDividendsNotFound()
-          submittedDividendsController.getSubmittedDividends(nino, taxYear, mtdItID)(fakeGetRequest)
+          submittedDividendsController.getSubmittedDividends(nino, taxYear)(fakeGetRequest)
         }
         status(result) mustBe NOT_FOUND
       }
@@ -127,7 +127,7 @@ class SubmittedDividendsControllerSpec extends TestUtils {
         val result = {
           mockAuth()
           mockGetSubmittedDividendsBadRequest()
-          submittedDividendsController.getSubmittedDividends(nino, taxYear, mtdItID)(fakeGetRequest)
+          submittedDividendsController.getSubmittedDividends(nino, taxYear)(fakeGetRequest)
         }
         status(result) mustBe BAD_REQUEST
       }
@@ -136,7 +136,7 @@ class SubmittedDividendsControllerSpec extends TestUtils {
         val result = {
           mockAuthAsAgent()
           mockGetSubmittedDividendsBadRequest()
-          submittedDividendsController.getSubmittedDividends(nino, taxYear, mtdItID)(fakeGetRequest)
+          submittedDividendsController.getSubmittedDividends(nino, taxYear)(fakeGetRequest)
         }
         status(result) mustBe BAD_REQUEST
       }
@@ -148,7 +148,7 @@ class SubmittedDividendsControllerSpec extends TestUtils {
         val result = {
           mockAuth()
           mockGetSubmittedDividendsServerError()
-          submittedDividendsController.getSubmittedDividends(nino, taxYear, mtdItID)(fakeGetRequest)
+          submittedDividendsController.getSubmittedDividends(nino, taxYear)(fakeGetRequest)
         }
         status(result) mustBe INTERNAL_SERVER_ERROR
       }
@@ -157,7 +157,7 @@ class SubmittedDividendsControllerSpec extends TestUtils {
         val result = {
           mockAuthAsAgent()
           mockGetSubmittedDividendsServerError()
-          submittedDividendsController.getSubmittedDividends(nino, taxYear, mtdItID)(fakeGetRequest)
+          submittedDividendsController.getSubmittedDividends(nino, taxYear)(fakeGetRequest)
         }
         status(result) mustBe INTERNAL_SERVER_ERROR
       }
@@ -169,7 +169,7 @@ class SubmittedDividendsControllerSpec extends TestUtils {
         val result = {
           mockAuth()
           mockGetSubmittedDividendsServiceUnavailable()
-          submittedDividendsController.getSubmittedDividends(nino, taxYear, mtdItID)(fakeGetRequest)
+          submittedDividendsController.getSubmittedDividends(nino, taxYear)(fakeGetRequest)
         }
         status(result) mustBe SERVICE_UNAVAILABLE
       }
@@ -178,7 +178,7 @@ class SubmittedDividendsControllerSpec extends TestUtils {
         val result = {
           mockAuthAsAgent()
           mockGetSubmittedDividendsServiceUnavailable()
-          submittedDividendsController.getSubmittedDividends(nino, taxYear, mtdItID)(fakeGetRequest)
+          submittedDividendsController.getSubmittedDividends(nino, taxYear)(fakeGetRequest)
         }
         status(result) mustBe SERVICE_UNAVAILABLE
       }
