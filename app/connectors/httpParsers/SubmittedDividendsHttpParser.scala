@@ -17,12 +17,13 @@
 package connectors.httpParsers
 
 import models.{DesErrorModel, SubmittedDividendsModel}
+import play.api.Logging
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.PagerDutyKeys._
 import utils.PagerDutyHelper.pagerDutyLog
 
-object SubmittedDividendsHttpParser extends DESParser {
+object SubmittedDividendsHttpParser extends DESParser with Logging {
   type SubmittedDividendsResponse = Either[DesErrorModel, SubmittedDividendsModel]
 
   override val parserName: String = "SubmittedDividendsHttpParser"
@@ -41,7 +42,10 @@ object SubmittedDividendsHttpParser extends DESParser {
         case SERVICE_UNAVAILABLE =>
           pagerDutyLog(SERVICE_UNAVAILABLE_FROM_DES, logMessage(response))
           handleDESError(response)
-        case BAD_REQUEST | NOT_FOUND =>
+        case NOT_FOUND =>
+          logger.info(logMessage(response))
+          handleDESError(response)
+        case BAD_REQUEST =>
           pagerDutyLog(FOURXX_RESPONSE_FROM_DES, logMessage(response))
           handleDESError(response)
         case _ =>

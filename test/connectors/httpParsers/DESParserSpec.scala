@@ -41,8 +41,7 @@ class DESParserSpec extends TestUtils{
   "FakeParser" should {
     "log the correct message" in {
       val result = FakeParser.logMessage(httpResponse())
-      result mustBe Some(
-        """[TestParser][read] Received 500 from DES. Body:{
+      result mustBe """[TestParser][read] Received 500 from DES. Body:{
           |  "failures" : [ {
           |    "code" : "SERVICE_UNAVAILABLE",
           |    "reason" : "The service is currently unavailable"
@@ -50,7 +49,7 @@ class DESParserSpec extends TestUtils{
           |    "code" : "INTERNAL_SERVER_ERROR",
           |    "reason" : "The service is currently facing issues."
           |  } ]
-          |} CorrelationId: 1234645654645""".stripMargin)
+          |} CorrelationId: 1234645654645""".stripMargin
     }
     "return the the correct error" in {
       val result = FakeParser.badSuccessJsonFromDES
