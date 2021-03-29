@@ -33,6 +33,7 @@ import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.auth.core.retrieve.{Retrieval, ~}
+import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.duration.Duration
@@ -60,7 +61,7 @@ trait TestUtils extends PlaySpec with MockFactory with GuiceOneAppPerSuite with 
   implicit val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit val mockAuthService: AuthService = new AuthService(mockAuthConnector)
   val defaultActionBuilder: DefaultActionBuilder = DefaultActionBuilder(mockControllerComponents.parsers.default)
-  val authorisedAction = new AuthorisedAction(mockAppConfig)(mockAuthConnector, defaultActionBuilder, mockControllerComponents)
+  val authorisedAction = new AuthorisedAction()(mockAuthConnector, defaultActionBuilder, mockControllerComponents)
 
 
   def status(awaitable: Future[Result]): Int = await(awaitable).header.status
@@ -70,29 +71,36 @@ trait TestUtils extends PlaySpec with MockFactory with GuiceOneAppPerSuite with 
     await(awaited.body.consumeData.map(_.utf8String))
   }
 
+  val individualEnrolments: Enrolments = Enrolments(Set(
+    Enrolment(EnrolmentKeys.Individual, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.individualId, "1234567890")), "Activated"),
+    Enrolment(EnrolmentKeys.nino, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.nino, "1234567890")), "Activated")))
+
   //noinspection ScalaStyle
-  def mockAuth() = {
-    val enrolments = Enrolments(Set(
-      Enrolment(EnrolmentKeys.Individual, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.individualId, "1234567890")), "Activated"),
-      Enrolment(EnrolmentKeys.Agent, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.agentReference, "0987654321")), "Activated")
-    ))
+  def mockAuth(enrolments: Enrolments = individualEnrolments) = {
+
     (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
-      .expects(*, *, *, *)
-      .returning(Future.successful(new ~(enrolments, None)))
+      .expects(*, Retrievals.affinityGroup, *, *)
+      .returning(Future.successful(Some(AffinityGroup.Individual)))
+
+    (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
+      .expects(*, Retrievals.allEnrolments and Retrievals.confidenceLevel, *, *)
+      .returning(Future.successful(enrolments and ConfidenceLevel.L200))
   }
 
+  val agentEnrolments: Enrolments = Enrolments(Set(
+    Enrolment(EnrolmentKeys.Individual, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.individualId, "1234567890")), "Activated"),
+    Enrolment(EnrolmentKeys.Agent, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.agentReference, "0987654321")), "Activated")
+  ))
+
   //noinspection ScalaStyle
-  def mockAuthAsAgent() = {
-    val enrolments = Enrolments(Set(
-      Enrolment(EnrolmentKeys.Individual, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.individualId, "1234567890")), "Activated"),
-      Enrolment(EnrolmentKeys.Agent, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.agentReference, "0987654321")), "Activated")
-    ))
-    (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
-      .expects(*, Retrievals.allEnrolments and Retrievals.affinityGroup, *, *)
-      .returning(Future.successful(new ~(enrolments, Some(AffinityGroup.Agent))))
+  def mockAuthAsAgent(enrolments: Enrolments = agentEnrolments) = {
 
     (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
-      .expects(*, *, *, *)
+      .expects(*, Retrievals.affinityGroup, *, *)
+      .returning(Future.successful(Some(AffinityGroup.Agent)))
+
+    (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
+      .expects(*, Retrievals.allEnrolments, *, *)
       .returning(Future.successful(enrolments))
   }
 
