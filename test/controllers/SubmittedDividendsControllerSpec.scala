@@ -32,13 +32,14 @@ class SubmittedDividendsControllerSpec extends TestUtils {
   val submittedDividendsService: SubmittedDividendsService = mock[SubmittedDividendsService]
   val submittedDividendsController = new SubmittedDividendsController(submittedDividendsService, mockControllerComponents,authorisedAction)
   val nino :String = "123456789"
-  val mtdItID :String = "123123123"
+  val mtdItID :String = "1234567890"
   val taxYear: Int = 1234
   val badRequestModel: DesErrorBodyModel = DesErrorBodyModel("INVALID_NINO", "Nino is invalid")
   val notFoundModel: DesErrorBodyModel = DesErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find income source")
   val serverErrorModel: DesErrorBodyModel = DesErrorBodyModel("SERVER_ERROR", "Internal server error")
   val serviceUnavailableErrorModel: DesErrorBodyModel = DesErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable")
   private val fakeGetRequest = FakeRequest("GET", "/").withHeaders("mtditid" -> mtdItID)
+  private val fakeGetRequestWithDifferentMTDITID = FakeRequest("GET", "/").withHeaders("mtditid" -> "123123123")
 
   def mockGetSubmittedDividendsValid(): CallHandler3[String, Int, HeaderCarrier, Future[SubmittedDividendsResponse]] = {
     val validSubmittedDividends: SubmittedDividendsResponse = Right(SubmittedDividendsModel(Some(12345.67),Some(12345.67)))
@@ -86,6 +87,14 @@ class SubmittedDividendsControllerSpec extends TestUtils {
           submittedDividendsController.getSubmittedDividends(nino, taxYear)(fakeGetRequest)
         }
         status(result) mustBe OK
+      }
+
+      "return an 401 response when called as an individual" in {
+        val result = {
+          mockAuth()
+          submittedDividendsController.getSubmittedDividends(nino, taxYear)(fakeGetRequestWithDifferentMTDITID)
+        }
+        status(result) mustBe UNAUTHORIZED
       }
 
       "return an OK 200 response when called as an agent" in {
