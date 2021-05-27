@@ -21,8 +21,9 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
-import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.{WSClient, WSRequest}
@@ -30,9 +31,8 @@ import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 
 import scala.concurrent.ExecutionContext
 
-trait WiremockSpec extends BeforeAndAfterEach with BeforeAndAfterAll with GuiceOneServerPerSuite
+trait WiremockSpec extends AnyWordSpec with Matchers with BeforeAndAfterEach with BeforeAndAfterAll with GuiceOneServerPerSuite
   with FutureAwaits with DefaultAwaitTimeout with WiremockStubHelpers {
-  self: PlaySpec =>
 
   val wireMockPort = 11111
 

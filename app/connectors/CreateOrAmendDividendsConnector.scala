@@ -18,10 +18,10 @@ package connectors
 
 import config.AppConfig
 import connectors.httpParsers.CreateOrAmendDividendsHttpParser._
-import javax.inject.Inject
 import models.CreateOrAmendDividendsModel
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class CreateOrAmendDividendsConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends DesConnector {
@@ -36,6 +36,6 @@ class CreateOrAmendDividendsConnector @Inject()(http: HttpClient, val appConfig:
       http.POST[CreateOrAmendDividendsModel, CreateOrAmendDividendsResponse](createOrAmendDividendsUrl, dividendsModel)
     }
 
-    desCall(desHeaderCarrier)
+    desCall(desHeaderCarrier(createOrAmendDividendsUrl))
   }
 }

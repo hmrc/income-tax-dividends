@@ -34,6 +34,6 @@ class SubmittedDividendsConnector @Inject() (val http: HttpClient,
       http.GET[SubmittedDividendsResponse](incomeSourcesUri)
     }
 
-    desCall(desHeaderCarrier)
+    desCall(desHeaderCarrier(incomeSourcesUri))
   }
 }

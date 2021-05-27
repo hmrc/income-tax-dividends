@@ -16,16 +16,24 @@
 
 package connectors
 
+import com.github.tomakehurst.wiremock.http.HttpHeader
+import config.AppConfig
 import helpers.WiremockSpec
 import models.{CreateOrAmendDividendsModel, CreateOrAmendDividendsResponseModel, DesErrorBodyModel, DesErrorModel}
-import org.scalatestplus.play.PlaySpec
+import play.api.Configuration
 import play.api.http.Status._
 import play.api.libs.json.Json
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, SessionId}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
-class CreateOrAmendDividendsConnectorSpec extends PlaySpec with WiremockSpec{
+class CreateOrAmendDividendsConnectorSpec extends WiremockSpec {
 
   lazy val connector: CreateOrAmendDividendsConnector = app.injector.instanceOf[CreateOrAmendDividendsConnector]
+
+  lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
+  def appConfig(desHost: String): AppConfig = new AppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
+    override val desBaseUrl: String = s"http://$desHost:$wireMockPort"
+  }
 
   val nino: String = "123456789"
   val taxYear: Int = 1999
@@ -34,6 +42,44 @@ class CreateOrAmendDividendsConnectorSpec extends PlaySpec with WiremockSpec{
   val dividendResult: Option[BigDecimal] = Some(123456.78)
 
   "CreateOrAmendDividendsConnector" should {
+
+    "include internal headers" when {
+      val requestBody = Json.toJson(updateDividendsModel).toString()
+      val responseBody = Json.toJson(createOrAmendDividendsResponse).toString()
+
+      val headersSentToDes = Seq(
+        new HttpHeader(HeaderNames.authorisation, "Bearer secret"),
+        new HttpHeader(HeaderNames.xSessionId, "sessionIdValue")
+      )
+
+      val internalHost = "localhost"
+      val externalHost = "127.0.0.1"
+
+      "the host for DES is 'Internal'" in {
+        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+        val connector = new CreateOrAmendDividendsConnector(httpClient, appConfig(internalHost))
+        val expectedResult = createOrAmendDividendsResponse
+
+        stubPostWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", OK, requestBody, responseBody, headersSentToDes)
+
+        val result = await(connector.createOrAmendDividends(nino, taxYear, updateDividendsModel)(hc))
+
+        result mustBe Right(expectedResult)
+      }
+
+      "the host for DES is 'External'" in {
+        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+        val connector = new CreateOrAmendDividendsConnector(httpClient, appConfig(externalHost))
+        val expectedResult = createOrAmendDividendsResponse
+
+        stubPostWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", OK, requestBody, responseBody, headersSentToDes)
+
+        val result = await(connector.createOrAmendDividends(nino, taxYear, updateDividendsModel)(hc))
+
+        result mustBe Right(expectedResult)
+      }
+    }
+
     "return a success result" when {
       "DES Returns a 200" in {
         val expectedResult = createOrAmendDividendsResponse
