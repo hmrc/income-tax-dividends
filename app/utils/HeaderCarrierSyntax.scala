@@ -22,7 +22,7 @@ object HeaderCarrierSyntax {
 
   implicit class HeaderCarrierOps(hc: HeaderCarrier) {
 
-    def toSeq: Seq[(String, String)] = {
+    def toExplicitHeaders: Seq[(String, String)] = {
       Seq(
         HeaderNames.xRequestId            -> hc.requestId.map(_.value),
         HeaderNames.xSessionId            -> hc.sessionId.map(_.value),
@@ -35,7 +35,7 @@ object HeaderCarrierSyntax {
         HeaderNames.googleAnalyticUserId  -> hc.gaUserId,
         HeaderNames.deviceID              -> hc.deviceID,
         HeaderNames.akamaiReputation      -> hc.akamaiReputation.map(_.value)
-      ).collect { case (k, Some(v)) => (k, v) } ++ hc.extraHeaders
+      ).collect { case (k, Some(v)) => (k, v) }
     }
   }
 

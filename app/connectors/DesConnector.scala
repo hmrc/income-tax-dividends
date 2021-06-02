@@ -38,7 +38,7 @@ trait DesConnector {
     if(isInternalHost) {
       hcWithAuth.withExtraHeaders("Environment" -> appConfig.environment)
     } else {
-      hcWithAuth.withExtraHeaders("Environment" -> appConfig.environment).withExtraHeaders(hcWithAuth.toSeq: _*)
+      hcWithAuth.withExtraHeaders("Environment" -> appConfig.environment).withExtraHeaders(hcWithAuth.toExplicitHeaders: _*)
     }
   }
 
