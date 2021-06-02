@@ -17,9 +17,9 @@
 package models
 
 import com.codahale.metrics.SharedMetricRegistries
+import play.api.http.Status.SERVICE_UNAVAILABLE
 import play.api.libs.json.{JsObject, Json}
 import utils.TestUtils
-import controllers.Assets.SERVICE_UNAVAILABLE
 
 class DesErrorBodyModelSpec extends TestUtils {
   SharedMetricRegistries.clear()
