@@ -31,6 +31,7 @@ class CreateOrAmendDividendsConnectorSpec extends WiremockSpec {
   lazy val connector: CreateOrAmendDividendsConnector = app.injector.instanceOf[CreateOrAmendDividendsConnector]
 
   lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
+
   def appConfig(desHost: String): AppConfig = new AppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
     override val desBaseUrl: String = s"http://$desHost:$wireMockPort"
   }
@@ -107,6 +108,34 @@ class CreateOrAmendDividendsConnectorSpec extends WiremockSpec {
       result mustBe Left(expectedResult)
     }
 
+    "return a NOT_FOUND response" in {
+      val responseBody = Json.obj(
+        "code" -> "NOT_FOUND",
+        "reason" -> "Submission Period not found"
+      )
+      val expectedResult = DesErrorModel(404, DesErrorBodyModel("NOT_FOUND", "Submission Period not found"))
+
+      stubPostWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", NOT_FOUND, Json.toJson(updateDividendsModel).toString(), responseBody.toString())
+      implicit val hc = HeaderCarrier()
+      val result = await(connector.createOrAmendDividends(nino, taxYear, updateDividendsModel)(hc))
+
+      result mustBe Left(expectedResult)
+    }
+
+    "return an UNPROCESSABLE_ENTITY response" in {
+      val responseBody = Json.obj(
+        "code" -> "UNPROCESSABLE_ENTITY",
+        "reason" -> "The remote endpoint has indicated that for given income source type, message payload is incorrect."
+      )
+      val expectedResult = DesErrorModel(422, DesErrorBodyModel("UNPROCESSABLE_ENTITY", "The remote endpoint has indicated that for given income source type, message payload is incorrect."))
+
+      stubPostWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", UNPROCESSABLE_ENTITY, Json.toJson(updateDividendsModel).toString(), responseBody.toString())
+      implicit val hc = HeaderCarrier()
+      val result = await(connector.createOrAmendDividends(nino, taxYear, updateDividendsModel)(hc))
+
+      result mustBe Left(expectedResult)
+    }
+
     "return a Forbidden" in {
       val responseBody = Json.obj(
         "code" -> "NOT_FOUND_INCOME_SOURCE",
@@ -164,7 +193,7 @@ class CreateOrAmendDividendsConnectorSpec extends WiremockSpec {
         "code" -> "SERVICE_UNAVAILABLE",
         "reason" -> "Service is unavailable"
       )
-      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR,  DesErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable"))
+      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable"))
 
       stubPostWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", CONFLICT, Json.toJson(updateDividendsModel).toString(), responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -177,7 +206,7 @@ class CreateOrAmendDividendsConnectorSpec extends WiremockSpec {
       val responseBody = Json.obj(
         "code" -> "SERVICE_UNAVAILABLE"
       )
-      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR,  DesErrorBodyModel.parsingError)
+      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
 
       stubPostWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", CONFLICT, Json.toJson(updateDividendsModel).toString(), responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()

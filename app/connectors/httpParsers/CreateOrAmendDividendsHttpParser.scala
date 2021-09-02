@@ -19,9 +19,8 @@ package connectors.httpParsers
 import models.{CreateOrAmendDividendsResponseModel, DesErrorModel}
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
-import utils.PagerDutyHelper.PagerDutyKeys.{FOURXX_RESPONSE_FROM_DES,
-  INTERNAL_SERVER_ERROR_FROM_DES, SERVICE_UNAVAILABLE_FROM_DES, UNEXPECTED_RESPONSE_FROM_DES}
 import utils.PagerDutyHelper.pagerDutyLog
+import utils.PagerDutyHelper.PagerDutyKeys._
 
 object CreateOrAmendDividendsHttpParser extends DESParser {
   type CreateOrAmendDividendsResponse = Either[DesErrorModel, CreateOrAmendDividendsResponseModel]
@@ -42,7 +41,7 @@ object CreateOrAmendDividendsHttpParser extends DESParser {
         case SERVICE_UNAVAILABLE =>
           pagerDutyLog(SERVICE_UNAVAILABLE_FROM_DES, logMessage(response))
           handleDESError(response)
-        case BAD_REQUEST | FORBIDDEN =>
+        case BAD_REQUEST | FORBIDDEN | NOT_FOUND | UNPROCESSABLE_ENTITY =>
           pagerDutyLog(FOURXX_RESPONSE_FROM_DES, logMessage(response))
           handleDESError(response)
         case _ =>

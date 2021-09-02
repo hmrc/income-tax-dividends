@@ -18,7 +18,6 @@ package controllers.predicates
 
 import common.{EnrolmentIdentifiers, EnrolmentKeys}
 import models.User
-import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
 import play.api.http.Status._
 import play.api.mvc.Results._
 import play.api.mvc.{AnyContent, Result}
