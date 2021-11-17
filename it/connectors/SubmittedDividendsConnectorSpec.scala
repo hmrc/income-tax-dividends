@@ -17,7 +17,7 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.http.HttpHeader
-import config.AppConfig
+import config.BackendAppConfig
 import helpers.WiremockSpec
 import models.{DesErrorBodyModel, DesErrorModel, DesErrorsBodyModel, SubmittedDividendsModel}
 import play.api.Configuration
@@ -31,7 +31,7 @@ class SubmittedDividendsConnectorSpec extends WiremockSpec {
   lazy val connector: SubmittedDividendsConnector = app.injector.instanceOf[SubmittedDividendsConnector]
 
   lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
-  def appConfig(desHost: String): AppConfig = new AppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
+  def appConfig(desHost: String): BackendAppConfig = new BackendAppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
     override val desBaseUrl: String = s"http://$desHost:$wireMockPort"
   }
 
@@ -80,7 +80,7 @@ class SubmittedDividendsConnectorSpec extends WiremockSpec {
 
         stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", OK, Json.toJson(expectedResult).toString())
 
-        implicit val hc = HeaderCarrier()
+        implicit val hc: HeaderCarrier = HeaderCarrier()
         val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
 
         result mustBe Right(expectedResult)
@@ -116,7 +116,7 @@ class SubmittedDividendsConnectorSpec extends WiremockSpec {
       val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
 
       stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", OK, invalidJson.toString())
-      implicit val hc = HeaderCarrier()
+      implicit val hc: HeaderCarrier = HeaderCarrier()
       val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
 
       result mustBe Left(expectedResult)
@@ -126,7 +126,7 @@ class SubmittedDividendsConnectorSpec extends WiremockSpec {
       val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
 
       stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", NO_CONTENT, "{}")
-      implicit val hc = HeaderCarrier()
+      implicit val hc: HeaderCarrier = HeaderCarrier()
       val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
 
       result mustBe Left(expectedResult)
@@ -140,7 +140,7 @@ class SubmittedDividendsConnectorSpec extends WiremockSpec {
       val expectedResult = DesErrorModel(400, DesErrorBodyModel("INVALID_NINO", "Nino is invalid"))
 
       stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", BAD_REQUEST, responseBody.toString())
-      implicit val hc = HeaderCarrier()
+      implicit val hc: HeaderCarrier = HeaderCarrier()
       val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
 
       result mustBe Left(expectedResult)
@@ -154,7 +154,7 @@ class SubmittedDividendsConnectorSpec extends WiremockSpec {
       val expectedResult = DesErrorModel(404, DesErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find income source"))
 
       stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", NOT_FOUND, responseBody.toString())
-      implicit val hc = HeaderCarrier()
+      implicit val hc: HeaderCarrier = HeaderCarrier()
       val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
 
       result mustBe Left(expectedResult)
@@ -168,7 +168,7 @@ class SubmittedDividendsConnectorSpec extends WiremockSpec {
       val expectedResult = DesErrorModel(500, DesErrorBodyModel("SERVER_ERROR", "Internal server error"))
 
       stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", INTERNAL_SERVER_ERROR, responseBody.toString())
-      implicit val hc = HeaderCarrier()
+      implicit val hc: HeaderCarrier = HeaderCarrier()
       val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
 
       result mustBe Left(expectedResult)
@@ -182,7 +182,7 @@ class SubmittedDividendsConnectorSpec extends WiremockSpec {
       val expectedResult = DesErrorModel(503, DesErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable"))
 
       stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", SERVICE_UNAVAILABLE, responseBody.toString())
-      implicit val hc = HeaderCarrier()
+      implicit val hc: HeaderCarrier = HeaderCarrier()
       val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
 
       result mustBe Left(expectedResult)

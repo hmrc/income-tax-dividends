@@ -20,13 +20,12 @@ import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, Materializer}
 import com.codahale.metrics.SharedMetricRegistries
 import common.{EnrolmentIdentifiers, EnrolmentKeys}
-import config.AppConfig
+import config.{AppConfig, MockAppConfig}
 import controllers.predicates.AuthorisedAction
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.mvc.{AnyContentAsEmpty, ControllerComponents, DefaultActionBuilder, Result}
 import play.api.test.{FakeRequest, Helpers}
 import services.AuthService
@@ -40,7 +39,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Awaitable, ExecutionContext, Future}
 
-trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOneAppPerSuite with BeforeAndAfterEach {
+trait TestUtils extends AnyWordSpec with Matchers with MockFactory with BeforeAndAfterEach {
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -56,7 +55,7 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with GuiceOne
   val fakeRequestWithMtditid: FakeRequest[AnyContentAsEmpty.type] = FakeRequest().withSession("MTDITID" -> "1234567890")
   implicit val emptyHeaderCarrier: HeaderCarrier = HeaderCarrier()
 
-  val mockAppConfig: AppConfig = app.injector.instanceOf[AppConfig]
+  lazy val mockAppConfig: AppConfig = new MockAppConfig
   implicit val mockControllerComponents: ControllerComponents = Helpers.stubControllerComponents()
   implicit val mockExecutionContext: ExecutionContext = ExecutionContext.Implicits.global
   implicit val mockAuthConnector: AuthConnector = mock[AuthConnector]

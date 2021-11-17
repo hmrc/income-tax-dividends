@@ -16,12 +16,16 @@
 
 package config
 
-import com.google.inject.AbstractModule
+import org.scalamock.scalatest.MockFactory
 
-class Modules extends AbstractModule {
+class MockAppConfig extends AppConfig with MockFactory {
 
-  override def configure(): Unit = {
-    bind(classOf[AppConfig]).to(classOf[BackendAppConfig]).asEagerSingleton()
-  }
+  override val authBaseUrl: String = "/auth"
 
+  override val auditingEnabled: Boolean = true
+  override val graphiteHost: String = "/graphite"
+  override val desBaseUrl: String = "/des"
+
+  override val environment: String = "dev"
+  override val authorisationToken: String = "someToken"
 }
