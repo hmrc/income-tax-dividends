@@ -17,7 +17,7 @@
 package services
 
 import com.codahale.metrics.SharedMetricRegistries
-import connectors.SubmittedDividendsConnector
+import connectors.{SubmittedDividendsConnector, SubmittedDividendsIfConnector}
 import connectors.httpParsers.SubmittedDividendsHttpParser.SubmittedDividendsResponse
 import models.SubmittedDividendsModel
 import uk.gov.hmrc.http.HeaderCarrier
@@ -29,7 +29,8 @@ class SubmittedDividendsServiceSpec extends TestUtils {
   SharedMetricRegistries.clear()
 
   val connector: SubmittedDividendsConnector = mock[SubmittedDividendsConnector]
-  val service: SubmittedDividendsService = new SubmittedDividendsService(connector)
+  val ifConnector: SubmittedDividendsIfConnector = mock[SubmittedDividendsIfConnector]
+  val service: SubmittedDividendsService = new SubmittedDividendsService(connector, ifConnector)
 
 
   ".getSubmittedDividends" should {

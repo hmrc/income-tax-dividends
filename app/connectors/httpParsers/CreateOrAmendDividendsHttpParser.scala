@@ -16,14 +16,14 @@
 
 package connectors.httpParsers
 
-import models.{CreateOrAmendDividendsResponseModel, DesErrorModel}
+import models.{CreateOrAmendDividendsResponseModel, ErrorModel}
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.pagerDutyLog
 import utils.PagerDutyHelper.PagerDutyKeys._
 
-object CreateOrAmendDividendsHttpParser extends DESParser {
-  type CreateOrAmendDividendsResponse = Either[DesErrorModel, CreateOrAmendDividendsResponseModel]
+object CreateOrAmendDividendsHttpParser extends APIParser {
+  type CreateOrAmendDividendsResponse = Either[ErrorModel, CreateOrAmendDividendsResponseModel]
 
   override val parserName: String = "CreateOrAmendDividendsHttpParser"
 
@@ -32,21 +32,21 @@ object CreateOrAmendDividendsHttpParser extends DESParser {
       response.status match {
         case OK =>
           response.json.validate[CreateOrAmendDividendsResponseModel].fold[CreateOrAmendDividendsResponse](
-            jsonErrors => badSuccessJsonFromDES,
+            jsonErrors => badSuccessJsonFromAPI,
             parsedModel => Right(parsedModel)
           )
         case INTERNAL_SERVER_ERROR =>
-          pagerDutyLog(INTERNAL_SERVER_ERROR_FROM_DES, logMessage(response))
-          handleDESError(response)
+          pagerDutyLog(INTERNAL_SERVER_ERROR_FROM_API, logMessage(response))
+          handleAPIError(response)
         case SERVICE_UNAVAILABLE =>
-          pagerDutyLog(SERVICE_UNAVAILABLE_FROM_DES, logMessage(response))
-          handleDESError(response)
+          pagerDutyLog(SERVICE_UNAVAILABLE_FROM_API, logMessage(response))
+          handleAPIError(response)
         case BAD_REQUEST | FORBIDDEN | NOT_FOUND | UNPROCESSABLE_ENTITY =>
-          pagerDutyLog(FOURXX_RESPONSE_FROM_DES, logMessage(response))
-          handleDESError(response)
+          pagerDutyLog(FOURXX_RESPONSE_FROM_API, logMessage(response))
+          handleAPIError(response)
         case _ =>
-          pagerDutyLog(UNEXPECTED_RESPONSE_FROM_DES, logMessage(response))
-          handleDESError(response, Some(INTERNAL_SERVER_ERROR))
+          pagerDutyLog(UNEXPECTED_RESPONSE_FROM_API, logMessage(response))
+          handleAPIError(response, Some(INTERNAL_SERVER_ERROR))
       }
     }
   }

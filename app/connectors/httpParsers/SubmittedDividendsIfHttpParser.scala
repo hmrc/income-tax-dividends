@@ -23,16 +23,19 @@ import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.PagerDutyKeys._
 import utils.PagerDutyHelper.pagerDutyLog
 
-object SubmittedDividendsHttpParser extends APIParser with Logging {
-  type SubmittedDividendsResponse = Either[ErrorModel, SubmittedDividendsModel]
+object SubmittedDividendsIfHttpParser extends APIParser with Logging {
+  type SubmittedDividendsIfResponse = Either[ErrorModel, SubmittedDividendsModel]
 
-  override val parserName: String = "SubmittedDividendsHttpParser"
+  override val parserName: String = "SubmittedDividendsIfHttpParser"
+  override val isDes: Boolean = false
 
-  implicit object SubmittedDividendsHttpReads extends HttpReads[SubmittedDividendsResponse] {
+  implicit object SubmittedDividendsIfHttpReads extends HttpReads[SubmittedDividendsIfResponse] {
 
-    override def read(method: String, url: String, response: HttpResponse): SubmittedDividendsResponse = {
+    override def read(method: String, url: String, response: HttpResponse): SubmittedDividendsIfResponse = {
+      print ("calling read SubmittedDividendsIfHttpParser")
+      print ("calling read SubmittedDividendsIfHttpParser")
       response.status match {
-        case OK => response.json.validate[SubmittedDividendsModel].fold[SubmittedDividendsResponse](
+        case OK => response.json.validate[SubmittedDividendsModel].fold[SubmittedDividendsIfResponse](
           jsonErrors => badSuccessJsonFromAPI,
           parsedModel => Right(parsedModel)
         )
@@ -41,6 +44,9 @@ object SubmittedDividendsHttpParser extends APIParser with Logging {
           handleAPIError(response)
         case SERVICE_UNAVAILABLE =>
           pagerDutyLog(SERVICE_UNAVAILABLE_FROM_API, logMessage(response))
+          handleAPIError(response)
+        case UNPROCESSABLE_ENTITY =>
+          pagerDutyLog(UNPROCESSABLE_ENTITY_FROM_API, logMessage(response))
           handleAPIError(response)
         case NOT_FOUND =>
           logger.info(logMessage(response))

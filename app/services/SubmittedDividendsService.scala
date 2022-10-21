@@ -16,7 +16,8 @@
 
 package services
 
-import connectors.SubmittedDividendsConnector
+import connectors.{SubmittedDividendsConnector, SubmittedDividendsIfConnector}
+
 import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.http.HeaderCarrier
 import connectors.httpParsers.SubmittedDividendsHttpParser.SubmittedDividendsResponse
@@ -24,8 +25,18 @@ import connectors.httpParsers.SubmittedDividendsHttpParser.SubmittedDividendsRes
 import scala.concurrent.Future
 
 @Singleton
-class SubmittedDividendsService @Inject()(submittedDividendsConnector: SubmittedDividendsConnector) {
-  def getSubmittedDividends(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[SubmittedDividendsResponse] =
-    submittedDividendsConnector.getSubmittedDividends(nino, taxYear)
-
+class SubmittedDividendsService @Inject()(submittedDividendsConnector: SubmittedDividendsConnector,
+                                          submittedDividendsIfConnector: SubmittedDividendsIfConnector) {
+  def getSubmittedDividends(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[SubmittedDividendsResponse] = {
+    if (taxYear.equals(2024)) {
+      println("calling 2024 year")
+      println("calling 2024 year")
+      submittedDividendsIfConnector.getSubmittedDividends(nino, taxYear)
+    }
+    else {
+      println("not calling")
+      println("not calling")
+      submittedDividendsConnector.getSubmittedDividends(nino, taxYear)
+    }
+  }
 }
