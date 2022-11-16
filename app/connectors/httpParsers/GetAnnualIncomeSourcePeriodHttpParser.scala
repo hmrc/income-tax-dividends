@@ -16,30 +16,38 @@
 
 package connectors.httpParsers
 
-import models.{CreateOrAmendDividendsResponseModel, ErrorModel}
+import models.{ErrorModel, SubmittedDividendsModel}
+import play.api.Logging
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
-import utils.PagerDutyHelper.pagerDutyLog
 import utils.PagerDutyHelper.PagerDutyKeys._
+import utils.PagerDutyHelper.pagerDutyLog
 
-object CreateOrAmendDividendsHttpParser extends APIParser {
-  type CreateOrAmendDividendsResponse = Either[ErrorModel, CreateOrAmendDividendsResponseModel]
+object GetAnnualIncomeSourcePeriodHttpParser extends APIParser with Logging {
+  type GetAnnualIncomeSourcePeriod = Either[ErrorModel, SubmittedDividendsModel]
 
-  implicit object CreateOrAmendDividendsHttpReads extends HttpReads[CreateOrAmendDividendsResponse] {
-    override def read(method: String, url: String, response: HttpResponse): CreateOrAmendDividendsResponse = {
+  implicit object GetAnnualIncomeSourcePeriodReads extends HttpReads[GetAnnualIncomeSourcePeriod] {
+
+    override def read(method: String, url: String, response: HttpResponse): GetAnnualIncomeSourcePeriod = {
+
       response.status match {
-        case OK =>
-          response.json.validate[CreateOrAmendDividendsResponseModel].fold[CreateOrAmendDividendsResponse](
-            jsonErrors => badSuccessJsonFromAPI,
-            parsedModel => Right(parsedModel)
-          )
+        case OK => response.json.validate[SubmittedDividendsModel].fold[GetAnnualIncomeSourcePeriod](
+          jsonErrors => badSuccessJsonFromAPI,
+          parsedModel => Right(parsedModel)
+        )
         case INTERNAL_SERVER_ERROR =>
           pagerDutyLog(INTERNAL_SERVER_ERROR_FROM_API, logMessage(response))
           handleAPIError(response)
         case SERVICE_UNAVAILABLE =>
           pagerDutyLog(SERVICE_UNAVAILABLE_FROM_API, logMessage(response))
           handleAPIError(response)
-        case BAD_REQUEST | FORBIDDEN | NOT_FOUND | UNPROCESSABLE_ENTITY =>
+        case UNPROCESSABLE_ENTITY =>
+          pagerDutyLog(UNPROCESSABLE_ENTITY_FROM_API, logMessage(response))
+          handleAPIError(response)
+        case NOT_FOUND =>
+          logger.info(logMessage(response))
+          handleAPIError(response)
+        case BAD_REQUEST =>
           pagerDutyLog(FOURXX_RESPONSE_FROM_API, logMessage(response))
           handleAPIError(response)
         case _ =>

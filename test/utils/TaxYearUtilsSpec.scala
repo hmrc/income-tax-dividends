@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package models
+package utils
 
-import play.api.libs.json.{Json, OFormat}
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-case class SubmittedDividendsModel (ukDividends: Option[BigDecimal],
-                                   otherUkDividends: Option[BigDecimal],
-                                    deletedPeriod: Option[Boolean] = None)
+class TaxYearUtilsSpec extends AnyWordSpec with Matchers {
 
-object SubmittedDividendsModel{
-  implicit val formats: OFormat[SubmittedDividendsModel] = Json.format[SubmittedDividendsModel]
+  "IFTaxYearHelper" should {
+
+    "return a string containing the last year and the last two digits of this year" in {
+      val taxYear = 2024
+      val result = TaxYearUtils.convertSpecificTaxYear(taxYear)
+      result mustBe "2023-24"
+    }
+
+  }
 }

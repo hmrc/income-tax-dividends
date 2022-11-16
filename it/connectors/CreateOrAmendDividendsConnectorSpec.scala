@@ -19,7 +19,7 @@ package connectors
 import com.github.tomakehurst.wiremock.http.HttpHeader
 import config.BackendAppConfig
 import helpers.WiremockSpec
-import models.{CreateOrAmendDividendsModel, CreateOrAmendDividendsResponseModel, DesErrorBodyModel, DesErrorModel}
+import models.{CreateOrAmendDividendsModel, CreateOrAmendDividendsResponseModel, ErrorBodyModel, ErrorModel}
 import play.api.Configuration
 import play.api.http.Status._
 import play.api.libs.json.Json
@@ -99,7 +99,7 @@ class CreateOrAmendDividendsConnectorSpec extends WiremockSpec {
         "ukDividends" -> ""
       )
 
-      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+      val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError)
 
       stubPostWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", OK, Json.toJson(updateDividendsModel).toString(), invalidJson.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -113,7 +113,7 @@ class CreateOrAmendDividendsConnectorSpec extends WiremockSpec {
         "code" -> "NOT_FOUND",
         "reason" -> "Submission Period not found"
       )
-      val expectedResult = DesErrorModel(404, DesErrorBodyModel("NOT_FOUND", "Submission Period not found"))
+      val expectedResult = ErrorModel(404, ErrorBodyModel("NOT_FOUND", "Submission Period not found"))
 
       stubPostWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", NOT_FOUND, Json.toJson(updateDividendsModel).toString(), responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -127,7 +127,7 @@ class CreateOrAmendDividendsConnectorSpec extends WiremockSpec {
         "code" -> "UNPROCESSABLE_ENTITY",
         "reason" -> "The remote endpoint has indicated that for given income source type, message payload is incorrect."
       )
-      val expectedResult = DesErrorModel(422, DesErrorBodyModel("UNPROCESSABLE_ENTITY", "The remote endpoint has indicated that for given income source type, message payload is incorrect."))
+      val expectedResult = ErrorModel(422, ErrorBodyModel("UNPROCESSABLE_ENTITY", "The remote endpoint has indicated that for given income source type, message payload is incorrect."))
 
       stubPostWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", UNPROCESSABLE_ENTITY, Json.toJson(updateDividendsModel).toString(), responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -141,7 +141,7 @@ class CreateOrAmendDividendsConnectorSpec extends WiremockSpec {
         "code" -> "NOT_FOUND_INCOME_SOURCE",
         "reason" -> "Can't find income source"
       )
-      val expectedResult = DesErrorModel(403, DesErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find income source"))
+      val expectedResult = ErrorModel(403, ErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find income source"))
 
       stubPostWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", FORBIDDEN, Json.toJson(updateDividendsModel).toString(), responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -155,7 +155,7 @@ class CreateOrAmendDividendsConnectorSpec extends WiremockSpec {
         "code" -> "SERVER_ERROR",
         "reason" -> "Internal server error"
       )
-      val expectedResult = DesErrorModel(500, DesErrorBodyModel("SERVER_ERROR", "Internal server error"))
+      val expectedResult = ErrorModel(500, ErrorBodyModel("SERVER_ERROR", "Internal server error"))
 
       stubPostWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", INTERNAL_SERVER_ERROR, Json.toJson(updateDividendsModel).toString(), responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -169,7 +169,7 @@ class CreateOrAmendDividendsConnectorSpec extends WiremockSpec {
         "code" -> "SERVICE_UNAVAILABLE",
         "reason" -> "Service is unavailable"
       )
-      val expectedResult = DesErrorModel(503, DesErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable"))
+      val expectedResult = ErrorModel(503, ErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable"))
 
       stubPostWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", SERVICE_UNAVAILABLE, Json.toJson(updateDividendsModel).toString(), responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -179,7 +179,7 @@ class CreateOrAmendDividendsConnectorSpec extends WiremockSpec {
     }
 
     "return an Internal Server Error when DES throws an unexpected result with no body" in {
-      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+      val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError)
 
       stubPostWithoutResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", NO_CONTENT, Json.toJson(updateDividendsModel).toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -193,7 +193,7 @@ class CreateOrAmendDividendsConnectorSpec extends WiremockSpec {
         "code" -> "SERVICE_UNAVAILABLE",
         "reason" -> "Service is unavailable"
       )
-      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable"))
+      val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable"))
 
       stubPostWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", CONFLICT, Json.toJson(updateDividendsModel).toString(), responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -206,7 +206,7 @@ class CreateOrAmendDividendsConnectorSpec extends WiremockSpec {
       val responseBody = Json.obj(
         "code" -> "SERVICE_UNAVAILABLE"
       )
-      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+      val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError)
 
       stubPostWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", CONFLICT, Json.toJson(updateDividendsModel).toString(), responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()

@@ -26,20 +26,29 @@ import play.api.libs.json.Json
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, SessionId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
-class SubmittedDividendsConnectorSpec extends WiremockSpec {
+class GetAnnualIncomeSourcePeriodConnectorSpec extends WiremockSpec {
 
-  lazy val connector: SubmittedDividendsConnector = app.injector.instanceOf[SubmittedDividendsConnector]
+  lazy val connector: GetAnnualIncomeSourcePeriodConnector = app.injector.instanceOf[GetAnnualIncomeSourcePeriodConnector]
 
   lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
-  def appConfig(desHost: String): BackendAppConfig = new BackendAppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
-    override val desBaseUrl: String = s"http://$desHost:$wireMockPort"
+
+  def appConfig(ifHost: String): BackendAppConfig = new BackendAppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
+    override lazy val ifBaseUrl: String = s"http://$ifHost:$wireMockPort"
   }
 
   val nino: String = "123456789"
-  val taxYear: Int = 1999
-  val dividendResult: Option[BigDecimal] = Some(123456.78)
 
-  ".SubmittedDividendsConnector" should {
+  def taxYearParameter(taxYear: Int) = {
+    s"${taxYear - 1}-${taxYear.toString takeRight 2}"
+  }
+
+  val taxYear: Int = 2024
+  val connectorTaxYear: String = taxYearParameter(2024)
+  val dividendResult: Option[BigDecimal] = Some(123456.78)
+  val deletedPeriod: Option[Boolean] = Some(false)
+  val url: String = s"/income-tax/$connectorTaxYear/$nino/income-source/dividends/annual\\?deleteReturnPeriod=false"
+
+  ".SubmittedDividendsIfConnector" should {
 
     "include internal headers" when {
       val expectedResult = SubmittedDividendsModel(dividendResult, dividendResult)
@@ -53,22 +62,22 @@ class SubmittedDividendsConnectorSpec extends WiremockSpec {
       val internalHost = "localhost"
       val externalHost = "127.0.0.1"
 
-      "the host for DES is 'Internal'" in {
+      "the host for IF is 'Internal'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new SubmittedDividendsConnector(httpClient, appConfig(internalHost))
-        stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", OK, responseBody, headersSentToDes)
+        val connector = new GetAnnualIncomeSourcePeriodConnector(httpClient, appConfig(internalHost))
+        stubGetWithResponseBody(url, OK, responseBody, headersSentToDes)
 
-        val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
+        val result = await(connector.getAnnualIncomeSourcePeriod(nino, taxYear, deletedPeriod)(hc))
 
         result mustBe Right(expectedResult)
       }
 
-      "the host for DES is 'External'" in {
+      "the host for IF is 'External'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new SubmittedDividendsConnector(httpClient, appConfig(externalHost))
-        stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", OK, responseBody, headersSentToDes)
+        val connector = new GetAnnualIncomeSourcePeriodConnector(httpClient, appConfig(externalHost))
+        stubGetWithResponseBody(url, OK, responseBody, headersSentToDes)
 
-        val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
+        val result = await(connector.getAnnualIncomeSourcePeriod(nino, taxYear, deletedPeriod)(hc))
 
         result mustBe Right(expectedResult)
       }
@@ -78,10 +87,10 @@ class SubmittedDividendsConnectorSpec extends WiremockSpec {
       "all values are present" in {
         val expectedResult = SubmittedDividendsModel(dividendResult, dividendResult)
 
-        stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", OK, Json.toJson(expectedResult).toString())
+        stubGetWithResponseBody(url, OK, Json.toJson(expectedResult).toString())
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
+        val result = await(connector.getAnnualIncomeSourcePeriod(nino, taxYear, deletedPeriod)(hc))
 
         result mustBe Right(expectedResult)
       }
@@ -89,8 +98,8 @@ class SubmittedDividendsConnectorSpec extends WiremockSpec {
 
     "DES Returns multiple errors" in {
       val expectedResult = ErrorModel(BAD_REQUEST, ErrorsBodyModel(Seq(
-        ErrorBodyModel("INVALID_IDTYPE","ID is invalid"),
-        ErrorBodyModel("INVALID_IDTYPE_2","ID 2 is invalid"))))
+        ErrorBodyModel("INVALID_IDTYPE", "ID is invalid"),
+        ErrorBodyModel("INVALID_IDTYPE_2", "ID 2 is invalid"))))
 
       val responseBody = Json.obj(
         "failures" -> Json.arr(
@@ -100,10 +109,10 @@ class SubmittedDividendsConnectorSpec extends WiremockSpec {
             "reason" -> "ID 2 is invalid")
         )
       )
-      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", BAD_REQUEST, responseBody.toString())
+      stubGetWithResponseBody(url, BAD_REQUEST, responseBody.toString())
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
+      val result = await(connector.getAnnualIncomeSourcePeriod(nino, taxYear, deletedPeriod)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -115,9 +124,9 @@ class SubmittedDividendsConnectorSpec extends WiremockSpec {
 
       val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError)
 
-      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", OK, invalidJson.toString())
+      stubGetWithResponseBody(url, OK, invalidJson.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
+      val result = await(connector.getAnnualIncomeSourcePeriod(nino, taxYear, deletedPeriod)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -125,9 +134,9 @@ class SubmittedDividendsConnectorSpec extends WiremockSpec {
     "return a NO_CONTENT" in {
       val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError)
 
-      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", NO_CONTENT, "{}")
+      stubGetWithResponseBody(url, NO_CONTENT, "{}")
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
+      val result = await(connector.getAnnualIncomeSourcePeriod(nino, taxYear, deletedPeriod)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -139,9 +148,9 @@ class SubmittedDividendsConnectorSpec extends WiremockSpec {
       )
       val expectedResult = ErrorModel(400, ErrorBodyModel("INVALID_NINO", "Nino is invalid"))
 
-      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", BAD_REQUEST, responseBody.toString())
+      stubGetWithResponseBody(url, BAD_REQUEST, responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
+      val result = await(connector.getAnnualIncomeSourcePeriod(nino, taxYear, deletedPeriod)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -153,9 +162,9 @@ class SubmittedDividendsConnectorSpec extends WiremockSpec {
       )
       val expectedResult = ErrorModel(404, ErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find income source"))
 
-      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", NOT_FOUND, responseBody.toString())
+      stubGetWithResponseBody(url, NOT_FOUND, responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
+      val result = await(connector.getAnnualIncomeSourcePeriod(nino, taxYear, deletedPeriod)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -167,9 +176,9 @@ class SubmittedDividendsConnectorSpec extends WiremockSpec {
       )
       val expectedResult = ErrorModel(500, ErrorBodyModel("SERVER_ERROR", "Internal server error"))
 
-      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", INTERNAL_SERVER_ERROR, responseBody.toString())
+      stubGetWithResponseBody(url, INTERNAL_SERVER_ERROR, responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
+      val result = await(connector.getAnnualIncomeSourcePeriod(nino, taxYear, deletedPeriod)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -181,46 +190,59 @@ class SubmittedDividendsConnectorSpec extends WiremockSpec {
       )
       val expectedResult = ErrorModel(503, ErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable"))
 
-      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", SERVICE_UNAVAILABLE, responseBody.toString())
+      stubGetWithResponseBody(url, SERVICE_UNAVAILABLE, responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
+      val result = await(connector.getAnnualIncomeSourcePeriod(nino, taxYear, deletedPeriod)(hc))
 
       result mustBe Left(expectedResult)
     }
 
-    "return an Internal Server Error when DES throws an unexpected result" in {
+    "return an Internal Server Error when IF throws an unexpected result" in {
       val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError)
 
-      stubGetWithoutResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", NO_CONTENT)
+      stubGetWithoutResponseBody(url, INTERNAL_SERVER_ERROR)
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
+      val result = await(connector.getAnnualIncomeSourcePeriod(nino, taxYear, deletedPeriod)(hc))
 
       result mustBe Left(expectedResult)
     }
 
-    "return an Internal Server Error when DES throws an unexpected result that is parsable" in {
+    "return an Internal Server Error when IF throws an unexpected result that is parsable" in {
       val responseBody = Json.obj(
         "code" -> "SERVICE_UNAVAILABLE",
         "reason" -> "Service is unavailable"
       )
-      val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR,  ErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable"))
+      val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable"))
 
-      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", CONFLICT, responseBody.toString())
+      stubGetWithResponseBody(url, CONFLICT, responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
+      val result = await(connector.getAnnualIncomeSourcePeriod(nino, taxYear, deletedPeriod)(hc))
 
       result mustBe Left(expectedResult)
     }
 
-    "return an Internal Server Error when DES throws an unexpected result that isn't parsable" in {
+    "return an Internal Server Error when IF throws an unexpected result that isn't parsable" in {
       val responseBody = Json.obj(
         "code" -> "SERVICE_UNAVAILABLE"
       )
-      val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR,  ErrorBodyModel.parsingError)
+      val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError)
 
-      stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", CONFLICT, responseBody.toString())
+      stubGetWithResponseBody(url, CONFLICT, responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))
+      val result = await(connector.getAnnualIncomeSourcePeriod(nino, taxYear, deletedPeriod)(hc))
+
+      result mustBe Left(expectedResult)
+    }
+
+    "return an Unprocessable entity Error when IF throws an unexpected result that isn't parsable" in {
+      val responseBody = Json.obj(
+        "code" -> "UNPROCESSABLE_ENTITY"
+      )
+      val expectedResult = ErrorModel(UNPROCESSABLE_ENTITY, ErrorBodyModel.parsingError)
+
+      stubGetWithResponseBody(url, UNPROCESSABLE_ENTITY, responseBody.toString())
+      implicit val hc: HeaderCarrier = HeaderCarrier()
+      val result = await(connector.getAnnualIncomeSourcePeriod(nino, taxYear, deletedPeriod)(hc))
 
       result mustBe Left(expectedResult)
     }

@@ -17,7 +17,7 @@
 package services
 
 import com.codahale.metrics.SharedMetricRegistries
-import connectors.SubmittedDividendsConnector
+import connectors.{SubmittedDividendsConnector, GetAnnualIncomeSourcePeriodConnector}
 import connectors.httpParsers.SubmittedDividendsHttpParser.SubmittedDividendsResponse
 import models.SubmittedDividendsModel
 import uk.gov.hmrc.http.HeaderCarrier
@@ -29,14 +29,15 @@ class SubmittedDividendsServiceSpec extends TestUtils {
   SharedMetricRegistries.clear()
 
   val connector: SubmittedDividendsConnector = mock[SubmittedDividendsConnector]
-  val service: SubmittedDividendsService = new SubmittedDividendsService(connector)
+  val ifConnector: GetAnnualIncomeSourcePeriodConnector = mock[GetAnnualIncomeSourcePeriodConnector]
+  val service: SubmittedDividendsService = new SubmittedDividendsService(connector, ifConnector)
 
 
   ".getSubmittedDividends" should {
 
     "return the connector response" in {
 
-      val expectedResult: SubmittedDividendsResponse = Right(SubmittedDividendsModel(Some(20.00), Some(20.00)))
+      val expectedResult: SubmittedDividendsResponse = Right(SubmittedDividendsModel(Some(20.00), Some(20.00), None))
 
       (connector.getSubmittedDividends(_: String, _: Int)(_: HeaderCarrier))
         .expects("12345678", 1234, *)
@@ -47,5 +48,18 @@ class SubmittedDividendsServiceSpec extends TestUtils {
       result mustBe expectedResult
 
     }
+  }
+  "return the if connector response" in {
+
+    val expectedResult: SubmittedDividendsResponse = Right(SubmittedDividendsModel(Some(20.00), Some(20.00), None))
+
+    (ifConnector.getAnnualIncomeSourcePeriod(_: String, _: Int, _: Option[Boolean])(_: HeaderCarrier))
+      .expects("12345678", 2024, Some(false), *)
+      .returning(Future.successful(expectedResult))
+
+    val result = await(service.getSubmittedDividends("12345678", 2024))
+
+    result mustBe expectedResult
+
   }
 }
