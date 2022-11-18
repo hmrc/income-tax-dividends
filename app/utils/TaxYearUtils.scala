@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package models
+package utils
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.Logging
 
-case class SubmittedDividendsModel (ukDividends: Option[BigDecimal],
-                                   otherUkDividends: Option[BigDecimal],
-                                    deletedPeriod: Option[Boolean] = None)
+object TaxYearUtils extends Logging {
 
-object SubmittedDividendsModel{
-  implicit val formats: OFormat[SubmittedDividendsModel] = Json.format[SubmittedDividendsModel]
+  def convertSpecificTaxYear(taxYear: Int): String =
+    s"${taxYear - 1}-${taxYear.toString takeRight 2}"
 }

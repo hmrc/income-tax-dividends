@@ -17,7 +17,7 @@
 package controllers
 
 import connectors.httpParsers.CreateOrAmendDividendsHttpParser.CreateOrAmendDividendsResponse
-import models.{CreateOrAmendDividendsModel, CreateOrAmendDividendsResponseModel, DesErrorBodyModel, DesErrorModel}
+import models.{CreateOrAmendDividendsModel, CreateOrAmendDividendsResponseModel, ErrorBodyModel, ErrorModel}
 import org.scalamock.handlers.CallHandler4
 import play.api.http.Status._
 import play.api.libs.json.{JsValue, Json}
@@ -35,10 +35,10 @@ class CreateOrAmendDividendsControllerSpec extends TestUtils {
   val nino: String = "123456789"
   val mtditid: String = "1234567890"
   val taxYear: Int = 1234
-  val badRequestModel: DesErrorBodyModel = DesErrorBodyModel("INVALID_NINO", "Nino is invalid")
-  val notFoundModel: DesErrorBodyModel = DesErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find income source")
-  val serverErrorModel: DesErrorBodyModel = DesErrorBodyModel("SERVER_ERROR", "Internal server error")
-  val serviceUnavailableErrorModel: DesErrorBodyModel = DesErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable")
+  val badRequestModel: ErrorBodyModel = ErrorBodyModel("INVALID_NINO", "Nino is invalid")
+  val notFoundModel: ErrorBodyModel = ErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find income source")
+  val serverErrorModel: ErrorBodyModel = ErrorBodyModel("SERVER_ERROR", "Internal server error")
+  val serviceUnavailableErrorModel: ErrorBodyModel = ErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable")
   private val fakeGetRequest = FakeRequest("PUT", "/").withHeaders("mtditid" -> mtditid)
   private val fakeGetRequestWithDifferentMTITID = FakeRequest("PUT", "/").withHeaders("mtditid" -> "123123123")
 
@@ -53,21 +53,21 @@ class CreateOrAmendDividendsControllerSpec extends TestUtils {
   }
 
   def mockCreateOrAmendDividendsBadRequest(): CallHandler4[String, Int, CreateOrAmendDividendsModel, HeaderCarrier, Future[CreateOrAmendDividendsResponse]] = {
-    val response: CreateOrAmendDividendsResponse = Left(DesErrorModel(BAD_REQUEST, badRequestModel))
+    val response: CreateOrAmendDividendsResponse = Left(ErrorModel(BAD_REQUEST, badRequestModel))
     (createOrAmendDividendsService.createOrAmendDividends(_: String, _: Int, _: CreateOrAmendDividendsModel)(_: HeaderCarrier))
       .expects(*, *, *, *)
       .returning(Future.successful(response))
   }
 
   def mockCreateOrAmendDividendsNotFound(): CallHandler4[String, Int, CreateOrAmendDividendsModel, HeaderCarrier, Future[CreateOrAmendDividendsResponse]] = {
-    val response = Left(DesErrorModel(NOT_FOUND, notFoundModel))
+    val response = Left(ErrorModel(NOT_FOUND, notFoundModel))
     (createOrAmendDividendsService.createOrAmendDividends(_: String, _: Int, _: CreateOrAmendDividendsModel)(_: HeaderCarrier))
       .expects(*, *, *, *)
       .returning(Future.successful(response))
   }
 
   def mockCreateOrAmendDividendsServerError(): CallHandler4[String, Int, CreateOrAmendDividendsModel, HeaderCarrier, Future[CreateOrAmendDividendsResponse]] = {
-    val response = Left(DesErrorModel(INTERNAL_SERVER_ERROR, serverErrorModel))
+    val response = Left(ErrorModel(INTERNAL_SERVER_ERROR, serverErrorModel))
     (createOrAmendDividendsService.createOrAmendDividends(_: String, _: Int, _: CreateOrAmendDividendsModel)(_: HeaderCarrier))
       .expects(*, *, *, *)
       .returning(Future.successful(response))
@@ -75,7 +75,7 @@ class CreateOrAmendDividendsControllerSpec extends TestUtils {
 
   def mockCreateOrAmendDividendsServiceUnavailable()
   : CallHandler4[String, Int, CreateOrAmendDividendsModel, HeaderCarrier, Future[CreateOrAmendDividendsResponse]] = {
-    val response = Left(DesErrorModel(SERVICE_UNAVAILABLE, serviceUnavailableErrorModel))
+    val response = Left(ErrorModel(SERVICE_UNAVAILABLE, serviceUnavailableErrorModel))
     (createOrAmendDividendsService.createOrAmendDividends(_: String, _: Int, _: CreateOrAmendDividendsModel)(_: HeaderCarrier))
       .expects(*, *, *, *)
       .returning(Future.successful(response))
