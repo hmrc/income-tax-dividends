@@ -21,5 +21,5 @@ import play.api.Logging
 object TaxYearUtils extends Logging {
 
   def convertSpecificTaxYear(taxYear: Int): String =
-    s"${taxYear - 1}-${taxYear.toString takeRight 2}"
+    s"${(taxYear - 1).toString takeRight 2}-${taxYear.toString takeRight 2}"
 }
