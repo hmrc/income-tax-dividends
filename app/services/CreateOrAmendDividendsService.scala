@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 
 package services
 
-import connectors.CreateOrAmendDividendsConnector
+import connectors.{CreateOrAmendDividendsConnector, CreateUpdateAnnualIncomeSourceConnector}
 import connectors.httpParsers.CreateOrAmendDividendsHttpParser.CreateOrAmendDividendsResponse
+
 import javax.inject.{Inject, Singleton}
 import models.CreateOrAmendDividendsModel
 import uk.gov.hmrc.http.HeaderCarrier
@@ -25,10 +26,16 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.Future
 
 @Singleton
-class CreateOrAmendDividendsService @Inject()(createOrAmendDividendsConnector: CreateOrAmendDividendsConnector) {
+class CreateOrAmendDividendsService @Inject()(createOrAmendDividendsConnector: CreateOrAmendDividendsConnector,
+                                              createUpdateAnnualIncomeSourceConnector: CreateUpdateAnnualIncomeSourceConnector) {
   def createOrAmendDividends(
                              nino: String, taxYear: Int, dividendsModel: CreateOrAmendDividendsModel
-                           )(implicit hc: HeaderCarrier): Future[CreateOrAmendDividendsResponse] =
-    createOrAmendDividendsConnector.createOrAmendDividends(nino, taxYear, dividendsModel)
+                           )(implicit hc: HeaderCarrier): Future[CreateOrAmendDividendsResponse] = {
+    if (taxYear == 2024) {
+      createUpdateAnnualIncomeSourceConnector.createUpdateAnnualIncomeSource(nino, taxYear, dividendsModel)
+    } else {
+      createOrAmendDividendsConnector.createOrAmendDividends(nino, taxYear, dividendsModel)
+    }
+  }
 
 }

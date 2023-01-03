@@ -17,19 +17,21 @@
 package connectors.httpParsers
 
 import models.{CreateOrAmendDividendsResponseModel, ErrorModel}
-import play.api.http.Status._
+import play.api.Logging
+import play.api.http.Status.{BAD_REQUEST, FORBIDDEN, INTERNAL_SERVER_ERROR, NOT_FOUND, OK, SERVICE_UNAVAILABLE, UNPROCESSABLE_ENTITY}
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
+import utils.PagerDutyHelper.PagerDutyKeys.{FOURXX_RESPONSE_FROM_API, INTERNAL_SERVER_ERROR_FROM_API, SERVICE_UNAVAILABLE_FROM_API}
 import utils.PagerDutyHelper.pagerDutyLog
-import utils.PagerDutyHelper.PagerDutyKeys._
 
-object CreateOrAmendDividendsHttpParser extends APIParser {
-  type CreateOrAmendDividendsResponse = Either[ErrorModel, CreateOrAmendDividendsResponseModel]
+object CreateUpdateAnnualIncomeSourceHttpParser extends APIParser with Logging {
 
-  implicit object CreateOrAmendDividendsHttpReads extends HttpReads[CreateOrAmendDividendsResponse] {
-    override def read(method: String, url: String, response: HttpResponse): CreateOrAmendDividendsResponse = {
+  type CreateUpdateAnnualIncomeSourceResponse = Either[ErrorModel, CreateOrAmendDividendsResponseModel]
+
+  implicit object CreateUpdateAnnualIncomeSourceHttpReads extends HttpReads[CreateUpdateAnnualIncomeSourceResponse] {
+    override def read(method: String, url: String, response: HttpResponse): CreateUpdateAnnualIncomeSourceResponse = {
       response.status match {
         case OK =>
-          response.json.validate[CreateOrAmendDividendsResponseModel].fold[CreateOrAmendDividendsResponse](
+          response.json.validate[CreateOrAmendDividendsResponseModel].fold[CreateUpdateAnnualIncomeSourceResponse](
             jsonErrors => badSuccessJsonFromAPI,
             parsedModel => Right(parsedModel)
           )
@@ -43,7 +45,7 @@ object CreateOrAmendDividendsHttpParser extends APIParser {
           pagerDutyLog(FOURXX_RESPONSE_FROM_API, logMessage(response))
           handleAPIError(response)
         case _ =>
-          pagerDutyLog(UNEXPECTED_RESPONSE_FROM_API, logMessage(response))
+          pagerDutyLog(SERVICE_UNAVAILABLE_FROM_API, logMessage(response))
           handleAPIError(response, Some(INTERNAL_SERVER_ERROR))
       }
     }
