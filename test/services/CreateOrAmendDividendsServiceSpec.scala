@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package services
 
 import com.codahale.metrics.SharedMetricRegistries
-import connectors.CreateOrAmendDividendsConnector
+import connectors.{CreateOrAmendDividendsConnector, CreateUpdateAnnualIncomeSourceConnector}
 import connectors.httpParsers.CreateOrAmendDividendsHttpParser.CreateOrAmendDividendsResponse
 import models.{CreateOrAmendDividendsModel, CreateOrAmendDividendsResponseModel}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -29,12 +29,13 @@ class CreateOrAmendDividendsServiceSpec extends TestUtils {
   SharedMetricRegistries.clear()
 
   val connector: CreateOrAmendDividendsConnector = mock[CreateOrAmendDividendsConnector]
-  val service: CreateOrAmendDividendsService = new CreateOrAmendDividendsService(connector)
+  val connector2: CreateUpdateAnnualIncomeSourceConnector = mock[CreateUpdateAnnualIncomeSourceConnector]
+  val service: CreateOrAmendDividendsService = new CreateOrAmendDividendsService(connector, connector2)
 
 
   ".createOrAmendDividends" should {
 
-    "return the connector response" in {
+    "return the DES connector response" in {
 
       val expectedResult: CreateOrAmendDividendsResponse = Right(CreateOrAmendDividendsResponseModel("transactionRef"))
 
@@ -43,6 +44,20 @@ class CreateOrAmendDividendsServiceSpec extends TestUtils {
         .returning(Future.successful(expectedResult))
 
       val result = await(service.createOrAmendDividends("12345678", 1234, CreateOrAmendDividendsModel(Some(12345.66), None)))
+
+      result mustBe expectedResult
+
+    }
+
+    "return the IF connector response" in {
+
+      val expectedResult: CreateOrAmendDividendsResponse = Right(CreateOrAmendDividendsResponseModel("transactionRef"))
+
+      (connector2.createUpdateAnnualIncomeSource(_: String, _: Int, _: CreateOrAmendDividendsModel)(_: HeaderCarrier))
+        .expects("12345678", 2024, *, *)
+        .returning(Future.successful(expectedResult))
+
+      val result = await(service.createOrAmendDividends("12345678", 2024, CreateOrAmendDividendsModel(Some(12345.66), None)))
 
       result mustBe expectedResult
 
