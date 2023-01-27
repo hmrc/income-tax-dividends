@@ -27,7 +27,7 @@ object CreateOrAmendDividendsModel {
       ukDividends <- (json \ "ukDividends").validateOpt[BigDecimal]
       otherUkDividends <- (json \ "otherUkDividends").validateOpt[BigDecimal]
     } yield CreateOrAmendDividendsModel(ukDividends, otherUkDividends))
-      .filter(JsError("One of ukDividends or otherUkDividends required"))(model ⇒ model.ukDividends.nonEmpty || model.otherUkDividends.nonEmpty)
+      .filter(JsError("One of ukDividends or otherUkDividends required"))(model => model.ukDividends.nonEmpty || model.otherUkDividends.nonEmpty)
   }
 
   implicit val writes: Writes[CreateOrAmendDividendsModel] = Json.writes[CreateOrAmendDividendsModel]
