@@ -2,3 +2,6 @@
 
 GET        /income-tax/nino/:nino/sources              controllers.SubmittedDividendsController.getSubmittedDividends(nino:String, taxYear: Int)
 PUT        /income-tax/nino/:nino/sources              controllers.CreateOrAmendDividendsController.createOrAmendDividends(nino: String, taxYear: Int)
+
+### IF #1610 - v1.0.0 ###
+DELETE    /income-tax/income/dividends/:nino/:taxYear              controllers.DeleteDividendsIncomeDataController.deleteDividendsIncomeData(nino: String, taxYear: Int)
