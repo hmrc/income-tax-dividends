@@ -63,6 +63,27 @@ trait WiremockStubHelpers {
           .withHeader("Content-Type", "application/json; charset=utf-8")))
   }
 
+  def stubDeleteWithoutResponseBody(url: String, status: Int, requestHeaders: Seq[HttpHeader] = Seq.empty): StubMapping = {
+    val mappingWithHeaders: MappingBuilder = requestHeaders.foldLeft(delete(urlMatching(url))) { (result, nxt) =>
+      result.withHeader(nxt.key(), equalTo(nxt.firstValue()))
+    }
+    stubFor(mappingWithHeaders
+      .willReturn(
+        aResponse()
+          .withStatus(status)))
+  }
+
+  def stubDeleteWithResponseBody(url: String, status: Int, response: String, requestHeaders: Seq[HttpHeader] = Seq.empty): StubMapping = {
+    val mappingWithHeaders: MappingBuilder = requestHeaders.foldLeft(delete(urlMatching(url))) { (result, nxt) =>
+      result.withHeader(nxt.key(), equalTo(nxt.firstValue()))
+    }
+    stubFor(mappingWithHeaders
+      .willReturn(
+        aResponse()
+          .withStatus(status)
+          .withBody(response)
+      ))
+  }
   def stubPutWithoutResponseBody(url: String, requestBody: String, status: Int): StubMapping =
     stubFor(put(urlEqualTo(url))
       .willReturn(

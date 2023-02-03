@@ -29,7 +29,6 @@ trait IFConnector {
   protected val appConfig: AppConfig
   protected[connectors] lazy val baseUrl: String = appConfig.ifBaseUrl
   val GetAnnualIncomeSourcePeriod = "1785"
-
   protected val headerCarrierConfig: Config = HeaderCarrier.Config.fromConfig(ConfigFactory.load())
 
   protected[connectors] def ifHeaderCarrier(url: String, apiVersion: String)(implicit hc: HeaderCarrier): HeaderCarrier = {
