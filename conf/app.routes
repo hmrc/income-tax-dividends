@@ -2,3 +2,6 @@
 
 GET        /income-tax/nino/:nino/sources              controllers.SubmittedDividendsController.getSubmittedDividends(nino:String, taxYear: Int)
 PUT        /income-tax/nino/:nino/sources              controllers.CreateOrAmendDividendsController.createOrAmendDividends(nino: String, taxYear: Int)
+
+### IF #1609 - v1.0.0 ###
+GET        /income-tax/income/dividends/:nino/:taxYear                       controllers.GetDividendsIncomeController.getDividendsIncomeData(nino: String, taxYear: Int)
