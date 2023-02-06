@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package utils
+package services
 
-import play.api.Logging
+import connectors.GetDividendsIncomeConnector
+import connectors.httpParsers.GetDividendsIncomeParser.GetDividendsIncomeDataResponse
+import uk.gov.hmrc.http.HeaderCarrier
 
-object TaxYearUtils extends Logging {
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.Future
 
-  def convertStringTaxYear(taxYear: Int): String = {
-    s"${taxYear - 1}-${taxYear.toString takeRight 2}"
+@Singleton
+class GetDividendsIncomeService @Inject()(getDividendsIncomeDataConnector: GetDividendsIncomeConnector) {
+
+  def getDividendsIncomeData(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetDividendsIncomeDataResponse] = {
+    getDividendsIncomeDataConnector.getDividendsIncomeData(nino, taxYear)
   }
 
-  def convertSpecificTaxYear(taxYear: Int): String =
-    s"${(taxYear - 1).toString takeRight 2}-${taxYear.toString takeRight 2}"
 }
