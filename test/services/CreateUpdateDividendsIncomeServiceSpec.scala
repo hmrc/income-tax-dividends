@@ -17,9 +17,9 @@
 package services
 
 import com.codahale.metrics.SharedMetricRegistries
-import connectors.httpParsers.CreateUpdateDividendsIncomeHttpParser.CreateUpdateDividendsIncomeResponse
-import models.{DividendsIncomeDataModel, ForeignDividendModel, StockDividendModel}
-import connectors.CreateUpdateDividendsIncomeConnector
+import connectors.httpParsers.CreateUpdateStockDividendsIncomeHttpParser.CreateUpdateStockDividendsIncomeResponse
+import models.{DividendsIncomeDataModel, ForeignDividendModel, StockDividendModel, StockDividendsSubmissionModel}
+import connectors.CreateUpdateStockDividendsIncomeConnector
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.TestUtils
 
@@ -28,7 +28,7 @@ import scala.concurrent.Future
 class CreateUpdateDividendsIncomeServiceSpec extends TestUtils {
   SharedMetricRegistries.clear()
 
-  val connector: CreateUpdateDividendsIncomeConnector = mock[CreateUpdateDividendsIncomeConnector]
+  val connector: CreateUpdateStockDividendsIncomeConnector = mock[CreateUpdateStockDividendsIncomeConnector]
   val service: CreateUpdateDividendsIncomeService = new CreateUpdateDividendsIncomeService(connector)
 
   val nino: String = "123456789"
@@ -36,8 +36,7 @@ class CreateUpdateDividendsIncomeServiceSpec extends TestUtils {
   val reference: String = "RefNo13254687"
   val countryCode: String = "GBR"
   val decimalValue: BigDecimal = 123.45
-  val model: DividendsIncomeDataModel = DividendsIncomeDataModel(
-    submittedOn = None,
+  val model: StockDividendsSubmissionModel = StockDividendsSubmissionModel(
     foreignDividend =
       Some(Seq(
         ForeignDividendModel(countryCode, Some(decimalValue), Some(decimalValue), Some(decimalValue), Some(true), decimalValue)
@@ -59,9 +58,9 @@ class CreateUpdateDividendsIncomeServiceSpec extends TestUtils {
 
     "return the IF connector response" in {
 
-      val expectedResult: CreateUpdateDividendsIncomeResponse = Right(model)
+      val expectedResult: CreateUpdateStockDividendsIncomeResponse = Right(true)
 
-      (connector.createUpdateDividends(_: String, _: Int, _: DividendsIncomeDataModel)(_: HeaderCarrier))
+      (connector.createUpdateDividends(_: String, _: Int, _: StockDividendsSubmissionModel)(_: HeaderCarrier))
         .expects(nino, taxYear, *, *)
         .returning(Future.successful(expectedResult))
 

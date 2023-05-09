@@ -16,29 +16,26 @@
 
 package connectors.httpParsers
 
-import models.{DividendsIncomeDataModel, ErrorModel}
+import models.{DividendsIncomeDataModel, ErrorModel, StockDividendsSubmissionModel}
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.PagerDutyKeys._
 import utils.PagerDutyHelper.pagerDutyLog
 
-object CreateUpdateDividendsIncomeHttpParser extends APIParser {
-  type CreateUpdateDividendsIncomeResponse = Either[ErrorModel, DividendsIncomeDataModel]
+object CreateUpdateStockDividendsIncomeHttpParser extends APIParser {
+  type CreateUpdateStockDividendsIncomeResponse = Either[ErrorModel, Boolean]
 
-  implicit object CreateUpdateDividendsIncomeHttpReads extends HttpReads[CreateUpdateDividendsIncomeResponse] {
-    override def read(method: String, url: String, response: HttpResponse): CreateUpdateDividendsIncomeResponse = {
+  implicit object CreateUpdateDividendsIncomeHttpReads extends HttpReads[CreateUpdateStockDividendsIncomeResponse] {
+    override def read(method: String, url: String, response: HttpResponse): CreateUpdateStockDividendsIncomeResponse = {
       response.status match {
-        case OK => response.json.validate[DividendsIncomeDataModel].fold[CreateUpdateDividendsIncomeResponse](
-          jsonErrors => badSuccessJsonFromAPI,
-          parsedModel => Right(parsedModel)
-        )
+        case NO_CONTENT => Right(true)
         case INTERNAL_SERVER_ERROR =>
           pagerDutyLog(INTERNAL_SERVER_ERROR_FROM_API, logMessage(response))
           handleAPIError(response)
         case SERVICE_UNAVAILABLE =>
           pagerDutyLog(SERVICE_UNAVAILABLE_FROM_API, logMessage(response))
           handleAPIError(response)
-        case BAD_REQUEST | FORBIDDEN | NOT_FOUND | UNPROCESSABLE_ENTITY =>
+        case BAD_REQUEST=>
           pagerDutyLog(FOURXX_RESPONSE_FROM_API, logMessage(response))
           handleAPIError(response)
         case _ =>

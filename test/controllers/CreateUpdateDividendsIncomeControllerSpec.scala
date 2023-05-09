@@ -16,8 +16,8 @@
 
 package controllers
 
-import connectors.httpParsers.CreateUpdateDividendsIncomeHttpParser.CreateUpdateDividendsIncomeResponse
-import models.{DividendsIncomeDataModel, ErrorBodyModel, ErrorModel, ForeignDividendModel, StockDividendModel}
+import connectors.httpParsers.CreateUpdateStockDividendsIncomeHttpParser.CreateUpdateStockDividendsIncomeResponse
+import models.{DividendsIncomeDataModel, ErrorBodyModel, ErrorModel, ForeignDividendModel, StockDividendModel, StockDividendsSubmissionModel}
 import org.scalamock.handlers.CallHandler4
 import play.api.http.Status._
 import play.api.libs.json.{JsValue, Json}
@@ -39,8 +39,7 @@ class CreateUpdateDividendsIncomeControllerSpec extends TestUtils {
   val reference: String = "RefNo13254687"
   val countryCode: String = "GBR"
   val decimalValue: BigDecimal = 123.45
-  val model: DividendsIncomeDataModel = DividendsIncomeDataModel(
-    submittedOn = None,
+  val model: StockDividendsSubmissionModel = StockDividendsSubmissionModel(
     foreignDividend =
       Some(Seq(
         ForeignDividendModel(countryCode, Some(decimalValue), Some(decimalValue), Some(decimalValue), Some(true), decimalValue)
@@ -77,39 +76,39 @@ class CreateUpdateDividendsIncomeControllerSpec extends TestUtils {
   )
 
   def mockCreateUpdateDividendsIncomeValid(): CallHandler4
-    [String, Int, DividendsIncomeDataModel, HeaderCarrier, Future[CreateUpdateDividendsIncomeResponse]] = {
-    val response: CreateUpdateDividendsIncomeResponse = Right(model)
-    (createUpdateDividendsIncomeService.createUpdateDividends(_: String, _: Int, _: DividendsIncomeDataModel)(_: HeaderCarrier))
+    [String, Int, StockDividendsSubmissionModel, HeaderCarrier, Future[CreateUpdateStockDividendsIncomeResponse]] = {
+    val response: CreateUpdateStockDividendsIncomeResponse = Right(true)
+    (createUpdateDividendsIncomeService.createUpdateDividends(_: String, _: Int, _: StockDividendsSubmissionModel)(_: HeaderCarrier))
       .expects(*, *, *, *)
       .returning(Future.successful(response))
   }
 
   def mockCreateUpdateDividendsIncomeBadRequest(): CallHandler4
-    [String, Int, DividendsIncomeDataModel, HeaderCarrier, Future[CreateUpdateDividendsIncomeResponse]] = {
-    val response: CreateUpdateDividendsIncomeResponse = Left(ErrorModel(BAD_REQUEST, badRequestModel))
-    (createUpdateDividendsIncomeService.createUpdateDividends(_: String, _: Int, _: DividendsIncomeDataModel)(_: HeaderCarrier))
+    [String, Int, StockDividendsSubmissionModel, HeaderCarrier, Future[CreateUpdateStockDividendsIncomeResponse]] = {
+    val response: CreateUpdateStockDividendsIncomeResponse = Left(ErrorModel(BAD_REQUEST, badRequestModel))
+    (createUpdateDividendsIncomeService.createUpdateDividends(_: String, _: Int, _: StockDividendsSubmissionModel)(_: HeaderCarrier))
       .expects(*, *, *, *)
       .returning(Future.successful(response))
   }
 
-  def mockCreateUpdateDividendsIncomeNotFound(): CallHandler4[String, Int, DividendsIncomeDataModel, HeaderCarrier, Future[CreateUpdateDividendsIncomeResponse]] = {
+  def mockCreateUpdateDividendsIncomeNotFound(): CallHandler4[String, Int, StockDividendsSubmissionModel, HeaderCarrier, Future[CreateUpdateStockDividendsIncomeResponse]] = {
     val response = Left(ErrorModel(NOT_FOUND, notFoundModel))
-    (createUpdateDividendsIncomeService.createUpdateDividends(_: String, _: Int, _: DividendsIncomeDataModel)(_: HeaderCarrier))
+    (createUpdateDividendsIncomeService.createUpdateDividends(_: String, _: Int, _: StockDividendsSubmissionModel)(_: HeaderCarrier))
       .expects(*, *, *, *)
       .returning(Future.successful(response))
   }
 
-  def mockCreateUpdateDividendsIncomeServerError(): CallHandler4[String, Int, DividendsIncomeDataModel, HeaderCarrier, Future[CreateUpdateDividendsIncomeResponse]] = {
+  def mockCreateUpdateDividendsIncomeServerError(): CallHandler4[String, Int, StockDividendsSubmissionModel, HeaderCarrier, Future[CreateUpdateStockDividendsIncomeResponse]] = {
     val response = Left(ErrorModel(INTERNAL_SERVER_ERROR, serverErrorModel))
-    (createUpdateDividendsIncomeService.createUpdateDividends(_: String, _: Int, _: DividendsIncomeDataModel)(_: HeaderCarrier))
+    (createUpdateDividendsIncomeService.createUpdateDividends(_: String, _: Int, _: StockDividendsSubmissionModel)(_: HeaderCarrier))
       .expects(*, *, *, *)
       .returning(Future.successful(response))
   }
 
   def mockCreateUpdateDividendsIncomeServiceUnavailable()
-  : CallHandler4[String, Int, DividendsIncomeDataModel, HeaderCarrier, Future[CreateUpdateDividendsIncomeResponse]] = {
+  : CallHandler4[String, Int, StockDividendsSubmissionModel, HeaderCarrier, Future[CreateUpdateStockDividendsIncomeResponse]] = {
     val response = Left(ErrorModel(SERVICE_UNAVAILABLE, serviceUnavailableErrorModel))
-    (createUpdateDividendsIncomeService.createUpdateDividends(_: String, _: Int, _: DividendsIncomeDataModel)(_: HeaderCarrier))
+    (createUpdateDividendsIncomeService.createUpdateDividends(_: String, _: Int, _: StockDividendsSubmissionModel)(_: HeaderCarrier))
       .expects(*, *, *, *)
       .returning(Future.successful(response))
   }

@@ -18,8 +18,8 @@ package connectors
 
 import com.typesafe.config.ConfigFactory
 import config.AppConfig
-import connectors.httpParsers.CreateUpdateDividendsIncomeHttpParser.{CreateUpdateDividendsIncomeHttpReads, CreateUpdateDividendsIncomeResponse}
-import models.DividendsIncomeDataModel
+import connectors.httpParsers.CreateUpdateStockDividendsIncomeHttpParser.{CreateUpdateDividendsIncomeHttpReads, CreateUpdateStockDividendsIncomeResponse}
+import models.{DividendsIncomeDataModel, StockDividendsSubmissionModel}
 import uk.gov.hmrc.http.HeaderCarrier.Config
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import utils.TaxYearUtils.convertStringTaxYear
@@ -27,17 +27,17 @@ import utils.TaxYearUtils.convertStringTaxYear
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class CreateUpdateDividendsIncomeConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends IFConnector {
+class CreateUpdateStockDividendsIncomeConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends IFConnector {
 
   override val headerCarrierConfig: Config = HeaderCarrier.Config.fromConfig(ConfigFactory.load())
 
-  def createUpdateDividends(nino: String, taxYear: Int, createUpdatedDividendsIncomeModel: models.DividendsIncomeDataModel)
-                           (implicit hc: HeaderCarrier): Future[CreateUpdateDividendsIncomeResponse] = {
+  def createUpdateDividends(nino: String, taxYear: Int, createUpdatedDividendsIncomeModel: StockDividendsSubmissionModel)
+                           (implicit hc: HeaderCarrier): Future[CreateUpdateStockDividendsIncomeResponse] = {
     val putDividendsIncome = "1608"
     val taxYearParameter = convertStringTaxYear(taxYear)
     val url = appConfig.ifBaseUrl + s"/income-tax/income/dividends/$nino/$taxYearParameter"
 
-    http.POST[models.DividendsIncomeDataModel, CreateUpdateDividendsIncomeResponse](url, createUpdatedDividendsIncomeModel)(
-      DividendsIncomeDataModel.formats.writes, CreateUpdateDividendsIncomeHttpReads, ifHeaderCarrier(url, putDividendsIncome), ec)
+    http.PUT[StockDividendsSubmissionModel, CreateUpdateStockDividendsIncomeResponse](url, createUpdatedDividendsIncomeModel)(
+      StockDividendsSubmissionModel.formats.writes, CreateUpdateDividendsIncomeHttpReads, ifHeaderCarrier(url, putDividendsIncome), ec)
   }
 }
