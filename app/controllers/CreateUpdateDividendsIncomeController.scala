@@ -16,9 +16,9 @@
 
 package controllers
 
-import connectors.httpParsers.CreateUpdateDividendsIncomeHttpParser.CreateUpdateDividendsIncomeResponse
+import connectors.httpParsers.CreateUpdateStockDividendsIncomeHttpParser.CreateUpdateStockDividendsIncomeResponse
 import controllers.predicates.AuthorisedAction
-import models.DividendsIncomeDataModel
+import models.{DividendsIncomeDataModel, StockDividendsSubmissionModel}
 import play.api.libs.json.{JsSuccess, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.CreateUpdateDividendsIncomeService
@@ -33,14 +33,14 @@ class CreateUpdateDividendsIncomeController @Inject()(createUpdateDividendsIncom
                                                      (implicit ec: ExecutionContext) extends BackendController(cc) {
 
   def createUpdateDividends(nino: String, taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
-    user.request.body.asJson.map(_.validate[DividendsIncomeDataModel]) match {
+    user.request.body.asJson.map(_.validate[StockDividendsSubmissionModel]) match {
       case Some(JsSuccess(model, _)) =>
         responseHandler(createUpdateDividendsIncomeService.createUpdateDividends(nino, taxYear, model))
       case _ => Future.successful(BadRequest)
     }
   }
 
-  def responseHandler(serviceResponse: Future[CreateUpdateDividendsIncomeResponse]): Future[Result] = {
+  def responseHandler(serviceResponse: Future[CreateUpdateStockDividendsIncomeResponse]): Future[Result] = {
     serviceResponse.map {
       case Right(responseModel) => NoContent
       case Left(errorModel) => Status(errorModel.status)(Json.toJson(errorModel.toJson))

@@ -16,19 +16,19 @@
 
 package services
 
-import connectors.httpParsers.CreateUpdateDividendsIncomeHttpParser.CreateUpdateDividendsIncomeResponse
-import connectors.CreateUpdateDividendsIncomeConnector
-import models.DividendsIncomeDataModel
+import connectors.httpParsers.CreateUpdateStockDividendsIncomeHttpParser.CreateUpdateStockDividendsIncomeResponse
+import connectors.CreateUpdateStockDividendsIncomeConnector
+import models.{DividendsIncomeDataModel, StockDividendsSubmissionModel}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 @Singleton
-class CreateUpdateDividendsIncomeService @Inject()(createUpdateDividendsIncomeConnector: CreateUpdateDividendsIncomeConnector) {
+class CreateUpdateDividendsIncomeService @Inject()(createUpdateDividendsIncomeConnector: CreateUpdateStockDividendsIncomeConnector) {
 
-  def createUpdateDividends(nino: String, taxYear: Int, createUpdateDividendsModel: DividendsIncomeDataModel)
-                           (implicit hc: HeaderCarrier): Future[CreateUpdateDividendsIncomeResponse] = {
+  def createUpdateDividends(nino: String, taxYear: Int, createUpdateDividendsModel: StockDividendsSubmissionModel)
+                           (implicit hc: HeaderCarrier): Future[CreateUpdateStockDividendsIncomeResponse] = {
     createUpdateDividendsIncomeConnector.createUpdateDividends(nino, taxYear, createUpdateDividendsModel)
   }
 
