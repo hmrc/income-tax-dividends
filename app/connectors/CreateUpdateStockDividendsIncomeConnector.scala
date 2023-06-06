@@ -33,7 +33,7 @@ class CreateUpdateStockDividendsIncomeConnector @Inject()(http: HttpClient, val 
 
   def createUpdateDividends(nino: String, taxYear: Int, createUpdatedDividendsIncomeModel: StockDividendsSubmissionModel)
                            (implicit hc: HeaderCarrier): Future[CreateUpdateStockDividendsIncomeResponse] = {
-    val putDividendsIncome = "1608"
+    val putDividendsIncome = "1906"
     val taxYearParameter = convertStringTaxYear(taxYear)
     val url = appConfig.ifBaseUrl + s"/income-tax/income/dividends/$nino/$taxYearParameter"
 
