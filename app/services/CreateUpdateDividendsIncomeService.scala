@@ -16,9 +16,9 @@
 
 package services
 
-import connectors.httpParsers.CreateUpdateStockDividendsIncomeHttpParser.CreateUpdateStockDividendsIncomeResponse
 import connectors.CreateUpdateStockDividendsIncomeConnector
-import models.{DividendsIncomeDataModel, StockDividendsSubmissionModel}
+import connectors.httpParsers.CreateUpdateStockDividendsIncomeHttpParser.CreateUpdateStockDividendsIncomeResponse
+import models.StockDividendsSubmissionModel
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}

@@ -16,11 +16,12 @@
 
 package services
 
-import connectors.{SubmittedDividendsConnector, GetAnnualIncomeSourcePeriodConnector}
+import connectors.{GetAnnualIncomeSourcePeriodConnector, SubmittedDividendsConnector}
 
 import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.http.HeaderCarrier
 import connectors.httpParsers.SubmittedDividendsHttpParser.SubmittedDividendsResponse
+import utils.TaxYearUtils.specificTaxYear
 
 import scala.concurrent.Future
 
@@ -28,7 +29,7 @@ import scala.concurrent.Future
 class SubmittedDividendsService @Inject()(submittedDividendsConnector: SubmittedDividendsConnector,
                                           submittedDividendsIfConnector: GetAnnualIncomeSourcePeriodConnector) {
   def getSubmittedDividends(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[SubmittedDividendsResponse] = {
-    if (taxYear.equals(2024)) {
+    if (taxYear >= specificTaxYear) {
       submittedDividendsIfConnector.getAnnualIncomeSourcePeriod(nino, taxYear, Some(false))
     }
     else {

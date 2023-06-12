@@ -21,7 +21,7 @@ import connectors.{CreateOrAmendDividendsConnector, CreateUpdateAnnualIncomeSour
 import connectors.httpParsers.CreateOrAmendDividendsHttpParser.CreateOrAmendDividendsResponse
 import models.{CreateOrAmendDividendsModel, CreateOrAmendDividendsResponseModel}
 import uk.gov.hmrc.http.HeaderCarrier
-import utils.TestUtils
+import utils.{TaxYearUtils, TestUtils}
 
 import scala.concurrent.Future
 
@@ -32,6 +32,8 @@ class CreateOrAmendDividendsServiceSpec extends TestUtils {
   val connector2: CreateUpdateAnnualIncomeSourceConnector = mock[CreateUpdateAnnualIncomeSourceConnector]
   val service: CreateOrAmendDividendsService = new CreateOrAmendDividendsService(connector, connector2)
 
+  private val specificTaxYear: Int = TaxYearUtils.specificTaxYear
+  private val specificTaxYearPlusOne: Int = specificTaxYear + 1
 
   ".createOrAmendDividends" should {
 
@@ -49,15 +51,29 @@ class CreateOrAmendDividendsServiceSpec extends TestUtils {
 
     }
 
-    "return the IF connector response" in {
+    "return the IF connector response for specific tax year" in {
 
       val expectedResult: CreateOrAmendDividendsResponse = Right(CreateOrAmendDividendsResponseModel("transactionRef"))
 
       (connector2.createUpdateAnnualIncomeSource(_: String, _: Int, _: CreateOrAmendDividendsModel)(_: HeaderCarrier))
-        .expects("12345678", 2024, *, *)
+        .expects("12345678", specificTaxYear, *, *)
         .returning(Future.successful(expectedResult))
 
-      val result = await(service.createOrAmendDividends("12345678", 2024, CreateOrAmendDividendsModel(Some(12345.66), None)))
+      val result = await(service.createOrAmendDividends("12345678", specificTaxYear, CreateOrAmendDividendsModel(Some(12345.66), None)))
+
+      result mustBe expectedResult
+
+    }
+
+    "return the IF connector response for specific tax year plus one" in {
+
+      val expectedResult: CreateOrAmendDividendsResponse = Right(CreateOrAmendDividendsResponseModel("transactionRef"))
+
+      (connector2.createUpdateAnnualIncomeSource(_: String, _: Int, _: CreateOrAmendDividendsModel)(_: HeaderCarrier))
+        .expects("12345678", specificTaxYearPlusOne, *, *)
+        .returning(Future.successful(expectedResult))
+
+      val result = await(service.createOrAmendDividends("12345678", specificTaxYearPlusOne, CreateOrAmendDividendsModel(Some(12345.66), None)))
 
       result mustBe expectedResult
 

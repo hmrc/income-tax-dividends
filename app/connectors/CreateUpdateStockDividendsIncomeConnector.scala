@@ -19,7 +19,7 @@ package connectors
 import com.typesafe.config.ConfigFactory
 import config.AppConfig
 import connectors.httpParsers.CreateUpdateStockDividendsIncomeHttpParser.{CreateUpdateDividendsIncomeHttpReads, CreateUpdateStockDividendsIncomeResponse}
-import models.{DividendsIncomeDataModel, StockDividendsSubmissionModel}
+import models.StockDividendsSubmissionModel
 import uk.gov.hmrc.http.HeaderCarrier.Config
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 import utils.TaxYearUtils.convertStringTaxYear

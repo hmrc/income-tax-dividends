@@ -17,9 +17,9 @@
 package services
 
 import com.codahale.metrics.SharedMetricRegistries
-import connectors.httpParsers.CreateUpdateStockDividendsIncomeHttpParser.CreateUpdateStockDividendsIncomeResponse
-import models.{DividendsIncomeDataModel, ForeignDividendModel, StockDividendModel, StockDividendsSubmissionModel}
 import connectors.CreateUpdateStockDividendsIncomeConnector
+import connectors.httpParsers.CreateUpdateStockDividendsIncomeHttpParser.CreateUpdateStockDividendsIncomeResponse
+import models.{ForeignDividendModel, StockDividendModel, StockDividendsSubmissionModel}
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.TestUtils
 

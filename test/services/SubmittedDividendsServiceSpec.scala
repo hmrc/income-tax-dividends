@@ -17,11 +17,11 @@
 package services
 
 import com.codahale.metrics.SharedMetricRegistries
-import connectors.{SubmittedDividendsConnector, GetAnnualIncomeSourcePeriodConnector}
+import connectors.{GetAnnualIncomeSourcePeriodConnector, SubmittedDividendsConnector}
 import connectors.httpParsers.SubmittedDividendsHttpParser.SubmittedDividendsResponse
 import models.SubmittedDividendsModel
 import uk.gov.hmrc.http.HeaderCarrier
-import utils.TestUtils
+import utils.{TaxYearUtils, TestUtils}
 
 import scala.concurrent.Future
 
@@ -32,6 +32,8 @@ class SubmittedDividendsServiceSpec extends TestUtils {
   val ifConnector: GetAnnualIncomeSourcePeriodConnector = mock[GetAnnualIncomeSourcePeriodConnector]
   val service: SubmittedDividendsService = new SubmittedDividendsService(connector, ifConnector)
 
+  private val specificTaxYear: Int = TaxYearUtils.specificTaxYear
+  private val specificTaxYearPlusOne: Int = specificTaxYear + 1
 
   ".getSubmittedDividends" should {
 
@@ -49,15 +51,29 @@ class SubmittedDividendsServiceSpec extends TestUtils {
 
     }
   }
-  "return the if connector response" in {
+  "return the if connector response for specific tax year" in {
 
     val expectedResult: SubmittedDividendsResponse = Right(SubmittedDividendsModel(Some(20.00), Some(20.00), None))
 
     (ifConnector.getAnnualIncomeSourcePeriod(_: String, _: Int, _: Option[Boolean])(_: HeaderCarrier))
-      .expects("12345678", 2024, Some(false), *)
+      .expects("12345678", specificTaxYear, Some(false), *)
       .returning(Future.successful(expectedResult))
 
-    val result = await(service.getSubmittedDividends("12345678", 2024))
+    val result = await(service.getSubmittedDividends("12345678", specificTaxYear))
+
+    result mustBe expectedResult
+
+  }
+
+  "return the if connector response for specific tax year plus one" in {
+
+    val expectedResult: SubmittedDividendsResponse = Right(SubmittedDividendsModel(Some(20.00), Some(20.00), None))
+
+    (ifConnector.getAnnualIncomeSourcePeriod(_: String, _: Int, _: Option[Boolean])(_: HeaderCarrier))
+      .expects("12345678", specificTaxYearPlusOne, Some(false), *)
+      .returning(Future.successful(expectedResult))
+
+    val result = await(service.getSubmittedDividends("12345678", specificTaxYearPlusOne))
 
     result mustBe expectedResult
 

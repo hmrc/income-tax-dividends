@@ -25,6 +25,8 @@ import play.api.http.Status._
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, SessionId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import utils.TaxYearUtils
+import utils.TaxYearUtils.convertSpecificTaxYear
 
 class CreateUpdateAnnualIncomeSourceConnectorSpec extends WiremockSpec {
 
@@ -37,9 +39,13 @@ class CreateUpdateAnnualIncomeSourceConnectorSpec extends WiremockSpec {
   }
 
   val nino: String = "AB345678C"
-  val taxYear: Int = 2024
+  val specificTaxYear: Int = TaxYearUtils.specificTaxYear
+  val specificTaxYearPlusOne: Int = specificTaxYear + 1
+  val taxYearParameter: String = convertSpecificTaxYear(specificTaxYear)
+  val taxYearParameterPlusOne: String = convertSpecificTaxYear(specificTaxYearPlusOne)
+  val url: String = s"/income-tax/$taxYearParameter/$nino/income-source/dividends/annual"
+  val urlPlusOne: String = s"/income-tax/$taxYearParameterPlusOne/$nino/income-source/dividends/annual"
   //val incomeSourceType = "dividends"
-  val formattedTaxYear: String = "23-24"
   val updateAnnualIncomeSourceModel: CreateOrAmendDividendsModel = CreateOrAmendDividendsModel(Some(123.12), Some(321.21))
   val createUpdateAnnualIncomeSourceResponse: CreateOrAmendDividendsResponseModel = CreateOrAmendDividendsResponseModel("transactionRef")
   val dividendResult: Option[BigDecimal] = Some(123456.78)
@@ -63,9 +69,9 @@ class CreateUpdateAnnualIncomeSourceConnectorSpec extends WiremockSpec {
         val connector = new CreateUpdateAnnualIncomeSourceConnector(httpClient, appConfig(internalHost))
         val expectedResult = createUpdateAnnualIncomeSourceResponse
 
-        stubPostWithResponseBody(s"/income-tax/$formattedTaxYear/$nino/income-source/dividends/annual", OK, requestBody, responseBody, headersSentToIf)
+        stubPostWithResponseBody(url, OK, requestBody, responseBody, headersSentToIf)
 
-        val result = await(connector.createUpdateAnnualIncomeSource(nino, taxYear, updateAnnualIncomeSourceModel)(hc))
+        val result = await(connector.createUpdateAnnualIncomeSource(nino, specificTaxYear, updateAnnualIncomeSourceModel)(hc))
 
         result mustBe Right(expectedResult)
       }
@@ -75,27 +81,43 @@ class CreateUpdateAnnualIncomeSourceConnectorSpec extends WiremockSpec {
         val connector = new CreateUpdateAnnualIncomeSourceConnector(httpClient, appConfig(externalHost))
         val expectedResult = createUpdateAnnualIncomeSourceResponse
 
-        stubPostWithResponseBody(s"/income-tax/$formattedTaxYear/$nino/income-source/dividends/annual", OK, requestBody, responseBody, headersSentToIf)
+        stubPostWithResponseBody(url, OK, requestBody, responseBody, headersSentToIf)
 
-        val result = await(connector.createUpdateAnnualIncomeSource(nino, taxYear, updateAnnualIncomeSourceModel)(hc))
+        val result = await(connector.createUpdateAnnualIncomeSource(nino, specificTaxYear, updateAnnualIncomeSourceModel)(hc))
 
         result mustBe Right(expectedResult)
       }
     }
 
     "return a success result" when {
-      "IF Returns a 200" in {
+      "IF Returns a 200 for specific tax year" in {
         val expectedResult = createUpdateAnnualIncomeSourceResponse
 
         stubPostWithResponseBody(
-          s"/income-tax/$formattedTaxYear/$nino/income-source/dividends/annual",
+          url,
           OK,
           Json.toJson(updateAnnualIncomeSourceModel).toString(),
           Json.toJson(createUpdateAnnualIncomeSourceResponse).toString()
         )
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.createUpdateAnnualIncomeSource(nino, taxYear, updateAnnualIncomeSourceModel)(hc))
+        val result = await(connector.createUpdateAnnualIncomeSource(nino, specificTaxYear, updateAnnualIncomeSourceModel)(hc))
+
+        result mustBe Right(expectedResult)
+      }
+
+      "IF Returns a 200 for specific tax year plus one" in {
+        val expectedResult = createUpdateAnnualIncomeSourceResponse
+
+        stubPostWithResponseBody(
+          urlPlusOne,
+          OK,
+          Json.toJson(updateAnnualIncomeSourceModel).toString(),
+          Json.toJson(createUpdateAnnualIncomeSourceResponse).toString()
+        )
+
+        implicit val hc: HeaderCarrier = HeaderCarrier()
+        val result = await(connector.createUpdateAnnualIncomeSource(nino, specificTaxYearPlusOne, updateAnnualIncomeSourceModel)(hc))
 
         result mustBe Right(expectedResult)
       }
@@ -109,13 +131,13 @@ class CreateUpdateAnnualIncomeSourceConnectorSpec extends WiremockSpec {
       val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError)
 
       stubPostWithResponseBody(
-        s"/income-tax/$formattedTaxYear/$nino/income-source/dividends/annual",
+        url,
         OK,
         Json.toJson(updateAnnualIncomeSourceModel).toString(),
         invalidJson.toString()
       )
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.createUpdateAnnualIncomeSource(nino, taxYear, updateAnnualIncomeSourceModel)(hc))
+      val result = await(connector.createUpdateAnnualIncomeSource(nino, specificTaxYear, updateAnnualIncomeSourceModel)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -128,12 +150,12 @@ class CreateUpdateAnnualIncomeSourceConnectorSpec extends WiremockSpec {
       val expectedResult = ErrorModel(NOT_FOUND, ErrorBodyModel("NOT_FOUND", "Submission Period not found"))
 
       stubPostWithResponseBody(
-        s"/income-tax/$formattedTaxYear/$nino/income-source/dividends/annual",
+        url,
         NOT_FOUND,
         Json.toJson(updateAnnualIncomeSourceModel).toString(),
         responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.createUpdateAnnualIncomeSource(nino, taxYear, updateAnnualIncomeSourceModel)(hc))
+      val result = await(connector.createUpdateAnnualIncomeSource(nino, specificTaxYear, updateAnnualIncomeSourceModel)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -152,13 +174,13 @@ class CreateUpdateAnnualIncomeSourceConnectorSpec extends WiremockSpec {
       )
 
       stubPostWithResponseBody(
-        s"/income-tax/$formattedTaxYear/$nino/income-source/dividends/annual",
+        url,
         UNPROCESSABLE_ENTITY,
         Json.toJson(updateAnnualIncomeSourceModel).toString(),
         responseBody.toString()
       )
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.createUpdateAnnualIncomeSource(nino, taxYear, updateAnnualIncomeSourceModel)(hc))
+      val result = await(connector.createUpdateAnnualIncomeSource(nino, specificTaxYear, updateAnnualIncomeSourceModel)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -171,12 +193,12 @@ class CreateUpdateAnnualIncomeSourceConnectorSpec extends WiremockSpec {
       val expectedResult = ErrorModel(FORBIDDEN, ErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find income source"))
 
       stubPostWithResponseBody(
-        s"/income-tax/$formattedTaxYear/$nino/income-source/dividends/annual",
+        url,
         FORBIDDEN,
         Json.toJson(updateAnnualIncomeSourceModel).toString(),
         responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.createUpdateAnnualIncomeSource(nino, taxYear, updateAnnualIncomeSourceModel)(hc))
+      val result = await(connector.createUpdateAnnualIncomeSource(nino, specificTaxYear, updateAnnualIncomeSourceModel)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -189,12 +211,12 @@ class CreateUpdateAnnualIncomeSourceConnectorSpec extends WiremockSpec {
       val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel("SERVER_ERROR", "Internal server error"))
 
       stubPostWithResponseBody(
-        s"/income-tax/$formattedTaxYear/$nino/income-source/dividends/annual",
+        url,
         INTERNAL_SERVER_ERROR, Json.toJson(updateAnnualIncomeSourceModel).toString(),
         responseBody.toString()
       )
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.createUpdateAnnualIncomeSource(nino, taxYear, updateAnnualIncomeSourceModel)(hc))
+      val result = await(connector.createUpdateAnnualIncomeSource(nino, specificTaxYear, updateAnnualIncomeSourceModel)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -207,13 +229,13 @@ class CreateUpdateAnnualIncomeSourceConnectorSpec extends WiremockSpec {
       val expectedResult = ErrorModel(SERVICE_UNAVAILABLE, ErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable"))
 
       stubPostWithResponseBody(
-        s"/income-tax/$formattedTaxYear/$nino/income-source/dividends/annual",
+        url,
         SERVICE_UNAVAILABLE,
         Json.toJson(updateAnnualIncomeSourceModel).toString(),
         responseBody.toString()
       )
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.createUpdateAnnualIncomeSource(nino, taxYear, updateAnnualIncomeSourceModel)(hc))
+      val result = await(connector.createUpdateAnnualIncomeSource(nino, specificTaxYear, updateAnnualIncomeSourceModel)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -222,12 +244,12 @@ class CreateUpdateAnnualIncomeSourceConnectorSpec extends WiremockSpec {
       val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError)
 
       stubPostWithoutResponseBody(
-        s"/income-tax/$formattedTaxYear/$nino/income-source/dividends/annual",
+        url,
         NO_CONTENT,
         Json.toJson(updateAnnualIncomeSourceModel).toString()
       )
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.createUpdateAnnualIncomeSource(nino, taxYear, updateAnnualIncomeSourceModel)(hc))
+      val result = await(connector.createUpdateAnnualIncomeSource(nino, specificTaxYear, updateAnnualIncomeSourceModel)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -240,12 +262,12 @@ class CreateUpdateAnnualIncomeSourceConnectorSpec extends WiremockSpec {
       val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable"))
 
       stubPostWithResponseBody(
-        s"/income-tax/$formattedTaxYear/$nino/income-source/dividends/annual",
+        url,
         CONFLICT,
         Json.toJson(updateAnnualIncomeSourceModel).toString(),
         responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.createUpdateAnnualIncomeSource(nino, taxYear, updateAnnualIncomeSourceModel)(hc))
+      val result = await(connector.createUpdateAnnualIncomeSource(nino, specificTaxYear, updateAnnualIncomeSourceModel)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -257,12 +279,12 @@ class CreateUpdateAnnualIncomeSourceConnectorSpec extends WiremockSpec {
       val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError)
 
       stubPostWithResponseBody(
-        s"/income-tax/$formattedTaxYear/$nino/income-source/dividends/annual",
+        url,
         CONFLICT, Json.toJson(updateAnnualIncomeSourceModel).toString(),
         responseBody.toString()
       )
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.createUpdateAnnualIncomeSource(nino, taxYear, updateAnnualIncomeSourceModel)(hc))
+      val result = await(connector.createUpdateAnnualIncomeSource(nino, specificTaxYear, updateAnnualIncomeSourceModel)(hc))
 
       result mustBe Left(expectedResult)
     }
