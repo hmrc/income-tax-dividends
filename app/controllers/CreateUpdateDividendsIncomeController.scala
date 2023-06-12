@@ -18,7 +18,7 @@ package controllers
 
 import connectors.httpParsers.CreateUpdateStockDividendsIncomeHttpParser.CreateUpdateStockDividendsIncomeResponse
 import controllers.predicates.AuthorisedAction
-import models.{DividendsIncomeDataModel, StockDividendsSubmissionModel}
+import models.StockDividendsSubmissionModel
 import play.api.libs.json.{JsSuccess, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import services.CreateUpdateDividendsIncomeService

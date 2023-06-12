@@ -17,7 +17,7 @@
 package controllers
 
 import connectors.httpParsers.CreateUpdateStockDividendsIncomeHttpParser.CreateUpdateStockDividendsIncomeResponse
-import models.{DividendsIncomeDataModel, ErrorBodyModel, ErrorModel, ForeignDividendModel, StockDividendModel, StockDividendsSubmissionModel}
+import models._
 import org.scalamock.handlers.CallHandler4
 import play.api.http.Status._
 import play.api.libs.json.{JsValue, Json}

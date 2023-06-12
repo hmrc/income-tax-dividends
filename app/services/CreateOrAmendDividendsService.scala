@@ -22,6 +22,7 @@ import connectors.httpParsers.CreateOrAmendDividendsHttpParser.CreateOrAmendDivi
 import javax.inject.{Inject, Singleton}
 import models.CreateOrAmendDividendsModel
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.TaxYearUtils.specificTaxYear
 
 import scala.concurrent.Future
 
@@ -31,7 +32,8 @@ class CreateOrAmendDividendsService @Inject()(createOrAmendDividendsConnector: C
   def createOrAmendDividends(
                              nino: String, taxYear: Int, dividendsModel: CreateOrAmendDividendsModel
                            )(implicit hc: HeaderCarrier): Future[CreateOrAmendDividendsResponse] = {
-    if (taxYear == 2024) {
+
+    if (taxYear >= specificTaxYear) {
       createUpdateAnnualIncomeSourceConnector.createUpdateAnnualIncomeSource(nino, taxYear, dividendsModel)
     } else {
       createOrAmendDividendsConnector.createOrAmendDividends(nino, taxYear, dividendsModel)
