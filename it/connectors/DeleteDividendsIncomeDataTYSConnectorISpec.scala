@@ -25,17 +25,17 @@ import play.api.Configuration
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, SessionId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import utils.TaxYearUtils.convertStringTaxYear
+import utils.TaxYearUtils.convertSpecificTaxYear
 
-class DeleteDividendsIncomeDataConnectorISpec extends PlaySpec with WiremockSpec{
+class DeleteDividendsIncomeDataTYSConnectorISpec extends PlaySpec with WiremockSpec{
 
-  lazy val connector: DeleteDividendsIncomeDataConnector = app.injector.instanceOf[DeleteDividendsIncomeDataConnector]
+  lazy val connector: DeleteDividendsIncomeDataTYSConnector = app.injector.instanceOf[DeleteDividendsIncomeDataTYSConnector]
   implicit val hc: HeaderCarrier = HeaderCarrier()
   val nino = "nino"
-  val taxYear = 2020
+  val taxYear = 2024
 
-  val taxYearParameter: String = convertStringTaxYear(taxYear)
-  val ifUrl = s"/income-tax/income/dividends/$nino/$taxYearParameter"
+  val taxYearParameter: String = convertSpecificTaxYear(taxYear)
+  val ifUrl = s"/income-tax/income/dividends/$taxYearParameter/$nino"
 
   lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
 
@@ -43,7 +43,7 @@ class DeleteDividendsIncomeDataConnectorISpec extends PlaySpec with WiremockSpec
     override lazy val ifBaseUrl: String = s"http://$ifHost:$wireMockPort"
   }
 
-  "DeleteDividendsIncomeData" should {
+  "DeleteDividendsIncomeDataTYS" should {
 
 
     "include internal headers" when {
@@ -57,7 +57,7 @@ class DeleteDividendsIncomeDataConnectorISpec extends PlaySpec with WiremockSpec
 
       "the host for IF is 'Internal'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new DeleteDividendsIncomeDataConnector(httpClient, appConfig(internalHost))
+        val connector = new DeleteDividendsIncomeDataTYSConnector(httpClient, appConfig(internalHost))
 
         stubDeleteWithoutResponseBody(ifUrl, NO_CONTENT, headersSentToIF)
 
@@ -68,7 +68,7 @@ class DeleteDividendsIncomeDataConnectorISpec extends PlaySpec with WiremockSpec
 
       "the host for IF is 'External'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new DeleteDividendsIncomeDataConnector(httpClient, appConfig(externalHost))
+        val connector = new DeleteDividendsIncomeDataTYSConnector(httpClient, appConfig(externalHost))
 
         stubDeleteWithoutResponseBody(ifUrl, NO_CONTENT, headersSentToIF)
 
@@ -82,7 +82,7 @@ class DeleteDividendsIncomeDataConnectorISpec extends PlaySpec with WiremockSpec
 
       val errorBodyModel = ErrorBodyModel("IF_CODE", "IF_REASON")
 
-      Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, NOT_FOUND, BAD_REQUEST).foreach { status =>
+      Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, NOT_FOUND, BAD_REQUEST, UNPROCESSABLE_ENTITY).foreach { status =>
 
         s"If returns $status" in {
           val ifError = ErrorModel(status, errorBodyModel)

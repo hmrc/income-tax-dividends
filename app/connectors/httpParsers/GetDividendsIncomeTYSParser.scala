@@ -16,28 +16,36 @@
 
 package connectors.httpParsers
 
-import models.ErrorModel
+import models.{DividendsIncomeDataModel, ErrorModel}
 import play.api.Logging
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.PagerDutyKeys._
 import utils.PagerDutyHelper._
 
-object DeleteDividendsIncomeParser extends APIParser with Logging {
-  type DeleteDividendsIncomeResponse = Either[ErrorModel, Boolean]
+object GetDividendsIncomeTYSParser extends APIParser with Logging {
+  type GetDividendsIncomeDataTYSResponse = Either[ErrorModel, DividendsIncomeDataModel]
 
-  implicit object DeleteDividendsIncomeHttpReads extends HttpReads[DeleteDividendsIncomeResponse] {
-    override def read(method: String, url: String, response: HttpResponse): DeleteDividendsIncomeResponse = response.status match {
-
-      case NO_CONTENT => Right(true)
+  implicit object DividendsIncomeDataTYSHttpReads extends HttpReads[GetDividendsIncomeDataTYSResponse] {
+    override def read(method: String, url: String, response: HttpResponse): GetDividendsIncomeDataTYSResponse = response.status match {
+      case OK => response.json.validate[DividendsIncomeDataModel].fold[GetDividendsIncomeDataTYSResponse](
+        jsonErrors => badSuccessJsonFromAPI,
+        parserModel => Right(parserModel)
+      )
+      case BAD_REQUEST =>
+        pagerDutyLog(FOURXX_RESPONSE_FROM_API, logMessage(response))
+        handleAPIError(response)
+      case NOT_FOUND =>
+        logger.info(logMessage(response))
+        handleAPIError(response)
+      case UNPROCESSABLE_ENTITY =>
+        pagerDutyLog(UNPROCESSABLE_ENTITY_FROM_API, logMessage(response))
+        handleAPIError(response)
       case INTERNAL_SERVER_ERROR =>
         pagerDutyLog(INTERNAL_SERVER_ERROR_FROM_API, logMessage(response))
         handleAPIError(response)
       case SERVICE_UNAVAILABLE =>
         pagerDutyLog(SERVICE_UNAVAILABLE_FROM_API, logMessage(response))
-        handleAPIError(response)
-      case BAD_REQUEST | NOT_FOUND =>
-        pagerDutyLog(FOURXX_RESPONSE_FROM_API, logMessage(response))
         handleAPIError(response)
       case _ =>
         pagerDutyLog(UNEXPECTED_RESPONSE_FROM_API, logMessage(response))

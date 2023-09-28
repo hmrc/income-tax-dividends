@@ -16,14 +16,21 @@
 
 package services
 
-import connectors.DeleteDividendsIncomeDataConnector
+import connectors.{DeleteDividendsIncomeDataConnector, DeleteDividendsIncomeDataTYSConnector}
 import uk.gov.hmrc.http.HeaderCarrier
+
 import javax.inject.Inject
 import scala.concurrent.Future
 import connectors.httpParsers.DeleteDividendsIncomeParser.DeleteDividendsIncomeResponse
+import utils.TaxYearUtils.specificTaxYear
 
-class DeleteDividendsIncomeDataService @Inject()(deleteDividendsIncomeConnector: DeleteDividendsIncomeDataConnector){
+class DeleteDividendsIncomeDataService @Inject()(deleteDividendsIncomeConnector: DeleteDividendsIncomeDataConnector,
+                                                 deleteDividendsIncomeTYSConnector: DeleteDividendsIncomeDataTYSConnector){
   def deleteDividendsIncomeData(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[DeleteDividendsIncomeResponse] = {
-    deleteDividendsIncomeConnector.deleteDividendsIncomeData(nino, taxYear)
+    if (taxYear >= specificTaxYear) {
+      deleteDividendsIncomeTYSConnector.deleteDividendsIncomeData(nino, taxYear)
+    } else {
+      deleteDividendsIncomeConnector.deleteDividendsIncomeData(nino, taxYear)
+    }
   }
 }

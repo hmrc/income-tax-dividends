@@ -16,18 +16,24 @@
 
 package services
 
-import connectors.GetDividendsIncomeConnector
+import connectors.{GetDividendsIncomeConnector, GetDividendsIncomeTYSConnector}
 import connectors.httpParsers.GetDividendsIncomeParser.GetDividendsIncomeDataResponse
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.TaxYearUtils.specificTaxYear
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 @Singleton
-class GetDividendsIncomeService @Inject()(getDividendsIncomeDataConnector: GetDividendsIncomeConnector) {
+class GetDividendsIncomeService @Inject()(getDividendsIncomeDataConnector: GetDividendsIncomeConnector,
+                                          getDividendsIncomeDataTYSConnector: GetDividendsIncomeTYSConnector) {
 
   def getDividendsIncomeData(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetDividendsIncomeDataResponse] = {
-    getDividendsIncomeDataConnector.getDividendsIncomeData(nino, taxYear)
+    if (taxYear >= specificTaxYear) {
+      getDividendsIncomeDataTYSConnector.getDividendsIncomeData(nino, taxYear)
+    } else {
+      getDividendsIncomeDataConnector.getDividendsIncomeData(nino, taxYear)
+    }
   }
 
 }
