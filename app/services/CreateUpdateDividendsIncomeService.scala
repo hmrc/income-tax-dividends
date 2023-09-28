@@ -16,20 +16,26 @@
 
 package services
 
-import connectors.CreateUpdateStockDividendsIncomeConnector
+import connectors.{CreateUpdateStockDividendsIncomeConnector, CreateUpdateStockDividendsIncomeTYSConnector}
 import connectors.httpParsers.CreateUpdateStockDividendsIncomeHttpParser.CreateUpdateStockDividendsIncomeResponse
 import models.StockDividendsSubmissionModel
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.TaxYearUtils.specificTaxYear
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 @Singleton
-class CreateUpdateDividendsIncomeService @Inject()(createUpdateDividendsIncomeConnector: CreateUpdateStockDividendsIncomeConnector) {
+class CreateUpdateDividendsIncomeService @Inject()(createUpdateDividendsIncomeConnector: CreateUpdateStockDividendsIncomeConnector,
+                                                   createUpdateDividendsIncomeTYSConnector: CreateUpdateStockDividendsIncomeTYSConnector) {
 
   def createUpdateDividends(nino: String, taxYear: Int, createUpdateDividendsModel: StockDividendsSubmissionModel)
                            (implicit hc: HeaderCarrier): Future[CreateUpdateStockDividendsIncomeResponse] = {
-    createUpdateDividendsIncomeConnector.createUpdateDividends(nino, taxYear, createUpdateDividendsModel)
+    if (taxYear >= specificTaxYear) {
+      createUpdateDividendsIncomeTYSConnector.createUpdateDividends(nino, taxYear, createUpdateDividendsModel)
+    } else {
+      createUpdateDividendsIncomeConnector.createUpdateDividends(nino, taxYear, createUpdateDividendsModel)
+    }
   }
 
 }

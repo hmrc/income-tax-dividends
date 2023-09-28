@@ -17,11 +17,11 @@
 package services
 
 import com.codahale.metrics.SharedMetricRegistries
-import connectors.CreateUpdateStockDividendsIncomeConnector
+import connectors.{CreateUpdateStockDividendsIncomeConnector, CreateUpdateStockDividendsIncomeTYSConnector}
 import connectors.httpParsers.CreateUpdateStockDividendsIncomeHttpParser.CreateUpdateStockDividendsIncomeResponse
 import models.{ForeignDividendModel, StockDividendModel, StockDividendsSubmissionModel}
 import uk.gov.hmrc.http.HeaderCarrier
-import utils.TestUtils
+import utils.{TaxYearUtils, TestUtils}
 
 import scala.concurrent.Future
 
@@ -29,13 +29,18 @@ class CreateUpdateDividendsIncomeServiceSpec extends TestUtils {
   SharedMetricRegistries.clear()
 
   val connector: CreateUpdateStockDividendsIncomeConnector = mock[CreateUpdateStockDividendsIncomeConnector]
-  val service: CreateUpdateDividendsIncomeService = new CreateUpdateDividendsIncomeService(connector)
+  val connectorTYS: CreateUpdateStockDividendsIncomeTYSConnector = mock[CreateUpdateStockDividendsIncomeTYSConnector]
+  val service: CreateUpdateDividendsIncomeService = new CreateUpdateDividendsIncomeService(connector, connectorTYS)
 
   val nino: String = "123456789"
   val taxYear: Int = 1999
   val reference: String = "RefNo13254687"
   val countryCode: String = "GBR"
   val decimalValue: BigDecimal = 123.45
+
+  private val specificTaxYear: Int = TaxYearUtils.specificTaxYear
+  private val specificTaxYearPlusOne: Int = specificTaxYear + 1
+
   val model: StockDividendsSubmissionModel = StockDividendsSubmissionModel(
     foreignDividend =
       Some(Seq(
@@ -65,6 +70,40 @@ class CreateUpdateDividendsIncomeServiceSpec extends TestUtils {
         .returning(Future.successful(expectedResult))
 
       val result = await(service.createUpdateDividends(nino, taxYear, model))
+
+      result mustBe expectedResult
+
+    }
+  }
+
+  ".createUpdateDividends for specific tax year" should {
+
+    "return the IF connector response" in {
+
+      val expectedResult: CreateUpdateStockDividendsIncomeResponse = Right(true)
+
+      (connectorTYS.createUpdateDividends(_: String, _: Int, _: StockDividendsSubmissionModel)(_: HeaderCarrier))
+        .expects(nino, specificTaxYear, *, *)
+        .returning(Future.successful(expectedResult))
+
+      val result = await(service.createUpdateDividends(nino, specificTaxYear, model))
+
+      result mustBe expectedResult
+
+    }
+  }
+
+  ".createUpdateDividends for specific tax year plus one" should {
+
+    "return the IF connector response" in {
+
+      val expectedResult: CreateUpdateStockDividendsIncomeResponse = Right(true)
+
+      (connectorTYS.createUpdateDividends(_: String, _: Int, _: StockDividendsSubmissionModel)(_: HeaderCarrier))
+        .expects(nino, specificTaxYearPlusOne, *, *)
+        .returning(Future.successful(expectedResult))
+
+      val result = await(service.createUpdateDividends(nino, specificTaxYearPlusOne, model))
 
       result mustBe expectedResult
 

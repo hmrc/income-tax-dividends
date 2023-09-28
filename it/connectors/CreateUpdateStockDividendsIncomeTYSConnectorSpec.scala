@@ -25,11 +25,11 @@ import play.api.http.Status._
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, SessionId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import utils.TaxYearUtils.convertStringTaxYear
+import utils.TaxYearUtils.convertSpecificTaxYear
 
-class CreateUpdateStockDividendsIncomeConnectorSpec extends WiremockSpec {
+class CreateUpdateStockDividendsIncomeTYSConnectorSpec extends WiremockSpec {
 
-  lazy val connector: CreateUpdateStockDividendsIncomeConnector = app.injector.instanceOf[CreateUpdateStockDividendsIncomeConnector]
+  lazy val connector: CreateUpdateStockDividendsIncomeTYSConnector = app.injector.instanceOf[CreateUpdateStockDividendsIncomeTYSConnector]
 
   lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
 
@@ -38,12 +38,12 @@ class CreateUpdateStockDividendsIncomeConnectorSpec extends WiremockSpec {
   }
 
   val nino: String = "123456789"
-  val taxYear: Int = 2023
-  val taxYearParameter: String = convertStringTaxYear(taxYear)
+  val taxYear: Int = 2024
+  val taxYearParameter: String = convertSpecificTaxYear(taxYear)
   val reference: String = "RefNo13254687"
   val countryCode: String = "GBR"
   val decimalValue: BigDecimal = 123.45
-  val url = s"/income-tax/income/dividends/$nino/$taxYearParameter"
+  val url = s"/income-tax/income/dividends/$taxYearParameter/$nino"
   val model: StockDividendsSubmissionModel = StockDividendsSubmissionModel(
     foreignDividend =
       Some(Seq(
@@ -64,7 +64,7 @@ class CreateUpdateStockDividendsIncomeConnectorSpec extends WiremockSpec {
   val createOrAmendDividendsResponse: StockDividendsSubmissionModel = model
   val updateDividendsModel: StockDividendsSubmissionModel = model.copy(None, None, None, None, None, None)
 
-  "CreateUpdateDividendsConnector" should {
+  "CreateUpdateDividendsTYSConnector" should {
     "include internal headers" when {
       val requestBody = Json.toJson(model).toString()
       val responseBody = Json.toJson(createOrAmendDividendsResponse).toString()
@@ -79,7 +79,7 @@ class CreateUpdateStockDividendsIncomeConnectorSpec extends WiremockSpec {
 
       "the host is 'Internal'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new CreateUpdateStockDividendsIncomeConnector(httpClient, appConfig(internalHost))
+        val connector = new CreateUpdateStockDividendsIncomeTYSConnector(httpClient, appConfig(internalHost))
 
         stubPutWithResponseBody(url, NO_CONTENT, requestBody, responseBody, headersSent)
 
@@ -90,7 +90,7 @@ class CreateUpdateStockDividendsIncomeConnectorSpec extends WiremockSpec {
 
       "the host is 'External'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val connector = new CreateUpdateStockDividendsIncomeConnector(httpClient, appConfig(externalHost))
+        val connector = new CreateUpdateStockDividendsIncomeTYSConnector(httpClient, appConfig(externalHost))
 
         stubPutWithResponseBody(url, NO_CONTENT, requestBody, responseBody, headersSent)
 

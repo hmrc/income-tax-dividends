@@ -21,13 +21,13 @@ import play.api.Logging
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.PagerDutyKeys._
-import utils.PagerDutyHelper._
+import utils.PagerDutyHelper.pagerDutyLog
 
-object DeleteDividendsIncomeParser extends APIParser with Logging {
-  type DeleteDividendsIncomeResponse = Either[ErrorModel, Boolean]
+object DeleteDividendsIncomeTYSParser extends APIParser with Logging {
+  type DeleteDividendsIncomeTYSResponse = Either[ErrorModel, Boolean]
 
-  implicit object DeleteDividendsIncomeHttpReads extends HttpReads[DeleteDividendsIncomeResponse] {
-    override def read(method: String, url: String, response: HttpResponse): DeleteDividendsIncomeResponse = response.status match {
+  implicit object DeleteDividendsIncomeTYSHttpReads extends HttpReads[DeleteDividendsIncomeTYSResponse] {
+    override def read(method: String, url: String, response: HttpResponse): DeleteDividendsIncomeTYSResponse = response.status match {
 
       case NO_CONTENT => Right(true)
       case INTERNAL_SERVER_ERROR =>
@@ -36,7 +36,7 @@ object DeleteDividendsIncomeParser extends APIParser with Logging {
       case SERVICE_UNAVAILABLE =>
         pagerDutyLog(SERVICE_UNAVAILABLE_FROM_API, logMessage(response))
         handleAPIError(response)
-      case BAD_REQUEST | NOT_FOUND =>
+      case BAD_REQUEST | NOT_FOUND | UNPROCESSABLE_ENTITY =>
         pagerDutyLog(FOURXX_RESPONSE_FROM_API, logMessage(response))
         handleAPIError(response)
       case _ =>
