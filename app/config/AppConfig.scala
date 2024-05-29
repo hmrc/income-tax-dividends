@@ -31,7 +31,7 @@ trait AppConfig {
   val graphiteHost: String
   val desBaseUrl: String
 
-  val environment: String
+  val desEnvironment: String
   val authorisationToken: String
   val authorisationTokenKey: String
   val ifBaseUrl: String
@@ -49,7 +49,7 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
   val graphiteHost: String = config.get[String]("microservice.metrics.graphite.host")
   val desBaseUrl: String = servicesConfig.baseUrl("des")
 
-  val environment: String = config.get[String]("microservice.services.des.environment")
+  val desEnvironment: String = config.get[String]("microservice.services.des.environment")
   val authorisationToken: String = config.get[String]("microservice.services.des.authorisation-token")
 
   lazy val authorisationTokenKey: String = "microservice.services.integration-framework.authorisation-token"

@@ -16,6 +16,7 @@
 
 package utils
 
+import models.logging.CorrelationId.CorrelationIdHeaderKey
 import play.api.Logging
 import uk.gov.hmrc.http.HttpResponse
 
@@ -35,9 +36,9 @@ object PagerDutyHelper extends Logging {
   }
 
   def getCorrelationId(response:HttpResponse): String ={
-    response.header("CorrelationId") match {
+    response.header(CorrelationIdHeaderKey) match {
       case Some(id) => s" CorrelationId: $id"
-      case _ => ""
+      case _ => "No CorrelationId"
     }
   }
 }

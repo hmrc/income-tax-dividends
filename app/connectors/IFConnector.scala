@@ -18,6 +18,7 @@ package connectors
 
 import com.typesafe.config.ConfigFactory
 import config.AppConfig
+import models.logging.CorrelationId.CorrelationIdHeaderKey
 import uk.gov.hmrc.http.HeaderCarrier.Config
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
 import utils.HeaderCarrierSyntax.HeaderCarrierOps
@@ -27,18 +28,20 @@ import java.net.URL
 trait IFConnector {
 
   protected val appConfig: AppConfig
-  protected[connectors] lazy val baseUrl: String = appConfig.ifBaseUrl
+  protected[connectors] lazy val baseUrl: String = if (appConfig.ifEnvironment == "test") appConfig.ifBaseUrl + "/if" else appConfig.ifBaseUrl
   val GetAnnualIncomeSourcePeriod = "1785"
   protected val headerCarrierConfig: Config = HeaderCarrier.Config.fromConfig(ConfigFactory.load())
 
   protected[connectors] def ifHeaderCarrier(url: String, apiVersion: String)(implicit hc: HeaderCarrier): HeaderCarrier = {
     val isInternalHost = headerCarrierConfig.internalHostPatterns.exists(_.pattern.matcher(new URL(url).getHost).matches())
     val hcWithAuth = hc.copy(authorization = Some(Authorization(s"Bearer ${appConfig.authorisationTokenFor(apiVersion)}")))
+    val correlationId: Seq[(String, String)] = hc.maybeCorrelationId.map(id => CorrelationIdHeaderKey -> id).toList
+    val extraHeaders: Seq[(String, String)] = Seq("Environment" -> appConfig.ifEnvironment) ++ correlationId
 
     if (isInternalHost) {
-      hcWithAuth.withExtraHeaders(headers = "Environment" -> appConfig.ifEnvironment)
+      hcWithAuth.withExtraHeaders(extraHeaders: _*)
     } else {
-      hcWithAuth.withExtraHeaders(("Environment" -> appConfig.ifEnvironment) +: hcWithAuth.toExplicitHeaders: _*)
+      hcWithAuth.withExtraHeaders(extraHeaders ++ hcWithAuth.toExplicitHeaders: _*)
     }
   }
 }

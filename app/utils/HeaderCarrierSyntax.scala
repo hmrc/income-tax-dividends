@@ -16,6 +16,7 @@
 
 package utils
 
+import models.logging.CorrelationId
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames}
 
 object HeaderCarrierSyntax {
@@ -37,6 +38,7 @@ object HeaderCarrierSyntax {
         HeaderNames.akamaiReputation      -> hc.akamaiReputation.map(_.value)
       ).collect { case (k, Some(v)) => (k, v) }
     }
+    def maybeCorrelationId: Option[String] = hc.headers(List(CorrelationId.CorrelationIdHeaderKey)).map(_._2).headOption
   }
 
 }

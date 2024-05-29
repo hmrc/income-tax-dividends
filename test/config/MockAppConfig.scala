@@ -26,7 +26,7 @@ class MockAppConfig extends AppConfig with MockFactory {
   override val graphiteHost: String = "/graphite"
   override val desBaseUrl: String = "/des"
 
-  override val environment: String = "dev"
+  override val desEnvironment: String = "dev"
   override val authorisationToken: String = "someToken"
   override val authorisationTokenKey: String = "someToken"
   override val ifBaseUrl: String = "/if"
