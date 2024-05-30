@@ -17,9 +17,12 @@
 package connectors
 
 import config.AppConfig
+import models.logging.CorrelationId.CorrelationIdHeaderKey
 import uk.gov.hmrc.http.HeaderNames._
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier, SessionId}
 import utils.TestUtils
+
+import java.util.UUID
 
 class DesConnectorSpec extends TestUtils {
 
@@ -43,7 +46,7 @@ class DesConnectorSpec extends TestUtils {
         val hc = HeaderCarrier()
         val result = connector.headerCarrierTest(internalHost)(hc)
         result.extraHeaders mustBe List(
-          "Environment" -> mockAppConfig.environment
+          "Environment" -> mockAppConfig.desEnvironment
         )
       }
     }
@@ -52,13 +55,15 @@ class DesConnectorSpec extends TestUtils {
       val externalHost = "http://127.0.0.1"
 
       "include all HeaderCarrier headers in the extraHeaders when the host is external" in {
+        val correlationId = UUID.randomUUID().toString
         val hc = HeaderCarrier(sessionId = Some(SessionId("sessionIdHeaderValue")))
-        val result = connector.headerCarrierTest(externalHost)(hc)
+        val result = connector.headerCarrierTest(externalHost)(hc.copy(otherHeaders = List(CorrelationIdHeaderKey -> correlationId)))
 
-        result.extraHeaders.size mustBe  4
+        result.extraHeaders.size mustBe 5
         result.extraHeaders.contains(xSessionId -> "sessionIdHeaderValue") mustBe true
         result.extraHeaders.contains(authorisation -> s"Bearer ${mockAppConfig.authorisationToken}") mustBe true
-        result.extraHeaders.contains("Environment" -> mockAppConfig.environment) mustBe true
+        result.extraHeaders.contains("Environment" -> mockAppConfig.desEnvironment) mustBe true
+        result.otherHeaders.contains(CorrelationIdHeaderKey -> correlationId) mustBe true
         result.extraHeaders.exists(x => x._1.equalsIgnoreCase(xRequestChain)) mustBe true
       }
     }

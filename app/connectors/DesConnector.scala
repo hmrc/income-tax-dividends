@@ -18,6 +18,7 @@ package connectors
 
 import com.typesafe.config.ConfigFactory
 import config.AppConfig
+import models.logging.CorrelationId.CorrelationIdHeaderKey
 import uk.gov.hmrc.http.HeaderCarrier.Config
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
 import utils.HeaderCarrierSyntax.HeaderCarrierOps
@@ -34,11 +35,13 @@ trait DesConnector {
     val isInternalHost = headerCarrierConfig.internalHostPatterns.exists(_.pattern.matcher(new URL(url).getHost).matches())
 
     val hcWithAuth = hc.copy(authorization = Some(Authorization(s"Bearer ${appConfig.authorisationToken}")))
+    val correlationId: Seq[(String, String)] = hc.maybeCorrelationId.map(id => CorrelationIdHeaderKey -> id).toList
+    val extraHeaders: Seq[(String, String)] = Seq("Environment" -> appConfig.desEnvironment) ++ correlationId
 
     if(isInternalHost) {
-      hcWithAuth.withExtraHeaders("Environment" -> appConfig.environment)
+      hcWithAuth.withExtraHeaders(extraHeaders: _*)
     } else {
-      hcWithAuth.withExtraHeaders("Environment" -> appConfig.environment).withExtraHeaders(hcWithAuth.toExplicitHeaders: _*)
+      hcWithAuth.withExtraHeaders(extraHeaders ++ hcWithAuth.toExplicitHeaders: _*)
     }
   }
 
