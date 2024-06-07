@@ -35,15 +35,18 @@ class SubmittedDividendsConnectorSpec extends WiremockSpec {
     override val desBaseUrl: String = s"http://$desHost:$wireMockPort"
   }
 
+  val dividendResult: Option[BigDecimal] = Some(123456.78)
+  val expectedResult = SubmittedDividendsModel(dividendResult, dividendResult)
+  val responseBody: String = Json.obj(
+    "ukDividendsAnnual" -> expectedResult
+  ).toString()
+
   val nino: String = "123456789"
   val taxYear: Int = 1999
-  val dividendResult: Option[BigDecimal] = Some(123456.78)
 
   ".SubmittedDividendsConnector" should {
 
     "include internal headers" when {
-      val expectedResult = SubmittedDividendsModel(dividendResult, dividendResult)
-      val responseBody = Json.toJson(expectedResult).toString()
 
       val headersSentToDes = Seq(
         new HttpHeader(HeaderNames.authorisation, "Bearer secret"),
@@ -76,9 +79,8 @@ class SubmittedDividendsConnectorSpec extends WiremockSpec {
 
     "return a SubmittedDividendsModel" when {
       "all values are present" in {
-        val expectedResult = SubmittedDividendsModel(dividendResult, dividendResult)
 
-        stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", OK, Json.toJson(expectedResult).toString())
+        stubGetWithResponseBody(s"/income-tax/nino/$nino/income-source/dividends/annual/$taxYear", OK, responseBody)
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
         val result = await(connector.getSubmittedDividends(nino, taxYear)(hc))

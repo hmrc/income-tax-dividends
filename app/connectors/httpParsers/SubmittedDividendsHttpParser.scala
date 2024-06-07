@@ -30,7 +30,7 @@ object SubmittedDividendsHttpParser extends APIParser with Logging {
 
     override def read(method: String, url: String, response: HttpResponse): SubmittedDividendsResponse = {
       response.status match {
-        case OK => response.json.validate[SubmittedDividendsModel].fold[SubmittedDividendsResponse](
+        case OK => (response.json \ "ukDividendsAnnual").validate[SubmittedDividendsModel].fold[SubmittedDividendsResponse](
           jsonErrors => badSuccessJsonFromAPI,
           parsedModel => Right(parsedModel)
         )

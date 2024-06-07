@@ -38,13 +38,18 @@ class GetAnnualIncomeSourcePeriodConnectorSpec extends WiremockSpec {
     override lazy val ifBaseUrl: String = s"http://$ifHost:$wireMockPort"
   }
 
+  val dividendResult: Option[BigDecimal] = Some(123456.78)
+  val expectedResult = SubmittedDividendsModel(dividendResult, dividendResult)
+  val responseBody: String = Json.obj(
+    "ukDividendsAnnual" -> expectedResult
+  ).toString()
+
   val nino: String = "123456789"
 
   val specificTaxYear: Int = TaxYearUtils.specificTaxYear
   val specificTaxYearPlusOne: Int = specificTaxYear + 1
   val taxYearParameter: String = convertSpecificTaxYear(specificTaxYear)
   val taxYearParameterPlusOne: String = convertSpecificTaxYear(specificTaxYearPlusOne)
-  val dividendResult: Option[BigDecimal] = Some(123456.78)
   val deletedPeriod: Option[Boolean] = Some(false)
   val url: String = s"/income-tax/$taxYearParameter/$nino/income-source/dividends/annual\\?deleteReturnPeriod=false"
   val urlPlusOne: String = s"/income-tax/$taxYearParameterPlusOne/$nino/income-source/dividends/annual\\?deleteReturnPeriod=false"
@@ -52,8 +57,6 @@ class GetAnnualIncomeSourcePeriodConnectorSpec extends WiremockSpec {
   "GetAnnualIncomeSourcePeriodConnector" should {
 
     "include internal headers" when {
-      val expectedResult = SubmittedDividendsModel(dividendResult, dividendResult)
-      val responseBody = Json.toJson(expectedResult).toString()
 
       val headersSentToDes = Seq(
         new HttpHeader(HeaderNames.authorisation, "Bearer secret"),
@@ -86,9 +89,8 @@ class GetAnnualIncomeSourcePeriodConnectorSpec extends WiremockSpec {
 
     "return a SubmittedDividendsModel" when {
       "IF returns a 200 for specific tax year" in {
-        val expectedResult = SubmittedDividendsModel(dividendResult, dividendResult)
 
-        stubGetWithResponseBody(url, OK, Json.toJson(expectedResult).toString())
+        stubGetWithResponseBody(url, OK, responseBody)
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
         val result = await(connector.getAnnualIncomeSourcePeriod(nino, specificTaxYear, deletedPeriod)(hc))
@@ -97,9 +99,8 @@ class GetAnnualIncomeSourcePeriodConnectorSpec extends WiremockSpec {
       }
 
       "IF returns a 200 for specific tax year plus one" in {
-        val expectedResult = SubmittedDividendsModel(dividendResult, dividendResult)
 
-        stubGetWithResponseBody(urlPlusOne, OK, Json.toJson(expectedResult).toString())
+        stubGetWithResponseBody(urlPlusOne, OK, responseBody)
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
         val result = await(connector.getAnnualIncomeSourcePeriod(nino, specificTaxYearPlusOne, deletedPeriod)(hc))

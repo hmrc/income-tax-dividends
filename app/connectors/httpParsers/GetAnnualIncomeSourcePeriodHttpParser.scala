@@ -19,9 +19,12 @@ package connectors.httpParsers
 import models.{ErrorModel, SubmittedDividendsModel}
 import play.api.Logging
 import play.api.http.Status._
+import play.api.libs.json._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.PagerDutyKeys._
 import utils.PagerDutyHelper.pagerDutyLog
+case class ukDivAnnual(ukDividendsAnnual: SubmittedDividendsModel)
+object ukDivAnnual { implicit val read:OFormat[ukDivAnnual] = Json.format[ukDivAnnual]}
 
 object GetAnnualIncomeSourcePeriodHttpParser extends APIParser with Logging {
   type GetAnnualIncomeSourcePeriod = Either[ErrorModel, SubmittedDividendsModel]
@@ -31,9 +34,11 @@ object GetAnnualIncomeSourcePeriodHttpParser extends APIParser with Logging {
     override def read(method: String, url: String, response: HttpResponse): GetAnnualIncomeSourcePeriod = {
 
       response.status match {
-        case OK => response.json.validate[SubmittedDividendsModel].fold[GetAnnualIncomeSourcePeriod](
-          jsonErrors => badSuccessJsonFromAPI,
-          parsedModel => Right(parsedModel)
+        case OK => (response.json \ "ukDividendsAnnual").validate[SubmittedDividendsModel].fold[GetAnnualIncomeSourcePeriod](
+            jsonErrors => badSuccessJsonFromAPI,
+            parsedModel => {
+              Right(parsedModel)
+            }
         )
         case INTERNAL_SERVER_ERROR =>
           pagerDutyLog(INTERNAL_SERVER_ERROR_FROM_API, logMessage(response))
