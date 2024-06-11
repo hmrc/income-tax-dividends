@@ -19,12 +19,9 @@ package connectors.httpParsers
 import models.{ErrorModel, SubmittedDividendsModel}
 import play.api.Logging
 import play.api.http.Status._
-import play.api.libs.json._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.PagerDutyKeys._
 import utils.PagerDutyHelper.pagerDutyLog
-case class ukDivAnnual(ukDividendsAnnual: SubmittedDividendsModel)
-object ukDivAnnual { implicit val read:OFormat[ukDivAnnual] = Json.format[ukDivAnnual]}
 
 object GetAnnualIncomeSourcePeriodHttpParser extends APIParser with Logging {
   type GetAnnualIncomeSourcePeriod = Either[ErrorModel, SubmittedDividendsModel]
