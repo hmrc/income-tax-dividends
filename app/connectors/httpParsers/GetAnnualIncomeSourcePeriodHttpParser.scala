@@ -31,13 +31,11 @@ object GetAnnualIncomeSourcePeriodHttpParser extends APIParser with Logging {
     override def read(method: String, url: String, response: HttpResponse): GetAnnualIncomeSourcePeriod = {
 
       response.status match {
-
-        case OK =>
-          //    TODO: This log is temporary to see the response from IFS and will be removed shortly
-          logger.info("GetAnnualIncomeSourcePeriodHttpParser response: "+response.json)
-          response.json.validate[SubmittedDividendsModel].fold[GetAnnualIncomeSourcePeriod](
-          jsonErrors => badSuccessJsonFromAPI,
-          parsedModel => Right(parsedModel)
+        case OK => (response.json \ "ukDividendsAnnual").validate[SubmittedDividendsModel].fold[GetAnnualIncomeSourcePeriod](
+            jsonErrors => badSuccessJsonFromAPI,
+            parsedModel => {
+              Right(parsedModel)
+            }
         )
         case INTERNAL_SERVER_ERROR =>
           pagerDutyLog(INTERNAL_SERVER_ERROR_FROM_API, logMessage(response))
