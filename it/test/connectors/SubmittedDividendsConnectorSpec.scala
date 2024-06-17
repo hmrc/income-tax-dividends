@@ -37,9 +37,7 @@ class SubmittedDividendsConnectorSpec extends WiremockSpec {
 
   val dividendResult: Option[BigDecimal] = Some(123456.78)
   val expectedResult = SubmittedDividendsModel(dividendResult, dividendResult)
-  val responseBody: String = Json.obj(
-    "ukDividendsAnnual" -> expectedResult
-  ).toString()
+  val responseBody: String = Json.toJson(expectedResult).toString()
 
   val nino: String = "123456789"
   val taxYear: Int = 1999
