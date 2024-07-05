@@ -13,3 +13,8 @@ DELETE    /income-tax/income/dividends/:nino/:taxYear               controllers.
 
 ### IF #1608 - v1.0.0 ###
 PUT       /income-tax/income/dividends/:nino/:taxYear               controllers.CreateUpdateDividendsIncomeController.createUpdateDividends(nino: String, taxYear: Int)
+
+
+### LOOK AT THESE ROUTES ###
+GET        /income-tax/income/dividends/:taxYear/stock-dividends                           controllers.GetStockDividendsIncomeController.get(taxYear: Int)
+POST       /income-tax/income/dividends/:taxYear/stock-dividends                           controllers.GetStockDividendsIncomeController.create(taxYear: Int)

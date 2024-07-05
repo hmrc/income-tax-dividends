@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package models
+package models.priorDataModels
 
-import play.api.mvc.{Request, WrappedRequest}
+import models.dividends.DividendsPriorSubmission
+import play.api.libs.json.{Json, OFormat}
 
-//TODO: investigate the use of this model and values, possibly remove at least affinityGroup
-case class User[T](mtditid: String, arn: Option[String], nino: String, affinityGroup: String, sessionId: String)
-                  (implicit request: Request[T]) extends WrappedRequest[T](request) {
+case class IncomeSourcesModel(
+                               dividends: Option[DividendsPriorSubmission] = None
+                             )
 
-  def isAgent: Boolean = arn.nonEmpty
-
+object IncomeSourcesModel {
+  implicit val formats: OFormat[IncomeSourcesModel] = Json.format[IncomeSourcesModel]
 }

@@ -16,12 +16,7 @@
 
 package models
 
-import play.api.mvc.{Request, WrappedRequest}
-
-//TODO: investigate the use of this model and values, possibly remove at least affinityGroup
-case class User[T](mtditid: String, arn: Option[String], nino: String, affinityGroup: String, sessionId: String)
-                  (implicit request: Request[T]) extends WrappedRequest[T](request) {
-
-  def isAgent: Boolean = arn.nonEmpty
-
+//TODO: check if we need this or rename
+object IncomeSources {
+  val STOCK_DIVIDENDS = "stock-dividends"
 }
