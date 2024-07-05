@@ -24,6 +24,7 @@ import utils.PagerDutyHelper.{getCorrelationId, pagerDutyLog}
 
 trait APIParser {
 
+
   def logMessage(response:HttpResponse): String ={
     s"[APIParser][read] Received ${response.status} status code. Body:${response.body}" + getCorrelationId(response)
   }

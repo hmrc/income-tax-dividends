@@ -21,6 +21,7 @@ import play.api.Configuration
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import javax.inject.Inject
+import scala.concurrent.duration.Duration
 
 @ImplementedBy(classOf[BackendAppConfig])
 trait AppConfig {
@@ -36,6 +37,11 @@ trait AppConfig {
   val authorisationTokenKey: String
   val ifBaseUrl: String
   val ifEnvironment: String
+
+  val useEncryption: Boolean
+
+  val encryptionKey: String
+  def mongoTTL: Long
 
   def authorisationTokenFor(apiVersion: String): String
 }
@@ -55,6 +61,12 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
   lazy val authorisationTokenKey: String = "microservice.services.integration-framework.authorisation-token"
   lazy val ifBaseUrl: String = servicesConfig.baseUrl(serviceName = "integration-framework")
   lazy val ifEnvironment: String = servicesConfig.getString(key = "microservice.services.integration-framework.environment")
+
+  lazy val useEncryption: Boolean = servicesConfig.getBoolean("useEncryption")
+
+  //TODO: change TTL
+  lazy val encryptionKey: String = servicesConfig.getString("mongodb.encryption.key")
+  def mongoTTL: Long = Duration(servicesConfig.getString("mongodb.timeToLive")).toMinutes.toInt
 
   def authorisationTokenFor(api: String): String = config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")
 }

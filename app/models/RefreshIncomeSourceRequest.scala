@@ -16,12 +16,10 @@
 
 package models
 
-import play.api.mvc.{Request, WrappedRequest}
+import play.api.libs.json.{Json, OFormat}
 
-//TODO: investigate the use of this model and values, possibly remove at least affinityGroup
-case class User[T](mtditid: String, arn: Option[String], nino: String, affinityGroup: String, sessionId: String)
-                  (implicit request: Request[T]) extends WrappedRequest[T](request) {
+case class RefreshIncomeSourceRequest(incomeSource: String)
 
-  def isAgent: Boolean = arn.nonEmpty
-
-}
+object RefreshIncomeSourceRequest {
+  implicit val formats: OFormat[RefreshIncomeSourceRequest] = Json.format[RefreshIncomeSourceRequest]
+} 

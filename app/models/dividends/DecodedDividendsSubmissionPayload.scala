@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package models
+package models.dividends
 
-import play.api.mvc.{Request, WrappedRequest}
+import play.api.libs.json.{Json, OWrites}
 
-//TODO: investigate the use of this model and values, possibly remove at least affinityGroup
-case class User[T](mtditid: String, arn: Option[String], nino: String, affinityGroup: String, sessionId: String)
-                  (implicit request: Request[T]) extends WrappedRequest[T](request) {
+case class DecodedDividendsSubmissionPayload(body: Option[DividendsCheckYourAnswersModel], prior: Option[DividendsPriorSubmission])
 
-  def isAgent: Boolean = arn.nonEmpty
-
+object DecodedDividendsSubmissionPayload {
+  implicit def writes: OWrites[DecodedDividendsSubmissionPayload] = Json.writes[DecodedDividendsSubmissionPayload]
 }
