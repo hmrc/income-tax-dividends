@@ -24,8 +24,10 @@ import utils.IntegrationTest
 class StockDividendsSessionServiceISpec extends IntegrationTest{
 
   val stockDividendsUserDataRepository: StockDividendsUserDataRepository = app.injector.instanceOf[StockDividendsUserDataRepository]
-  val stockDividendsUserDataConnector: StockDividendsUserDataConnector = app.injector.instanceOf[StockDividendsUserDataConnector]
-  val incomeTaxUserDataConnector: IncomeTaxUserDataConnector = app.injector.instanceOf[IncomeTaxUserDataConnector]
+//  val stockDividendsUserDataConnector: StockDividendsUserDataConnector = app.injector.instanceOf[StockDividendsUserDataConnector]
+  val getDividendsIncomeService: GetDividendsIncomeService = app.injector.instanceOf[GetDividendsIncomeService]
+//  val incomeTaxUserDataConnector: IncomeTaxUserDataConnector = app.injector.instanceOf[IncomeTaxUserDataConnector]
+  val submittedDividendsService: SubmittedDividendsService = app.injector.instanceOf[SubmittedDividendsService]
   val incomeSourceConnector: IncomeSourceConnector = app.injector.instanceOf[IncomeSourceConnector]
 
   val stockDividendsSessionServiceInvalidEncryption: StockDividendsSessionService =
@@ -34,9 +36,10 @@ class StockDividendsSessionServiceISpec extends IntegrationTest{
   //same error in personal
   val stockDividendsSessionService: StockDividendsSessionService = new StockDividendsSessionService(
     stockDividendsUserDataRepository,
-    stockDividendsUserDataConnector,
-    incomeTaxUserDataConnector,
-    incomeSourceConnector)
+    getDividendsIncomeService,
+    submittedDividendsService,
+    incomeSourceConnector
+  )
 
   "create" should{
     "return false when failing to decrypt the model" in {

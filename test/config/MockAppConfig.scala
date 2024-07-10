@@ -18,6 +18,8 @@ package config
 
 import org.scalamock.scalatest.MockFactory
 
+import scala.concurrent.duration.Duration
+
 class MockAppConfig extends AppConfig with MockFactory {
 
   override val authBaseUrl: String = "/auth"
@@ -35,4 +37,9 @@ class MockAppConfig extends AppConfig with MockFactory {
   override def authorisationTokenFor(apiVersion: String): String = "someToken"
 
   override val personalFrontendBaseUrl: String = "http://localhost:9308"
+
+  override val useEncryption: Boolean = true
+  override val encryptionKey: String = "1234556"
+
+  override def mongoTTL: Long = Duration("28").toDays
 }

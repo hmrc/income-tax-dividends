@@ -1,23 +1,21 @@
 # microservice specific routes
 
-GET        /income-tax/nino/:nino/sources                           controllers.SubmittedDividendsController.getSubmittedDividends(nino:String, taxYear: Int)
+GET        /income-tax/nino/:nino/sources                                       controllers.SubmittedDividendsController.getSubmittedDividends(nino:String, taxYear: Int)
 
 ### IF #1608 - v1.0.0 DIVIDENDS ###
-PUT        /income-tax/nino/:nino/sources                           controllers.CreateOrAmendDividendsController.createOrAmendDividends(nino: String, taxYear: Int)
+PUT        /income-tax/nino/:nino/sources                                       controllers.CreateOrAmendDividendsController.createOrAmendDividends(nino: String, taxYear: Int)
 
 GET        /:taxYear/tasks/:nino                                    controllers.CommonTaskListController.getCommonTaskList(taxYear: Int, nino: String)
 
 ### IF #1609 - v1.0.0 ###
-GET        /income-tax/income/dividends/:nino/:taxYear              controllers.GetDividendsIncomeController.getDividendsIncomeData(nino: String, taxYear: Int)
+GET        /income-tax/income/dividends/:nino/:taxYear                          controllers.GetDividendsIncomeController.getDividendsIncomeData(nino: String, taxYear: Int)
 
 ### IF #1610 - v1.0.0 ###
-DELETE    /income-tax/income/dividends/:nino/:taxYear               controllers.DeleteDividendsIncomeDataController.deleteDividendsIncomeData(nino: String, taxYear: Int)
+DELETE    /income-tax/income/dividends/:nino/:taxYear                           controllers.DeleteDividendsIncomeDataController.deleteDividendsIncomeData(nino: String, taxYear: Int)
 
 ### IF #1608 - v1.0.0 ###
-PUT       /income-tax/income/dividends/:nino/:taxYear               controllers.CreateUpdateDividendsIncomeController.createUpdateDividends(nino: String, taxYear: Int)
+PUT       /income-tax/income/dividends/:nino/:taxYear                           controllers.CreateUpdateDividendsIncomeController.createUpdateDividends(nino: String, taxYear: Int)
 
-
-### LOOK AT THESE ROUTES ###
-POST       /income-tax/income/dividends/:taxYear/stock-dividends                             controllers.CreateStockDividendsSessionDataController.create(taxYear: Int)
-GET        /income-tax/income/dividends/:taxYear/stock-dividends                             controllers.GetStockDividendsIncomeController.get(taxYear: Int)
-PUT        /income-tax/income/dividends/:taxYear/stock-dividends                              controllers.GetStockDividendsIncomeController.create(taxYear: Int)
+POST      /income-tax/income/dividends/:taxYear/stock-dividends/session         controllers.CreateStockDividendsSessionDataController.createSessionData(taxYear: Int)
+PUT       /income-tax/income/dividends/:taxYear/stock-dividends/session         controllers.UpdateStockDividendsSessionDataController.updateSessionData(taxYear: Int)
+GET       /income-tax/income/dividends/:taxYear/stock-dividends/session         controllers.GetStockDividendsSessionDataController.getSessionData(taxYear: Int)

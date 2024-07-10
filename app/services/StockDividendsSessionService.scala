@@ -47,12 +47,23 @@ class StockDividendsSessionService @Inject()(
         stockDividendsUserDataConnector.getDividendsIncomeData(user.nino, taxYear)(hc.withExtraHeaders("mtditid" -> user.mtditid)).map{
           case Left(error) => Left(error)
           case Right(stockDividends) =>
-            // TODO: add rest of values.... look at this line
-            if (ukDividends.ukDividends.isDefined || ukDividends.otherUkDividends.isDefined || stockDividends.stockDividend.isDefined) {
+            if (ukDividends.ukDividends.isDefined || ukDividends.otherUkDividends.isDefined ||stockDividends.stockDividend.isDefined ||
+                stockDividends.redeemableShares.isDefined || stockDividends.closeCompanyLoansWrittenOff.isDefined) {
               Right(Some(StockDividendsPriorDataModel.getFromPrior(ukDividends, Some(stockDividends))))
             } else {
               Right(None)
-            }        }
+            }
+        }
+    }
+  }
+
+  def getSessionData(taxYear: Int)(implicit user: User[_], ec: ExecutionContext): Future[Either[DatabaseError, Option[StockDividendsUserDataModel]]] = {
+
+    stockDividendsUserDataRepository.find(taxYear).map {
+      case Left(error) =>
+        logger.error("[StockDividendsSessionService][getSessionData] Could not find user session.")
+        Left(error)
+      case Right(userData) => Right(userData)
     }
   }
 
@@ -71,16 +82,6 @@ class StockDividendsSessionService @Inject()(
     stockDividendsUserDataRepository.create(userData)().map {
       case Right(_) => onSuccess
       case Left(_) => onFail
-    }
-  }
-
-  def getSessionData(taxYear: Int)(implicit user: User[_], ec: ExecutionContext): Future[Either[DatabaseError, Option[StockDividendsUserDataModel]]] = {
-
-    stockDividendsUserDataRepository.find(taxYear).map {
-      case Left(error) =>
-        logger.error("[StockDividendsSessionService][getSessionData] Could not find user session.")
-        Left(error)
-      case Right(userData) => Right(userData)
     }
   }
 
