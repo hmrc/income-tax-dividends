@@ -31,6 +31,8 @@ trait AppConfig {
   val auditingEnabled: Boolean
   val graphiteHost: String
   val desBaseUrl: String
+  val incomeTaxSubmissionBEBaseUrl: String
+
 
   val desEnvironment: String
   val authorisationToken: String
@@ -65,6 +67,9 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
 
   val personalFrontendBaseUrl: String = config.get[String]("microservice.services.personal-income-tax-submission-frontend.url") +
     "/update-and-submit-income-tax-return/personal-income"
+  //can i add this here (need for IncomeTaxUserDataConnector) - do i need to bring over ConfigKeys file from personal?
+  lazy val incomeTaxSubmissionBEBaseUrl: String = s"${servicesConfig.getString(ConfigKeys.incomeTaxSubmissionUrl)}/income-tax-submission-service"
+
 
   lazy val useEncryption: Boolean = servicesConfig.getBoolean("useEncryption")
 

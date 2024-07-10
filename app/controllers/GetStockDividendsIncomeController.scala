@@ -18,13 +18,13 @@ package controllers
 
 import controllers.predicates.AuthorisedAction
 import models.dividends.StockDividendsCheckYourAnswersModel
-import play.api.libs.json.Json
+import play.api.libs.json.{JsSuccess, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.{GetDividendsIncomeService, StockDividendsSessionService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 // TODO: look at naming
 class GetStockDividendsIncomeController @Inject()(getDividendsIncomeDataService: StockDividendsSessionService,
@@ -40,11 +40,16 @@ class GetStockDividendsIncomeController @Inject()(getDividendsIncomeDataService:
         Status(404)(errorModel.message)
     }
   }
+
   def create(taxYear: Int): Action[AnyContent] =  authorisedAction.async { implicit user =>
     //TODO: don't use .get after validate, pull into separate variable > check responses
-    getDividendsIncomeDataService.createSessionData(user.body.asJson.get.validate[StockDividendsCheckYourAnswersModel].get, taxYear)(NotModified)(NoContent)
+    user.body.asJson.map(_.validate[StockDividendsCheckYourAnswersModel]) match {
+      case Some(JsSuccess(model, _)) =>
+        getDividendsIncomeDataService.createSessionData(model, taxYear)(NotModified)(NoContent)
+      case _ => Future.successful(BadRequest)
+    }
+    //getDividendsIncomeDataService.createSessionData(user.body.asJson.get.validate[StockDividendsCheckYourAnswersModel].get, taxYear)(NotModified)(NoContent)
   }
-
   //TODO: don't use .get after validate, pull into separate variable > check responses
   def update(taxYear: Int): Action[AnyContent] =  authorisedAction.async { implicit user =>
     getDividendsIncomeDataService.updateSessionData(user.body.asJson.get.validate[StockDividendsCheckYourAnswersModel].get, taxYear)(NotModified)(NoContent)
