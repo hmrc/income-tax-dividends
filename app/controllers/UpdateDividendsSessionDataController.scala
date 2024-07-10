@@ -17,24 +17,24 @@
 package controllers
 
 import controllers.predicates.AuthorisedAction
-import models.dividends.StockDividendsCheckYourAnswersModel
+import models.dividends.{DividendsCheckYourAnswersModel, StockDividendsCheckYourAnswersModel}
 import play.api.libs.json.JsSuccess
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import services.StockDividendsSessionService
+import services.{DividendsSessionService, StockDividendsSessionService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class CreateStockDividendsSessionDataController @Inject()(stockDividendsSessionService: StockDividendsSessionService,
-                                                          cc: ControllerComponents,
-                                                          authorisedAction: AuthorisedAction)
-                                                         (implicit ec: ExecutionContext) extends BackendController(cc) {
+class UpdateDividendsSessionDataController @Inject()(dividendsSessionService: DividendsSessionService,
+                                                     cc: ControllerComponents,
+                                                     authorisedAction: AuthorisedAction)
+                                                    (implicit ec: ExecutionContext) extends BackendController(cc) {
 
-  def createSessionData(taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
-    user.body.asJson.map(_.validate[StockDividendsCheckYourAnswersModel]) match {
+  def updateSessionData(taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
+    user.body.asJson.map(_.validate[DividendsCheckYourAnswersModel]) match {
       case Some(JsSuccess(model, _)) =>
-        stockDividendsSessionService.createSessionData(model, taxYear)(NotModified)(NoContent) // review NotModified error.. should be internalServerError
+        dividendsSessionService.updateSessionData(model, taxYear)(NotModified)(NoContent) // review NotModified error.. should be internalServerError
       case _ => Future.successful(BadRequest)
     }
   }

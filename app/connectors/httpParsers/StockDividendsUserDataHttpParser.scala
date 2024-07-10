@@ -17,24 +17,28 @@
 package connectors.httpParsers
 
 import models.ErrorModel
-import models.priorDataModels.IncomeSourcesModel
+import models.dividends.StockDividendsPriorSubmission
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.PagerDutyKeys._
 import utils.PagerDutyHelper.pagerDutyLog
 
-object IncomeTaxUserDataHttpParser extends APIParser {
-  type IncomeTaxUserDataResponse = Either[ErrorModel, IncomeSourcesModel]
+object StockDividendsUserDataHttpParser extends APIParser {
+  type StockDividendsUserDataResponse = Either[ErrorModel, Option[StockDividendsPriorSubmission]]
 
-  implicit object IncomeTaxUserDataHttpReads extends HttpReads[IncomeTaxUserDataResponse] {
-    override def read(method: String, url: String, response: HttpResponse): IncomeTaxUserDataResponse = {
+  implicit object StockDividendsUserDataHttpReads extends HttpReads[StockDividendsUserDataResponse] {
+    override def read(method: String, url: String, response: HttpResponse): StockDividendsUserDataResponse = {
 
       response.status match {
-        case OK => response.json.validate[IncomeSourcesModel].fold[IncomeTaxUserDataResponse](
+        case OK => response.json.validate[StockDividendsPriorSubmission].fold[StockDividendsUserDataResponse](
           _ => badSuccessJsonFromAPI,
-          parsedModel => Right(parsedModel)
+          parserModel => Right(Some(parserModel))
         )
-        case NO_CONTENT => Right(IncomeSourcesModel())
+        case NOT_FOUND =>
+          Right(None)
+        case BAD_REQUEST | UNPROCESSABLE_ENTITY =>
+          pagerDutyLog(FOURXX_RESPONSE_FROM_API, logMessage(response))
+          handleAPIError(response)
         case INTERNAL_SERVER_ERROR =>
           pagerDutyLog(INTERNAL_SERVER_ERROR_FROM_API, logMessage(response))
           handleAPIError(response)

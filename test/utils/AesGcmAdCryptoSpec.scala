@@ -16,7 +16,7 @@
 
 package utils
 
-import config.MockAppConfig
+import config.{MockAppConfig, MockAppConfigEncyrptionOff}
 import org.scalamock.scalatest.MockFactory
 import uk.gov.hmrc.crypto.{AdDecrypter, AdEncrypter, EncryptedValue}
 

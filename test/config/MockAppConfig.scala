@@ -42,4 +42,12 @@ class MockAppConfig extends AppConfig with MockFactory {
   override val encryptionKey: String = "1234556"
 
   override def mongoTTL: Long = Duration("28").toDays
+
+  override val tailoringEnabled: Boolean = true
+  override val interestTailoringEnabled: Boolean = true
+  override val dividendsTailoringEnabled: Boolean = true
+}
+
+class MockAppConfigEncyrptionOff extends MockAppConfig {
+  override val useEncryption: Boolean = false
 }

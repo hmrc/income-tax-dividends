@@ -16,7 +16,7 @@
 
 package services
 
-import models.dividends.{EncryptedStockDividendsCheckYourAnswersModel, StockDividendsCheckYourAnswersModel}
+import models.dividends.{DividendsCheckYourAnswersModel, EncryptedDividendsCheckYourAnswersModel, EncryptedStockDividendsCheckYourAnswersModel, StockDividendsCheckYourAnswersModel}
 import models.mongo._
 import utils.AesGcmAdCrypto
 import utils.CypherSyntax.{DecryptableOps, EncryptableOps}
@@ -25,54 +25,54 @@ import javax.inject.Inject
 
 class EncryptionService @Inject()(implicit encryptionService: AesGcmAdCrypto) {
 
-//  // DIVIDENDS
-//  def encryptDividendsUserData(dividendsUserDataModel: DividendsUserDataModel): EncryptedDividendsUserDataModel = {
-//    implicit val associatedText: String = dividendsUserDataModel.mtdItId
-//
-//    EncryptedDividendsUserDataModel(
-//      sessionId = dividendsUserDataModel.sessionId,
-//      mtdItId = dividendsUserDataModel.mtdItId,
-//      nino = dividendsUserDataModel.nino,
-//      taxYear = dividendsUserDataModel.taxYear,
-//      dividends = dividendsUserDataModel.dividends.map(encryptDividendsCheckYourAnswersModel),
-//      lastUpdated = dividendsUserDataModel.lastUpdated
-//    )
-//  }
-//
-//  def decryptDividendsUserData(encryptedDividendsUserDataModel: EncryptedDividendsUserDataModel): DividendsUserDataModel = {
-//    implicit val associatedText: String = encryptedDividendsUserDataModel.mtdItId
-//
-//    DividendsUserDataModel(
-//      sessionId = encryptedDividendsUserDataModel.sessionId,
-//      mtdItId = encryptedDividendsUserDataModel.mtdItId,
-//      nino = encryptedDividendsUserDataModel.nino,
-//      taxYear = encryptedDividendsUserDataModel.taxYear,
-//      dividends = encryptedDividendsUserDataModel.dividends.map(decryptDividendsCheckYourAnswersModel),
-//      lastUpdated = encryptedDividendsUserDataModel.lastUpdated
-//    )
-//  }
-//
-//  private def encryptDividendsCheckYourAnswersModel(dividends: DividendsCheckYourAnswersModel)
-//                                                   (implicit associatedText: String): EncryptedDividendsCheckYourAnswersModel = {
-//    EncryptedDividendsCheckYourAnswersModel(
-//      dividends.gateway.map(_.encrypted),
-//      dividends.ukDividends.map(_.encrypted),
-//      dividends.ukDividendsAmount.map(_.encrypted),
-//      dividends.otherUkDividends.map(_.encrypted),
-//      dividends.otherUkDividendsAmount.map(_.encrypted)
-//    )
-//  }
-//
-//  private def decryptDividendsCheckYourAnswersModel(dividends: EncryptedDividendsCheckYourAnswersModel)
-//                                                   (implicit associatedText: String): DividendsCheckYourAnswersModel = {
-//    DividendsCheckYourAnswersModel(
-//      dividends.gateway.map(_.decrypted[Boolean]),
-//      dividends.ukDividends.map(_.decrypted[Boolean]),
-//      dividends.ukDividendsAmount.map(_.decrypted[BigDecimal]),
-//      dividends.otherUkDividends.map(_.decrypted[Boolean]),
-//      dividends.otherUkDividendsAmount.map(_.decrypted[BigDecimal])
-//    )
-//  }
+  // DIVIDENDS
+  def encryptDividendsUserData(dividendsUserDataModel: DividendsUserDataModel): EncryptedDividendsUserDataModel = {
+    implicit val associatedText: String = dividendsUserDataModel.mtdItId
+
+    EncryptedDividendsUserDataModel(
+      sessionId = dividendsUserDataModel.sessionId,
+      mtdItId = dividendsUserDataModel.mtdItId,
+      nino = dividendsUserDataModel.nino,
+      taxYear = dividendsUserDataModel.taxYear,
+      dividends = dividendsUserDataModel.dividends.map(encryptDividendsCheckYourAnswersModel),
+      lastUpdated = dividendsUserDataModel.lastUpdated
+    )
+  }
+
+  def decryptDividendsUserData(encryptedDividendsUserDataModel: EncryptedDividendsUserDataModel): DividendsUserDataModel = {
+    implicit val associatedText: String = encryptedDividendsUserDataModel.mtdItId
+
+    DividendsUserDataModel(
+      sessionId = encryptedDividendsUserDataModel.sessionId,
+      mtdItId = encryptedDividendsUserDataModel.mtdItId,
+      nino = encryptedDividendsUserDataModel.nino,
+      taxYear = encryptedDividendsUserDataModel.taxYear,
+      dividends = encryptedDividendsUserDataModel.dividends.map(decryptDividendsCheckYourAnswersModel),
+      lastUpdated = encryptedDividendsUserDataModel.lastUpdated
+    )
+  }
+
+  private def encryptDividendsCheckYourAnswersModel(dividends: DividendsCheckYourAnswersModel)
+                                                   (implicit associatedText: String): EncryptedDividendsCheckYourAnswersModel = {
+    EncryptedDividendsCheckYourAnswersModel(
+      dividends.gateway.map(_.encrypted),
+      dividends.ukDividends.map(_.encrypted),
+      dividends.ukDividendsAmount.map(_.encrypted),
+      dividends.otherUkDividends.map(_.encrypted),
+      dividends.otherUkDividendsAmount.map(_.encrypted)
+    )
+  }
+
+  private def decryptDividendsCheckYourAnswersModel(dividends: EncryptedDividendsCheckYourAnswersModel)
+                                                   (implicit associatedText: String): DividendsCheckYourAnswersModel = {
+    DividendsCheckYourAnswersModel(
+      dividends.gateway.map(_.decrypted[Boolean]),
+      dividends.ukDividends.map(_.decrypted[Boolean]),
+      dividends.ukDividendsAmount.map(_.decrypted[BigDecimal]),
+      dividends.otherUkDividends.map(_.decrypted[Boolean]),
+      dividends.otherUkDividendsAmount.map(_.decrypted[BigDecimal])
+    )
+  }
 
   //StockDividends
   def encryptStockDividendsUserData(stockDividendsUserDataModel: StockDividendsUserDataModel): EncryptedStockDividendsUserDataModel = {

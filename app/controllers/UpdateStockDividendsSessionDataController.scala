@@ -26,7 +26,7 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class UpdateStockDividendsSessionDataController @Inject()(stockDividendsIncomeDataService: StockDividendsSessionService,
+class UpdateStockDividendsSessionDataController @Inject()(stockDividendsSessionService: StockDividendsSessionService,
                                                           cc: ControllerComponents,
                                                           authorisedAction: AuthorisedAction)
                                                          (implicit ec: ExecutionContext) extends BackendController(cc) {
@@ -34,7 +34,7 @@ class UpdateStockDividendsSessionDataController @Inject()(stockDividendsIncomeDa
   def updateSessionData(taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
     user.body.asJson.map(_.validate[StockDividendsCheckYourAnswersModel]) match {
       case Some(JsSuccess(model, _)) =>
-        stockDividendsIncomeDataService.updateSessionData(model, taxYear)(NotModified)(NoContent) // review NotModified error.. should be internalServerError
+        stockDividendsSessionService.updateSessionData(model, taxYear)(NotModified)(NoContent) // review NotModified error.. should be internalServerError
       case _ => Future.successful(BadRequest)
     }
   }

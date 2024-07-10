@@ -28,7 +28,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.mvc._
 import play.api.test.{FakeRequest, Helpers}
-import services.AuthService
+import services.{AuthService, DividendsSessionService}
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.Retrieval
@@ -73,7 +73,6 @@ trait UnitTest extends AnyWordSpec with Matchers with MockFactory with BeforeAnd
   implicit val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit val mockAuthService: AuthService = new AuthService(mockAuthConnector)
   implicit val mockDividendsSessionService: DividendsSessionService = mock[DividendsSessionService]
-  implicit val mockErrorHandler: ErrorHandler = mock[ErrorHandler]
 
   implicit lazy val mockMessagesControllerComponents: MessagesControllerComponents = Helpers.stubMessagesControllerComponents()
   implicit lazy val user: User[AnyContent] = new User[AnyContent]("1234567890", None, "AA123456A", "Individual", sessionId)(fakeRequest)

@@ -16,9 +16,7 @@
 
 package models.dividends
 
-import config.AppConfig
 import play.api.libs.json.{Format, Json, OFormat}
-import play.api.mvc.Call
 import uk.gov.hmrc.crypto.EncryptedValue
 
 case class DividendsCheckYourAnswersModel(

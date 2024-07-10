@@ -19,20 +19,20 @@ package controllers
 import controllers.predicates.AuthorisedAction
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import services.StockDividendsSessionService
+import services.{DividendsSessionService, StockDividendsSessionService}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 
-class GetStockDividendsSessionDataController @Inject()(stockDividendsSessionService: StockDividendsSessionService,
-                                                       cc: ControllerComponents,
-                                                       authorisedAction: AuthorisedAction)
-                                                      (implicit ec: ExecutionContext) extends BackendController(cc) {
+class GetDividendsSessionDataController @Inject()(dividendsSessionService: DividendsSessionService,
+                                                  cc: ControllerComponents,
+                                                  authorisedAction: AuthorisedAction)
+                                                 (implicit ec: ExecutionContext) extends BackendController(cc) {
 
   def getSessionData(taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
-    stockDividendsSessionService.getSessionData(taxYear).map {
+    dividendsSessionService.getSessionData(taxYear).map {
       case Right(dividendsIncomeDataModel) => Ok(Json.toJson(dividendsIncomeDataModel))
       case Left(errorModel) => NotFound(Json.toJson(errorModel.message))
     }

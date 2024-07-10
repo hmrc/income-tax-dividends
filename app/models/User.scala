@@ -23,5 +23,4 @@ case class User[T](mtditid: String, arn: Option[String], nino: String, affinityG
                   (implicit request: Request[T]) extends WrappedRequest[T](request) {
 
   def isAgent: Boolean = arn.nonEmpty
-
 }

@@ -27,7 +27,7 @@ class UserSpec extends TestUtils {
     "return true" when {
 
       "user has an arn" in {
-        User[AnyContent]("23456789", Some("123456789"))(FakeRequest()).isAgent mustBe true
+        User[AnyContent]("23456789", Some("123456789"), "AA123456A", "Individual", "sessionId-eb3158c2-0aff-4ce8-8d1b-f2208ace52fe")(FakeRequest()).isAgent mustBe true
       }
 
     }
@@ -35,7 +35,7 @@ class UserSpec extends TestUtils {
     "return false" when {
 
       "user does not have an arn" in {
-        User[AnyContent]("23456789", None)(FakeRequest()).isAgent mustBe false
+        User[AnyContent]("23456789", None, "AA123456A", "Individual", "sessionId-eb3158c2-0aff-4ce8-8d1b-f2208ace52fe")(FakeRequest()).isAgent mustBe false
       }
 
     }

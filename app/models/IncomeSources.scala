@@ -18,5 +18,6 @@ package models
 
 //TODO: check if we need this or rename
 object IncomeSources {
+  val DIVIDENDS = "dividends"
   val STOCK_DIVIDENDS = "stock-dividends"
 }
