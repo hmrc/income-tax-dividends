@@ -73,14 +73,14 @@ class AuthorisedAction @Inject()()(implicit val authConnector: AuthConnector,
       case enrolments ~ userConfidence if userConfidence.level >= minimumConfidenceLevel =>
         val optionalMtdItId: Option[String] = enrolmentGetIdentifierValue(EnrolmentKeys.Individual, EnrolmentIdentifiers.individualId, enrolments)
         val optionalNino: Option[String] = enrolmentGetIdentifierValue(EnrolmentKeys.nino, EnrolmentIdentifiers.nino, enrolments)
+        val optionalSessionId: String = request.headers.get("sessionId").getOrElse("")
 
         (optionalMtdItId, optionalNino) match {
           case (Some(authMTDITID), Some(_)) =>
             enrolments.enrolments.collectFirst {
               case Enrolment(EnrolmentKeys.Individual, enrolmentIdentifiers, _, _)
                 if enrolmentIdentifiers.exists(identifier => identifier.key == EnrolmentIdentifiers.individualId && identifier.value == requestMtdItId) =>
-                // TODO: change this > pull session id into own variable
-                block(User(requestMtdItId, None, optionalNino.getOrElse(""), "", request.headers.get("sessionId").get))
+                block(User(requestMtdItId, None, optionalNino.getOrElse(""), "", optionalSessionId))
             } getOrElse {
               logger.info(s"[AuthorisedAction][individualAuthentication] Non-agent with an invalid MTDITID. " +
                 s"MTDITID in auth matches MTDITID in request: ${authMTDITID == requestMtdItId}")
@@ -102,20 +102,21 @@ class AuthorisedAction @Inject()()(implicit val authConnector: AuthConnector,
   private[predicates] def agentAuthentication[A](block: User[A] => Future[Result], mtdItId: String)
                                                 (implicit request: Request[A], hc: HeaderCarrier): Future[Result] = {
 
+    val optionalSessionId: String = request.headers.get("sessionId").getOrElse("")
+
     lazy val agentDelegatedAuthRuleKey = "mtd-it-auth"
 
     lazy val agentAuthPredicate: String => Enrolment = identifierId =>
-      Enrolment(EnrolmentKeys.Individual)
-        .withIdentifier(EnrolmentIdentifiers.individualId, identifierId)
-        .withDelegatedAuthRule(agentDelegatedAuthRuleKey)
+    Enrolment(EnrolmentKeys.Individual)
+      .withIdentifier(EnrolmentIdentifiers.individualId, identifierId)
+      .withDelegatedAuthRule(agentDelegatedAuthRuleKey)
 
     authorised(agentAuthPredicate(mtdItId))
       .retrieve(allEnrolments) { enrolments =>
 
         enrolmentGetIdentifierValue(EnrolmentKeys.Agent, EnrolmentIdentifiers.agentReference, enrolments) match {
           case Some(arn) =>
-            // TODO: change this, mtditid can be from header > pull session id into own variable
-            block(User("requestMtdItId", Some(arn), "", "", request.headers.get("sessionId").get))
+            block(User(mtdItId, Some(arn), "", "", optionalSessionId))
           case None =>
             logger.info("[AuthorisedAction][agentAuthentication] Agent with no HMRC-AS-AGENT enrolment.")
             unauthorized
