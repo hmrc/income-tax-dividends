@@ -254,18 +254,6 @@ trait IntegrationTest extends AnyWordSpecLike with Matchers with GuiceOneServerP
     new MockAuthConnector(stubbedRetrieval, acceptedConfidenceLevel)
   )
 
-  def authAction(
-                  stubbedRetrieval: Future[_],
-                  acceptedConfidenceLevel: Seq[ConfidenceLevel] = Seq.empty[ConfidenceLevel]
-                ): AuthorisedAction = new AuthorisedAction(
-    appConfig)(
-    authService(stubbedRetrieval, if (acceptedConfidenceLevel.nonEmpty) {
-      acceptedConfidenceLevel
-    } else {
-      defaultAcceptedConfidenceLevels
-    }),
-  )
-
   def successfulRetrieval: Future[Enrolments ~ Some[AffinityGroup] ~ ConfidenceLevel] = Future.successful(
     Enrolments(Set(
       Enrolment("HMRC-MTD-IT", Seq(EnrolmentIdentifier("MTDITID", "1234567890")), "Activated", None),
