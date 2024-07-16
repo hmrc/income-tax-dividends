@@ -40,7 +40,6 @@ trait AppConfig {
   val ifBaseUrl: String
   val ifEnvironment: String
   val personalFrontendBaseUrl: String
-
   val useEncryption: Boolean
 
   val encryptionKey: String

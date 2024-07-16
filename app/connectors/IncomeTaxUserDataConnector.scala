@@ -17,18 +17,20 @@
 package connectors
 
 import config.AppConfig
-import connectors.httpParsers.RefreshIncomeSourceHttpParser.{RefreshIncomeSourceHttpReads, RefreshIncomeSourceResponse}
-import models.RefreshIncomeSourceRequest
+import connectors.httpParsers.IncomeTaxUserDataHttpParser.{IncomeTaxUserDataHttpReads, IncomeTaxUserDataResponse}
+import models.User
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class IncomeSourceConnector @Inject()(val http: HttpClient,
-                                      val config: AppConfig)(implicit ec: ExecutionContext) {
+class IncomeTaxUserDataConnector @Inject()(val http: HttpClient,
+                                           val config: AppConfig)(implicit ec: ExecutionContext) {
 
-  def put(taxYear: Int, nino: String, incomeSource: String)(implicit hc: HeaderCarrier): Future[RefreshIncomeSourceResponse] = {
-    val targetUrl = config.incomeTaxSubmissionBEBaseUrl + s"/income-tax/nino/$nino/sources/session?taxYear=$taxYear"
-    http.PUT[RefreshIncomeSourceRequest, RefreshIncomeSourceResponse](targetUrl, RefreshIncomeSourceRequest(incomeSource))
+  def getUserData(taxYear: Int)(implicit user: User[_], hc: HeaderCarrier): Future[IncomeTaxUserDataResponse] = {
+    val incomeTaxUserDataUrl: String = config.incomeTaxSubmissionBEBaseUrl + s"/income-tax/nino/${user.nino}/sources/session?taxYear=$taxYear"
+
+    http.GET[IncomeTaxUserDataResponse](incomeTaxUserDataUrl)
   }
+
 }
