@@ -17,13 +17,18 @@
 package services
 
 import connectors.IncomeSourceConnector
+import connectors.httpParsers.GetDividendsIncomeTYSParser.handleAPIError
 import models.{ErrorModel, IncomeSources, User}
 import models.dividends.StockDividendsCheckYourAnswersModel
-import models.mongo.{DatabaseError, StockDividendsUserDataModel}
+import models.mongo.{DataNotFound, DatabaseError, MongoError, StockDividendsUserDataModel}
 import models.priorDataModels.StockDividendsPriorDataModel
 import play.api.Logger
+import play.api.http.Status.NOT_FOUND
 import repositories.StockDividendsUserDataRepository
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.mongo.play.json.Codecs.logger
+import utils.PagerDutyHelper.PagerDutyKeys.FAILED_TO_FIND_DATA
+import utils.PagerDutyHelper.pagerDutyLog
 
 import java.time.Instant
 import javax.inject.Inject
@@ -57,15 +62,16 @@ class StockDividendsSessionService @Inject()(
     }
   }
 
-  def getSessionData(taxYear: Int)(implicit user: User[_], ec: ExecutionContext): Future[Either[DatabaseError, Option[StockDividendsUserDataModel]]] = {
+    def getSessionData(taxYear: Int)(implicit user: User[_], ec: ExecutionContext): Future[Either[DatabaseError, Option[StockDividendsUserDataModel]]] = {
+      stockDividendsUserDataRepository.find(taxYear).map {
+        case Right(userData) =>
+          Right(userData)
+        case Left(databaseError) =>
+          logger.error("[StockDividendsSessionService][getSessionData] Could not find user session.")
+          Left(MongoError(databaseError.message))
 
-    stockDividendsUserDataRepository.find(taxYear).map {
-      case Left(error) =>
-        logger.error("[StockDividendsSessionService][getSessionData] Could not find user session.")
-        Left(error)
-      case Right(userData) => Right(userData)
+      }
     }
-  }
 
   def createSessionData[A](cyaModel: StockDividendsCheckYourAnswersModel, taxYear: Int)(onFail: A)(onSuccess: A)
                           (implicit user: User[_], ec: ExecutionContext): Future[A] = {
