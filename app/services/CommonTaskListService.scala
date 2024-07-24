@@ -19,9 +19,6 @@ package services
 import config.AppConfig
 import models.taskList._
 import models.{AllDividends, DividendsIncomeDataModel, SubmittedDividendsModel}
-import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, Result}
-import play.api.mvc.Results.Ok
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.Inject

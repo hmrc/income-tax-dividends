@@ -31,8 +31,6 @@ class CommonTaskListController @Inject()(service: CommonTaskListService,
                                          cc: ControllerComponents)
                                         (implicit ec: ExecutionContext) extends BackendController(cc) with Logging {
 
-
-
   def getCommonTaskList(taxYear: Int, nino: String): Action[AnyContent] = auth.async { implicit user =>
     service.get(taxYear, nino).map { taskList =>
       Ok(Json.toJson(taskList))
