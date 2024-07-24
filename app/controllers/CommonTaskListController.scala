@@ -18,9 +18,9 @@ package controllers
 
 import controllers.predicates.AuthorisedAction
 import play.api.Logging
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.CommonTaskListService
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
@@ -34,6 +34,8 @@ class CommonTaskListController @Inject()(service: CommonTaskListService,
 
 
   def getCommonTaskList(taxYear: Int, nino: String): Action[AnyContent] = auth.async { implicit user =>
-    service.get(taxYear, nino)
+    service.get(taxYear, nino).map { taskList =>
+      Ok(Json.toJson(taskList))
+    }
   }
 }

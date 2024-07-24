@@ -38,10 +38,10 @@ class CommonTaskListControllerSpec extends TestUtils {
 
   val controller = new CommonTaskListController(commonTaskListService, authorisedAction, mockControllerComponents)
 
-  def mockDividendsService(): CallHandler4[Int, String, ExecutionContext, HeaderCarrier, Future[Result]] = {
+  def mockDividendsService(): CallHandler4[Int, String, ExecutionContext, HeaderCarrier, Future[TaskListSection]] = {
     (commonTaskListService.get(_: Int, _: String)(_: ExecutionContext, _: HeaderCarrier))
       .expects(*, *, *, *)
-      .returning(Future.successful(Ok(Json.toJson(TaskListSection(SectionTitle.DividendsTitle, None)))))
+      .returning(Future.successful(TaskListSection(SectionTitle.DividendsTitle, None)))
   }
 
   ".getCommonTaskList" should {

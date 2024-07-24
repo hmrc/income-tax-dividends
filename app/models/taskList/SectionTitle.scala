@@ -26,26 +26,6 @@ object SectionTitle extends Enum[SectionTitle] with PlayJsonEnum[SectionTitle] {
 
   val values: IndexedSeq[SectionTitle] = findValues
 
-  case object AboutYouTitle extends SectionTitle("AboutYou")
-
-  case object CharitableDonationsTitle extends SectionTitle("CharitableDonations")
-
-  case object EmploymentTitle extends SectionTitle("Employment")
-
-  case object SelfEmploymentTitle extends SectionTitle("SelfEmployment")
-
-  case object EsaTitle extends SectionTitle("Esa")
-
-  case object JsaTitle extends SectionTitle("Jsa")
-
-  case object PensionsTitle extends SectionTitle("Pensions")
-
-  case object InsuranceGainsTitle extends SectionTitle("InsuranceGains")
-
-  case object PaymentsIntoPensionsTitle extends SectionTitle("PaymentsIntoPensions")
-
-  case object InterestTitle extends SectionTitle("Interest")
-
   case object DividendsTitle extends SectionTitle("Dividends")
 
 }

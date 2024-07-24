@@ -18,10 +18,11 @@ package services
 
 import connectors.httpParsers.GetDividendsIncomeParser.GetDividendsIncomeDataResponse
 import connectors.httpParsers.SubmittedDividendsHttpParser.SubmittedDividendsResponse
-import models.{DividendsIncomeDataModel, StockDividendModel, SubmittedDividendsModel}
+import models.taskList._
+import models.{DividendsIncomeDataModel, ErrorBodyModel, ErrorModel, StockDividendModel, SubmittedDividendsModel}
 import org.apache.pekko.stream.Materializer
 import play.api.http.ContentTypes
-import play.api.http.Status.OK
+import play.api.http.Status.{NOT_FOUND, OK}
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.TestUtils
 
@@ -38,6 +39,7 @@ class CommonTaskListServiceSpec extends TestUtils {
   val taxYear: Int = 1234
 
   val fullDividendsResult: SubmittedDividendsResponse = Right(SubmittedDividendsModel(Some(20.00), Some(20.00), None))
+  val emptyDividendsResult: SubmittedDividendsResponse = Left(ErrorModel(NOT_FOUND, ErrorBodyModel("SOME_CODE", "reason")))
 
   val fullStockDividendsResult: GetDividendsIncomeDataResponse = Right(DividendsIncomeDataModel(
     submittedOn = Some("2020-06-17T10:53:38Z"),
@@ -48,10 +50,25 @@ class CommonTaskListServiceSpec extends TestUtils {
     bonusIssuesOfSecurities = None,
     closeCompanyLoansWrittenOff = Some(StockDividendModel(Some("Close Company Loans WrittenOff Customer Reference"), 6743.23))
   ))
+  val emptyStockDividendsResult: GetDividendsIncomeDataResponse = Left(ErrorModel(NOT_FOUND, ErrorBodyModel("SOME_CODE", "reason")))
+
+  val fullTaskSection: TaskListSection =
+    TaskListSection(SectionTitle.DividendsTitle,
+      Some(List(
+        TaskListSectionItem(TaskTitle.CashDividends, TaskStatus.Completed, Some("http://localhost:9308/1234/dividends/how-much-dividends-from-uk-companies")),
+        TaskListSectionItem(TaskTitle.DividendsFromUnitTrusts, TaskStatus.Completed,
+          Some("http://localhost:9308/1234/dividends/how-much-dividends-from-uk-trusts-and-open-ended-investment-companies")),
+        TaskListSectionItem(TaskTitle.StockDividends, TaskStatus.Completed,
+          Some("http://localhost:9308/1234/dividends/stock-dividend-amount")),
+        TaskListSectionItem(TaskTitle.FreeRedeemableShares, TaskStatus.Completed, Some("http://localhost:9308/1234/dividends/redeemable-shares-amount")),
+        TaskListSectionItem(TaskTitle.CloseCompanyLoans, TaskStatus.Completed, Some("http://localhost:9308/1234/dividends/close-company-loan-amount"))
+      ))
+    )
 
   "CommonTaskListService.get" should {
 
     "return a full task list section model" in {
+
       (dividendsService.getSubmittedDividends(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
         .returning(Future.successful(fullDividendsResult))
@@ -62,16 +79,41 @@ class CommonTaskListServiceSpec extends TestUtils {
 
       val underTest = service.get(taxYear, nino)
 
-      status(underTest) mustBe OK
-      await(underTest).body mustBe ""
+      await(underTest) mustBe fullTaskSection
     }
 
     "return a minimal task list section model" in {
 
+      (dividendsService.getSubmittedDividends(_: String, _: Int)(_: HeaderCarrier))
+        .expects(nino, taxYear, *)
+        .returning(Future.successful(Right(SubmittedDividendsModel(Some(20.00), None, None))))
+
+      (stockDividendsService.getDividendsIncomeData(_: String, _: Int)(_: HeaderCarrier))
+        .expects(nino, taxYear, *)
+        .returning(Future.successful(emptyStockDividendsResult))
+
+      val underTest = service.get(taxYear, nino)
+
+      await(underTest) mustBe fullTaskSection.copy(
+        taskItems = Some(List(
+          TaskListSectionItem(TaskTitle.CashDividends, TaskStatus.Completed, Some("http://localhost:9308/1234/dividends/how-much-dividends-from-uk-companies"))
+        ))
+      )
     }
 
     "return an empty task list section model" in {
 
+      (dividendsService.getSubmittedDividends(_: String, _: Int)(_: HeaderCarrier))
+        .expects(nino, taxYear, *)
+        .returning(Future.successful(emptyDividendsResult))
+
+      (stockDividendsService.getDividendsIncomeData(_: String, _: Int)(_: HeaderCarrier))
+        .expects(nino, taxYear, *)
+        .returning(Future.successful(emptyStockDividendsResult))
+
+      val underTest = service.get(taxYear, nino)
+
+      await(underTest) mustBe TaskListSection(SectionTitle.DividendsTitle, None)
     }
   }
 }

@@ -20,7 +20,7 @@ import config.AppConfig
 import models.taskList._
 import models.{AllDividends, DividendsIncomeDataModel, SubmittedDividendsModel}
 import play.api.libs.json.Json
-import play.api.mvc.Result
+import play.api.mvc.{Action, AnyContent, Result}
 import play.api.mvc.Results.Ok
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -31,7 +31,7 @@ class CommonTaskListService @Inject()(appConfig: AppConfig,
                                       dividendsService: SubmittedDividendsService,
                                       stockDividendsService: GetDividendsIncomeService) {
 
-  def get(taxYear: Int, nino: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Result] = {
+  def get(taxYear: Int, nino: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[TaskListSection] = {
 
     val dividends: Future[SubmittedDividendsModel] = dividendsService.getSubmittedDividends(nino, taxYear).map {
       case Left(_) => SubmittedDividendsModel(None, None)
@@ -69,7 +69,7 @@ class CommonTaskListService @Inject()(appConfig: AppConfig,
         }
       }
 
-      Ok(Json.toJson(TaskListSection(SectionTitle.DividendsTitle, tasks)))
+      TaskListSection(SectionTitle.DividendsTitle, tasks)
     }
   }
 
@@ -78,7 +78,7 @@ class CommonTaskListService @Inject()(appConfig: AppConfig,
     // TODO: these will be links to the new CYA pages when they are made
     val ukDividendsUrl: String = s"${appConfig.personalFrontendBaseUrl}/$taxYear/dividends/how-much-dividends-from-uk-companies"
     val otherUkDividendsUrl: String =
-      s"${appConfig.personalFrontendBaseUrl}/$taxYear/dividends/how-much-dividends-from-uk-trusts-and-open-ended-investment-companies "
+      s"${appConfig.personalFrontendBaseUrl}/$taxYear/dividends/how-much-dividends-from-uk-trusts-and-open-ended-investment-companies"
     val stockDividendsUrl: String = s"${appConfig.personalFrontendBaseUrl}/$taxYear/dividends/stock-dividend-amount"
     val redeemableUrl: String = s"${appConfig.personalFrontendBaseUrl}/$taxYear/dividends/redeemable-shares-amount"
     val closeCompanyUrl: String = s"${appConfig.personalFrontendBaseUrl}/$taxYear/dividends/close-company-loan-amount"
