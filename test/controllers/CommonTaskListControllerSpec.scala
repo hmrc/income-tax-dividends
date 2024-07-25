@@ -19,9 +19,6 @@ package controllers
 import models.taskList.{SectionTitle, TaskListSection}
 import org.scalamock.handlers.CallHandler4
 import play.api.http.Status.OK
-import play.api.libs.json.Json
-import play.api.mvc.Result
-import play.api.mvc.Results.Ok
 import services.CommonTaskListService
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.{TaxYearUtils, TestUtils}

@@ -19,10 +19,8 @@ package services
 import connectors.httpParsers.GetDividendsIncomeParser.GetDividendsIncomeDataResponse
 import connectors.httpParsers.SubmittedDividendsHttpParser.SubmittedDividendsResponse
 import models.taskList._
-import models.{DividendsIncomeDataModel, ErrorBodyModel, ErrorModel, StockDividendModel, SubmittedDividendsModel}
-import org.apache.pekko.stream.Materializer
-import play.api.http.ContentTypes
-import play.api.http.Status.{NOT_FOUND, OK}
+import models._
+import play.api.http.Status.NOT_FOUND
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.TestUtils
 
