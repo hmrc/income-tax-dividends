@@ -17,6 +17,10 @@
 package controllers
 
 import controllers.predicates.AuthorisedAction
+import models.dividends.StockDividendsCheckYourAnswersModel
+import models.dividends.StockDividendsCheckYourAnswersModel.priorityOrderOrNone
+import models.mongo.StockDividendsUserDataModel
+import models.priorDataModels.StockDividendsPriorDataModel
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.StockDividendsSessionService
@@ -31,10 +35,19 @@ class GetStockDividendsSessionDataController @Inject()(stockDividendsSessionServ
                                                        authorisedAction: AuthorisedAction)
                                                       (implicit ec: ExecutionContext) extends BackendController(cc) {
 
+
   def getSessionData(taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
     stockDividendsSessionService.getSessionData(taxYear).map {
-      case Right(dividendsIncomeDataModel) => Ok(Json.toJson(dividendsIncomeDataModel))
-      case Left(errorModel) => NotFound(Json.toJson(errorModel.message))
+      case Right(stockDividendsUserDataModel) =>
+        if (stockDividendsUserDataModel.isDefined) {
+          Ok(Json.toJson(stockDividendsUserDataModel))
+        }
+        else {
+          NotFound(Json.toJson(""))
+        }
+      case Left(errorModel) => {
+      }
+        NotFound(Json.toJson(errorModel.message))
     }
   }
 
