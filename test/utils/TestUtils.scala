@@ -22,6 +22,7 @@ import com.codahale.metrics.SharedMetricRegistries
 import common.{EnrolmentIdentifiers, EnrolmentKeys}
 import config.{AppConfig, MockAppConfig}
 import controllers.predicates.AuthorisedAction
+import org.scalamock.handlers.CallHandler4
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
@@ -76,7 +77,7 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with BeforeAn
     Enrolment(EnrolmentKeys.nino, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.nino, "1234567890")), "Activated")))
 
   //noinspection ScalaStyle
-  def mockAuth(enrolments: Enrolments = individualEnrolments) = {
+  def mockAuth(enrolments: Enrolments = individualEnrolments): CallHandler4[Predicate, Retrieval[_], HeaderCarrier, ExecutionContext, Future[Any]] = {
 
     (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
       .expects(*, Retrievals.affinityGroup, *, *)
