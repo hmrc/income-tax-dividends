@@ -17,32 +17,36 @@
 package controllers
 
 import models.User
-import models.mongo.{DataNotFound, DatabaseError, DividendsUserDataModel}
+import models.mongo.{DataNotFound, DatabaseError, StockDividendsUserDataModel}
 import org.scalamock.handlers.CallHandler3
 import play.api.http.Status._
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{contentAsJson, defaultAwaitTimeout}
-import services.DividendsSessionService
+import services.StockDividendsSessionService
 import utils.TestUtils
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class GetDividendsSessionDataControllerSpec extends TestUtils {
+class GetStockDividendsSessionDataControllerSpec extends TestUtils {
 
-  private val dividendsSessionService: DividendsSessionService = mock[DividendsSessionService]
-  private val getDividendsSessionDataController = new GetDividendsSessionDataController(dividendsSessionService, mockControllerComponents, authorisedAction)
+  private val dividendsSessionService: StockDividendsSessionService = mock[StockDividendsSessionService]
+  private val getDividendsSessionDataController =
+    new GetStockDividendsSessionDataController(dividendsSessionService, mockControllerComponents, authorisedAction)
 
   private val fakeGetRequest = FakeRequest("GET", "/").withHeaders("mtditid" -> mtditid)
   private val fakeGetRequestWithDifferentMTITID = FakeRequest("PUT", "/").withHeaders("mtditid" -> "123123123")
 
-  val jsonBody: JsValue = Json.toJson(completeDividendsCYAModel)
+  val jsonBody: JsValue = Json.toJson(completeStockDividendsCYAModel)
 
-  val responseWithData: Right[Nothing, Some[DividendsUserDataModel]] =
-    Right(Some(DividendsUserDataModel("sessionId", mtditid, nino, taxYear, Some(completeDividendsCYAModel))))
+  val responseWithData: Right[Nothing, Some[StockDividendsUserDataModel]] =
+    Right(Some(StockDividendsUserDataModel("sessionId", mtditid, nino, taxYear, Some(completeStockDividendsCYAModel))))
+
+  val responseWithoutData: Right[Nothing, Option[StockDividendsUserDataModel]] =
+    Right(None)
 
   def mockGetSessionDataSuccess():
-  CallHandler3[Int, User[_], ExecutionContext, Future[Either[DatabaseError, Option[DividendsUserDataModel]]]] = {
+  CallHandler3[Int, User[_], ExecutionContext, Future[Either[DatabaseError, Option[StockDividendsUserDataModel]]]] = {
     val response = responseWithData
     (dividendsSessionService
       .getSessionData( _: Int)(_: User[_], _: ExecutionContext))
@@ -51,8 +55,17 @@ class GetDividendsSessionDataControllerSpec extends TestUtils {
   }
 
   def mockGetSessionDataNotFound():
-  CallHandler3[Int, User[_], ExecutionContext, Future[Either[DatabaseError, Option[DividendsUserDataModel]]]] = {
+  CallHandler3[Int, User[_], ExecutionContext, Future[Either[DatabaseError, Option[StockDividendsUserDataModel]]]] = {
     val response = Left(DataNotFound)
+    (dividendsSessionService
+      .getSessionData( _: Int)(_: User[_], _: ExecutionContext))
+      .expects(*, *, *)
+      .returning(Future.successful(response))
+  }
+
+  def mockGetSessionDataEmptyData():
+  CallHandler3[Int, User[_], ExecutionContext, Future[Either[DatabaseError, Option[StockDividendsUserDataModel]]]] = {
+    val response = responseWithoutData
     (dividendsSessionService
       .getSessionData( _: Int)(_: User[_], _: ExecutionContext))
       .expects(*, *, *)
@@ -93,6 +106,15 @@ class GetDividendsSessionDataControllerSpec extends TestUtils {
       val result = {
         mockAuth()
         mockGetSessionDataNotFound()
+        getDividendsSessionDataController.getSessionData(taxYear)(fakeGetRequest)
+      }
+      status(result) mustBe NOT_FOUND
+    }
+
+    "return 404 when None is returned" in {
+      val result = {
+        mockAuth()
+        mockGetSessionDataEmptyData()
         getDividendsSessionDataController.getSessionData(taxYear)(fakeGetRequest)
       }
       status(result) mustBe NOT_FOUND

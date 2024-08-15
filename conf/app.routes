@@ -19,7 +19,9 @@ PUT       /income-tax/income/dividends/:nino/:taxYear                           
 POST      /income-tax/income/dividends/:taxYear/session                         controllers.CreateDividendsSessionDataController.createSessionData(taxYear: Int)
 PUT       /income-tax/income/dividends/:taxYear/session                         controllers.UpdateDividendsSessionDataController.updateSessionData(taxYear: Int)
 GET       /income-tax/income/dividends/:taxYear/session                         controllers.GetDividendsSessionDataController.getSessionData(taxYear: Int)
+DELETE    /income-tax/income/dividends/:taxYear/session                         controllers.DeleteDividendsSessionDataController.clear(taxYear: Int)
 
 POST      /income-tax/income/dividends/:taxYear/stock-dividends/session         controllers.CreateStockDividendsSessionDataController.createSessionData(taxYear: Int)
 PUT       /income-tax/income/dividends/:taxYear/stock-dividends/session         controllers.UpdateStockDividendsSessionDataController.updateSessionData(taxYear: Int)
 GET       /income-tax/income/dividends/:taxYear/stock-dividends/session         controllers.GetStockDividendsSessionDataController.getSessionData(taxYear: Int)
+DELETE    /income-tax/income/dividends/:taxYear/stock-dividends/session         controllers.DeleteStockDividendsSessionDataController.clear(taxYear: Int)

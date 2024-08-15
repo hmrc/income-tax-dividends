@@ -38,5 +38,4 @@ class CreateStockDividendsSessionDataController @Inject()(stockDividendsSessionS
       case _ => Future.successful(BadRequest)
     }
   }
-
 }

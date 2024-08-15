@@ -17,17 +17,19 @@
 package services
 
 import connectors.IncomeSourceConnector
-import models.User
+import models.{IncomeSources, User}
 import models.dividends.DividendsCheckYourAnswersModel
 import models.mongo.{DatabaseError, DividendsUserDataModel}
 import play.api.Logger
 import repositories.DividendsUserDataRepository
+import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.Instant
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class DividendsSessionService @Inject()(dividendsUserDataRepository: DividendsUserDataRepository) {
+class DividendsSessionService @Inject()(incomeSourceConnector: IncomeSourceConnector,
+                                        dividendsUserDataRepository: DividendsUserDataRepository) {
 
   lazy val logger: Logger = Logger(this.getClass)
 
@@ -81,6 +83,17 @@ class DividendsSessionService @Inject()(dividendsUserDataRepository: DividendsUs
         case Right(_) => onSuccess
         case Left(_) => onFail
       }
+    }
+  }
+
+  def clear[R](taxYear: Int)(onFail: R)(onSuccess: R)(implicit user: User[_], ec: ExecutionContext, hc: HeaderCarrier): Future[R] = {
+    incomeSourceConnector.put(taxYear, user.nino, IncomeSources.DIVIDENDS)(hc.withExtraHeaders("mtditid" -> user.mtditid)).flatMap {
+      case Left(_) => Future.successful(onFail)
+      case _ =>
+        dividendsUserDataRepository.clear(taxYear).map {
+          case true => onSuccess
+          case false => onFail
+        }
     }
   }
 

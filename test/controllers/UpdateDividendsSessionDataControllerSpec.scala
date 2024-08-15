@@ -16,75 +16,40 @@
 
 package controllers
 
-import connectors.httpParsers.CreateOrAmendDividendsHttpParser.CreateOrAmendDividendsResponse
+import models.User
 import models.dividends.DividendsCheckYourAnswersModel
-import models.{CreateOrAmendDividendsResponseModel, ErrorBodyModel, ErrorModel}
-import org.scalamock.handlers.CallHandler4
+import org.scalamock.handlers.CallHandler7
 import play.api.http.Status._
 import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.Result
+import play.api.mvc.Results.NoContent
 import play.api.test.FakeRequest
 import services.DividendsSessionService
-import uk.gov.hmrc.http.HeaderCarrier
 import utils.TestUtils
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class UpdateDividendsSessionDataControllerSpec extends TestUtils {
 
-  val dividendsSessionService: DividendsSessionService = mock[DividendsSessionService]
-  val updateDividendsSessionDataController = new UpdateDividendsSessionDataController(dividendsSessionService, mockControllerComponents, authorisedAction)
-  val nino: String = "123456789"
-  val mtditid: String = "1234567890"
-  val taxYear: Int = 1234
-  val badRequestModel: ErrorBodyModel = ErrorBodyModel("INVALID_NINO", "Nino is invalid")
-  val notFoundModel: ErrorBodyModel = ErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find income source")
-  val serverErrorModel: ErrorBodyModel = ErrorBodyModel("SERVER_ERROR", "Internal server error")
-  val serviceUnavailableErrorModel: ErrorBodyModel = ErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable")
+  private val dividendsSessionService: DividendsSessionService = mock[DividendsSessionService]
+  private val updateDividendsSessionDataController =
+    new UpdateDividendsSessionDataController(dividendsSessionService, mockControllerComponents, authorisedAction)
+
   private val fakeGetRequest = FakeRequest("PUT", "/").withHeaders("mtditid" -> mtditid)
   private val fakeGetRequestWithDifferentMTITID = FakeRequest("PUT", "/").withHeaders("mtditid" -> "123123123")
 
-  val jsonBody: JsValue = Json.parse("""{"ukDividends": 12345.99, "otherUkDividends": 123456.99}""")
-  val invalidJsonBody: JsValue = Json.parse("""{"notukDividends": 12345.99, "nototherUkDividends": 123456.99}""")
+  private val jsonBody: JsValue = Json.toJson(completeDividendsCYAModel)
 
-  def mockUpdateDividendsSessionDataValid(): CallHandler4[String, Int, DividendsCheckYourAnswersModel, HeaderCarrier, Future[CreateOrAmendDividendsResponse]] = {
-    val response: CreateOrAmendDividendsResponse = Right(CreateOrAmendDividendsResponseModel("transactionRef"))
-    (dividendsSessionService.createSessionData(_: DividendsCheckYourAnswersModel, _: Int)(_: HeaderCarrier))
-      .expects(*, *, *, *)
+  def mockUpdateDividendsSessionDataValid():
+  CallHandler7[DividendsCheckYourAnswersModel, Int, Boolean, Result, Result, User[_], ExecutionContext, Future[Result]] = {
+    val response: Result = NoContent
+    (dividendsSessionService
+      .updateSessionData(_: DividendsCheckYourAnswersModel, _: Int, _: Boolean)(_: Result)(_: Result)(_: User[_], _: ExecutionContext))
+      .expects(*, *, *, *, *, *, *)
       .returning(Future.successful(response))
   }
 
-  def mockUpdateDividendsSessionDataBadRequest(): CallHandler4[String, Int, DividendsCheckYourAnswersModel, HeaderCarrier,
-    Future[CreateOrAmendDividendsResponse]] = {
-    val response: CreateOrAmendDividendsResponse = Left(ErrorModel(BAD_REQUEST, badRequestModel))
-    (dividendsSessionService.createSessionData(_: DividendsCheckYourAnswersModel, _: Int)(_: HeaderCarrier))
-      .expects(*, *, *, *)
-      .returning(Future.successful(response))
-  }
-
-  def mockUpdateDividendsSessionDataNotFound(): CallHandler4[String, Int, DividendsCheckYourAnswersModel, HeaderCarrier, Future[CreateOrAmendDividendsResponse]] = {
-    val response = Left(ErrorModel(NOT_FOUND, notFoundModel))
-    (dividendsSessionService.createSessionData(_: DividendsCheckYourAnswersModel, _: Int)(_: HeaderCarrier))
-      .expects(*, *, *, *)
-      .returning(Future.successful(response))
-  }
-
-  def mockUpdateDividendsSessionDataServerError(): CallHandler4[String, Int, DividendsCheckYourAnswersModel,
-    HeaderCarrier, Future[CreateOrAmendDividendsResponse]] = {
-    val response = Left(ErrorModel(INTERNAL_SERVER_ERROR, serverErrorModel))
-    (dividendsSessionService.createSessionData(_: DividendsCheckYourAnswersModel, _: Int)(_: HeaderCarrier))
-      .expects(*, *, *, *)
-      .returning(Future.successful(response))
-  }
-
-  def mockUpdateDividendsSessionDataServiceUnavailable()
-  : CallHandler4[String, Int, DividendsCheckYourAnswersModel, HeaderCarrier, Future[CreateOrAmendDividendsResponse]] = {
-    val response = Left(ErrorModel(SERVICE_UNAVAILABLE, serviceUnavailableErrorModel))
-    (dividendsSessionService.createSessionData(_: DividendsCheckYourAnswersModel, _: Int)(_: HeaderCarrier))
-      .expects(*, *, *, *)
-      .returning(Future.successful(response))
-  }
-
-  "calling .createSessionData" should {
+  "calling .updateSessionData" should {
 
     "return a 204 No Content response when called as an individual" in {
       val result = {
@@ -115,81 +80,9 @@ class UpdateDividendsSessionDataControllerSpec extends TestUtils {
     "return an badRequest response when called as an individual with an invalid request body" in {
       val result = {
         mockAuth()
-        updateDividendsSessionDataController.updateSessionData(taxYear)(fakeGetRequest.withJsonBody(invalidJsonBody))
+        updateDividendsSessionDataController.updateSessionData(taxYear)(fakeGetRequest)
       }
       status(result) mustBe BAD_REQUEST
-    }
-
-    "return a badRequest response when called as an individual and DES returns badRequest" in {
-      val result = {
-        mockAuth()
-        mockUpdateDividendsSessionDataBadRequest()
-        updateDividendsSessionDataController.updateSessionData(taxYear)(fakeGetRequest.withJsonBody(jsonBody))
-      }
-      status(result) mustBe BAD_REQUEST
-    }
-
-    "return an badRequest response when called as an agent and DES returns badRequest" in {
-      val result = {
-        mockAuthAsAgent()
-        mockUpdateDividendsSessionDataBadRequest()
-        updateDividendsSessionDataController.updateSessionData(taxYear)(fakeGetRequest.withJsonBody(jsonBody))
-      }
-      status(result) mustBe BAD_REQUEST
-    }
-
-    "return a notFound response when called as an individual and DES returns badRequest" in {
-      val result = {
-        mockAuth()
-        mockUpdateDividendsSessionDataNotFound()
-        updateDividendsSessionDataController.updateSessionData(taxYear)(fakeGetRequest.withJsonBody(jsonBody))
-      }
-      status(result) mustBe NOT_FOUND
-    }
-
-    "return an notFound response when called as an agent and DES returns badRequest" in {
-      val result = {
-        mockAuthAsAgent()
-        mockUpdateDividendsSessionDataNotFound()
-        updateDividendsSessionDataController.updateSessionData(taxYear)(fakeGetRequest.withJsonBody(jsonBody))
-      }
-      status(result) mustBe NOT_FOUND
-    }
-
-    "return an InternalServerError response when called as an individual" in {
-      val result = {
-        mockAuth()
-        mockUpdateDividendsSessionDataServerError()
-        updateDividendsSessionDataController.updateSessionData(taxYear)(fakeGetRequest.withJsonBody(jsonBody))
-      }
-      status(result) mustBe INTERNAL_SERVER_ERROR
-    }
-
-    "return an InternalServerError response when called as an agent" in {
-      val result = {
-        mockAuthAsAgent()
-        mockUpdateDividendsSessionDataServerError()
-        updateDividendsSessionDataController.updateSessionData(taxYear)(fakeGetRequest.withJsonBody(jsonBody))
-      }
-      status(result) mustBe INTERNAL_SERVER_ERROR
-    }
-
-    "return an ServiceUnavailable response when called as an individual" in {
-      val result = {
-        mockAuth()
-        mockUpdateDividendsSessionDataServiceUnavailable()
-        updateDividendsSessionDataController.updateSessionData(taxYear)(fakeGetRequest.withJsonBody(jsonBody))
-      }
-      status(result) mustBe SERVICE_UNAVAILABLE
-    }
-
-    "return an ServiceUnavailable response when called as an agent" in {
-      val result = {
-        mockAuthAsAgent()
-        mockUpdateDividendsSessionDataServiceUnavailable()
-        updateDividendsSessionDataController.updateSessionData(taxYear)(fakeGetRequest.withJsonBody(jsonBody))
-      }
-      status(result) mustBe SERVICE_UNAVAILABLE
     }
   }
 }

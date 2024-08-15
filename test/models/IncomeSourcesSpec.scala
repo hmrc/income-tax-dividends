@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,24 @@
 
 package models
 
-object IncomeSources {
-  val STOCK_DIVIDENDS = "stock-dividends"
-  val DIVIDENDS = "dividends"
+import utils.TestUtils
+
+class IncomeSourcesSpec extends TestUtils {
+
+ "IncomeSources" should {
+
+   "return the string value of stock dividends" in {
+
+     val result = IncomeSources.STOCK_DIVIDENDS
+
+     result mustBe "stock-dividends"
+   }
+
+   "return the string value of dividends" in {
+
+     val result = IncomeSources.DIVIDENDS
+
+     result mustBe "dividends"
+   }
+ }
 }

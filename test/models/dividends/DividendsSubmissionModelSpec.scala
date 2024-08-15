@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package models.dividends
 
 import com.codahale.metrics.SharedMetricRegistries
@@ -24,10 +23,10 @@ import utils.TestUtils
 class DividendsSubmissionModelSpec extends TestUtils {
   SharedMetricRegistries.clear()
 
-  val model: DividendsResponseModel = DividendsResponseModel(1234)
+  val model: DividendsSubmissionModel = DividendsSubmissionModel(completeDividendsCYAModel.ukDividendsAmount, completeDividendsCYAModel.otherUkDividendsAmount)
   val jsonModel: JsObject = Json.obj(
-    "ukDividends" -> 123456.78,
-    "otherUkDividends" -> 123456.78
+    "ukDividends" -> 50,
+    "otherUkDividends" -> 50
   )
 
   "submittedDividends" should {
@@ -37,7 +36,7 @@ class DividendsSubmissionModelSpec extends TestUtils {
     }
 
     "parse from Json" in {
-      jsonModel.as[DividendsResponseModel]
+      jsonModel.as[DividendsSubmissionModel]
     }
   }
 

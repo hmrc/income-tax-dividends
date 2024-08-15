@@ -16,10 +16,11 @@
 
 package models.dividends
 
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{JsObject, Json}
-import utils.UnitTest
 
-class StockDividendsPriorSubmissionSpec extends UnitTest {
+class StockDividendsPriorSubmissionSpec extends AnyWordSpec with Matchers {
 
   val validModel: StockDividendsPriorSubmission = StockDividendsPriorSubmission(
     submittedOn = Some("2020-06-17T10:53:38Z"),
@@ -77,7 +78,5 @@ class StockDividendsPriorSubmissionSpec extends UnitTest {
     "parse to json" in {
       Json.toJson(validModel) shouldBe validJson
     }
-
   }
-
 }

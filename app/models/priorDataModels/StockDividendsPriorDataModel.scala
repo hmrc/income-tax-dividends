@@ -19,19 +19,11 @@ package models.priorDataModels
 import models.{DividendsIncomeDataModel, SubmittedDividendsModel}
 import play.api.libs.json.{Json, OFormat}
 
-case class StockDividendsPriorDataModel(
-                                         ukDividendsAmount: Option[BigDecimal] = None,
-                                         otherUkDividendsAmount: Option[BigDecimal] = None,
-                                         stockDividendsAmount: Option[BigDecimal] = None,
-                                         redeemableSharesAmount: Option[BigDecimal] = None,
-                                         closeCompanyLoansWrittenOffAmount: Option[BigDecimal] = None
-                                       ) {
-  def isDefined: Boolean = {
-    this.ukDividendsAmount.isDefined || this.otherUkDividendsAmount.isDefined ||
-      this.stockDividendsAmount.isDefined || this.redeemableSharesAmount.isDefined ||
-      this.closeCompanyLoansWrittenOffAmount.isDefined
-  }
-}
+case class StockDividendsPriorDataModel(ukDividendsAmount: Option[BigDecimal] = None,
+                                        otherUkDividendsAmount: Option[BigDecimal] = None,
+                                        stockDividendsAmount: Option[BigDecimal] = None,
+                                        redeemableSharesAmount: Option[BigDecimal] = None,
+                                        closeCompanyLoansWrittenOffAmount: Option[BigDecimal] = None)
 
 object StockDividendsPriorDataModel {
 

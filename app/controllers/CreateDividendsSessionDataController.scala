@@ -17,10 +17,10 @@
 package controllers
 
 import controllers.predicates.AuthorisedAction
-import models.dividends.{DividendsCheckYourAnswersModel, StockDividendsCheckYourAnswersModel}
+import models.dividends.DividendsCheckYourAnswersModel
 import play.api.libs.json.JsSuccess
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import services.{DividendsSessionService, StockDividendsSessionService}
+import services.DividendsSessionService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject
@@ -38,5 +38,4 @@ class CreateDividendsSessionDataController @Inject()(dividendsSessionService: Di
       case _ => Future.successful(BadRequest)
     }
   }
-
 }

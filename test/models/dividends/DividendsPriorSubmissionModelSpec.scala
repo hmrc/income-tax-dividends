@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-
 package models.dividends
 
 import com.codahale.metrics.SharedMetricRegistries
-import models.CreateOrAmendDividendsModel
 import play.api.libs.json.{JsObject, Json}
 import utils.TestUtils
 
@@ -41,5 +39,4 @@ class DividendsPriorSubmissionModelSpec extends TestUtils {
       jsonModel.as[DividendsPriorSubmission]
     }
   }
-
 }

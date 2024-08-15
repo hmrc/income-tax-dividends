@@ -16,10 +16,11 @@
 
 package models.dividends
 
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{JsObject, Json}
-import utils.UnitTest
 
-class StockDividendsSubmissionModelSpec extends UnitTest {
+class StockDividendsSubmissionModelSpec extends AnyWordSpec with Matchers {
 
   val validModel: StockDividendsSubmissionModel = StockDividendsSubmissionModel(
     foreignDividend = Some(Seq(ForeignDividendModel("BES", Some(2323.56), Some(5435.56), Some(4564.67), Some(true), 4564.67))),
@@ -75,7 +76,5 @@ class StockDividendsSubmissionModelSpec extends UnitTest {
     "parse to json" in {
       Json.toJson(validModel) shouldBe validJson
     }
-
   }
-
 }

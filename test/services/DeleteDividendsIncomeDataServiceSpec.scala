@@ -28,7 +28,7 @@ class DeleteDividendsIncomeDataServiceSpec extends TestUtils {
   val connector: DeleteDividendsIncomeDataConnector = mock[DeleteDividendsIncomeDataConnector]
   val connectorTYS: DeleteDividendsIncomeDataTYSConnector = mock[DeleteDividendsIncomeDataTYSConnector]
   val service: DeleteDividendsIncomeDataService = new DeleteDividendsIncomeDataService(connector, connectorTYS)
-  val taxYear: Int = 1234
+
   private val specificTaxYear: Int = TaxYearUtils.specificTaxYear
   private val specificTaxYearPlusOne: Int = specificTaxYear + 1
 
@@ -42,10 +42,9 @@ class DeleteDividendsIncomeDataServiceSpec extends TestUtils {
         .expects("12345678", taxYear, *)
         .returning(Future.successful(expectedResult))
 
-      val result = await(service.deleteDividendsIncomeData("12345678", 1234))
+      val result = await(service.deleteDividendsIncomeData("12345678", taxYear))
 
       result mustBe expectedResult
-
     }
   }
 
@@ -62,7 +61,6 @@ class DeleteDividendsIncomeDataServiceSpec extends TestUtils {
       val result = await(service.deleteDividendsIncomeData("12345678", specificTaxYear))
 
       result mustBe expectedResult
-
     }
   }
 
@@ -79,7 +77,6 @@ class DeleteDividendsIncomeDataServiceSpec extends TestUtils {
       val result = await(service.deleteDividendsIncomeData("12345678", specificTaxYearPlusOne))
 
       result mustBe expectedResult
-
     }
   }
 }

@@ -17,7 +17,6 @@
 package controllers
 
 import controllers.predicates.AuthorisedAction
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.StockDividendsSessionService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -25,20 +24,12 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
+class DeleteStockDividendsSessionDataController @Inject()(stockDividendsSessionService: StockDividendsSessionService,
+                                                          cc: ControllerComponents,
+                                                          authorisedAction: AuthorisedAction)
+                                                         (implicit ec: ExecutionContext) extends BackendController(cc) {
 
-class GetStockDividendsSessionDataController @Inject()(stockDividendsSessionService: StockDividendsSessionService,
-                                                       cc: ControllerComponents,
-                                                       authorisedAction: AuthorisedAction)
-                                                      (implicit ec: ExecutionContext) extends BackendController(cc) {
-
-  def getSessionData(taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
-    stockDividendsSessionService.getSessionData(taxYear).map {
-      case Right(stockDividendsUserDataModel) =>
-        stockDividendsUserDataModel match {
-          case Some(data) => Ok(Json.toJson(data))
-          case None => NotFound
-        }
-      case Left(errorModel) => NotFound(Json.toJson(errorModel.message))
-    }
+  def clear(taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
+    stockDividendsSessionService.clear(taxYear)(NotModified)(NoContent)
   }
 }

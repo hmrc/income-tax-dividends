@@ -18,10 +18,12 @@ package utils
 
 import config.{MockAppConfig, MockAppConfigEncyrptionOff}
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.crypto.{AdDecrypter, AdEncrypter, EncryptedValue}
 
-class AesGcmAdCryptoSpec extends UnitTest
-  with MockFactory {
+class AesGcmAdCryptoSpec extends AnyWordSpec
+  with MockFactory with Matchers {
 
   implicit private val associatedText: String = "some-associated-text"
   private val mockAesGcmAdCryptoFactory = mock[AesGcmAdCryptoFactory]

@@ -49,5 +49,6 @@ class AppConfigStub extends MockFactory {
     override val tailoringEnabled: Boolean = true
     override val interestTailoringEnabled: Boolean = true
     override val dividendsTailoringEnabled: Boolean = true
+    override val incomeTaxSubmissionBEBaseUrl: String = "http://localhost:9308"
   }
 }

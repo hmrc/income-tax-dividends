@@ -17,10 +17,11 @@
 package models.dividends
 
 import config.MockAppConfig
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{JsObject, Json}
-import utils.UnitTest
 
-class StockDividendsCheckYourAnswersModelSpec extends UnitTest {
+class StockDividendsCheckYourAnswersModelSpec extends AnyWordSpec with Matchers {
 
   object TailoringAppConfig extends MockAppConfig {
     override val tailoringEnabled: Boolean = true

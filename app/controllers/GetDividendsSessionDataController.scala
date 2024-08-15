@@ -37,5 +37,4 @@ class GetDividendsSessionDataController @Inject()(dividendsSessionService: Divid
       case Left(errorModel) => NotFound(Json.toJson(errorModel.message))
     }
   }
-
 }

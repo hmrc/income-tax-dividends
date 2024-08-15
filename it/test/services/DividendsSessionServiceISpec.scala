@@ -21,7 +21,7 @@ import repositories.DividendsUserDataRepository
 import utils.IntegrationTest
 
 
-class DividendsSessionServiceISpec extends IntegrationTest{
+class DividendsSessionServiceISpec extends IntegrationTest {
 
   val dividendsUserDataRepository: DividendsUserDataRepository = app.injector.instanceOf[DividendsUserDataRepository]
   val incomeTaxUserDataConnector: IncomeTaxUserDataConnector = app.injector.instanceOf[IncomeTaxUserDataConnector]
@@ -29,15 +29,15 @@ class DividendsSessionServiceISpec extends IntegrationTest{
 
   val dividendsSessionServiceInvalidEncryption: DividendsSessionService = appWithInvalidEncryptionKey.injector.instanceOf[DividendsSessionService]
   val dividendsSessionService: DividendsSessionService =
-    new DividendsSessionService(dividendsUserDataRepository)
+    new DividendsSessionService(incomeSourceConnector, dividendsUserDataRepository)
 
+  ".createSessionData" should {
 
-
-  "create" should{
     "return false when failing to decrypt the model" in {
       val result = await(dividendsSessionServiceInvalidEncryption.createSessionData(completeDividendsCYAModel, taxYear)(false)(true))
       result shouldBe false
     }
+
     "return true when successful and false when adding a duplicate" in {
       await(dividendsUserDataRepository.collection.drop().toFuture())
       await(dividendsUserDataRepository.ensureIndexes())
@@ -48,11 +48,29 @@ class DividendsSessionServiceISpec extends IntegrationTest{
     }
   }
 
-  "update" should{
+  ".updateSessionData" should{
     "return false when failing to decrypt the model" in {
       val result = await(dividendsSessionServiceInvalidEncryption.updateSessionData(completeDividendsCYAModel, taxYear)(false)(true))
       result shouldBe false
     }
+
+    "create a document when parameter is true" in {
+      await(dividendsSessionService.clear(taxYear)(false)(true))
+
+      val result = await(
+        dividendsSessionService.updateSessionData(completeDividendsCYAModel, taxYear, needsCreating = true)(false)(true)
+      )
+      result shouldBe true
+    }
   }
 
+  ".getSessionData" should {
+    await(dividendsSessionService.createSessionData(completeDividendsCYAModel, taxYear)(false)(true))
+
+    "return a session model with data" in {
+      val result = await(dividendsSessionService.getSessionData(taxYear))
+
+      result.map(_.isDefined) shouldBe Right(true)
+    }
+  }
 }

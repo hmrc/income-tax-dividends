@@ -18,15 +18,12 @@ package models.dividends
 
 import play.api.libs.json.{Json, OFormat}
 
-case class StockDividendsSubmissionModel(
-                                          foreignDividend: Option[Seq[ForeignDividendModel]],
-                                          dividendIncomeReceivedWhilstAbroad: Option[Seq[ForeignDividendModel]],
-                                          stockDividend: Option[StockDividendModel],
-                                          redeemableShares: Option[StockDividendModel],
-                                          bonusIssuesOfSecurities: Option[StockDividendModel],
-                                          closeCompanyLoansWrittenOff: Option[StockDividendModel]) {
-
-}
+case class StockDividendsSubmissionModel(foreignDividend: Option[Seq[ForeignDividendModel]],
+                                         dividendIncomeReceivedWhilstAbroad: Option[Seq[ForeignDividendModel]],
+                                         stockDividend: Option[StockDividendModel],
+                                         redeemableShares: Option[StockDividendModel],
+                                         bonusIssuesOfSecurities: Option[StockDividendModel],
+                                         closeCompanyLoansWrittenOff: Option[StockDividendModel])
 
 object StockDividendsSubmissionModel {
 

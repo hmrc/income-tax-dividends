@@ -17,7 +17,7 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.http.HttpHeader
-import models.{APIErrorBodyModel, APIErrorModel, RefreshIncomeSourceRequest}
+import models.{ErrorBodyModel, ErrorModel, RefreshIncomeSourceRequest}
 import play.api.http.Status._
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.HeaderCarrier
@@ -56,10 +56,10 @@ class IncomeSourceConnectorSpec extends IntegrationTest {
     "Return an error result" when {
       Seq(BAD_REQUEST, INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, GATEWAY_TIMEOUT).foreach { status =>
         s"expenses returns a $status" in {
-          stubPutWithResponseBody(url, requestBodyJson, APIErrorBodyModel.parsingError.toString, status, headers)
+          stubPutWithResponseBody(url, requestBodyJson, ErrorBodyModel.parsingError.toString, status, headers)
 
           val expectedStatus = if (!Seq(BAD_REQUEST, INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE).contains(status)) INTERNAL_SERVER_ERROR else status
-          Await.result(connector.put(taxYear, nino, incomeSource), Duration.Inf) shouldBe Left(APIErrorModel(expectedStatus, APIErrorBodyModel.parsingError))
+          Await.result(connector.put(taxYear, nino, incomeSource), Duration.Inf) shouldBe Left(ErrorModel(expectedStatus, ErrorBodyModel.parsingError))
         }
       }
     }

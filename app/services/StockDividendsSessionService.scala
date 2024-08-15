@@ -17,50 +17,21 @@
 package services
 
 import connectors.IncomeSourceConnector
-import connectors.httpParsers.GetDividendsIncomeTYSParser.handleAPIError
-import models.{ErrorModel, IncomeSources, User}
 import models.dividends.StockDividendsCheckYourAnswersModel
-import models.mongo.{DataNotFound, DatabaseError, MongoError, StockDividendsUserDataModel}
-import models.priorDataModels.StockDividendsPriorDataModel
+import models.mongo.{DatabaseError, MongoError, StockDividendsUserDataModel}
+import models.{IncomeSources, User}
 import play.api.Logger
-import play.api.http.Status.NOT_FOUND
 import repositories.StockDividendsUserDataRepository
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.mongo.play.json.Codecs.logger
-import utils.PagerDutyHelper.PagerDutyKeys.FAILED_TO_FIND_DATA
-import utils.PagerDutyHelper.pagerDutyLog
 
 import java.time.Instant
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class StockDividendsSessionService @Inject()(
-                                              stockDividendsUserDataRepository: StockDividendsUserDataRepository,
-                                              stockDividendsUserDataConnector: GetDividendsIncomeService,
-                                              incomeTaxUserDataConnector: SubmittedDividendsService,
-                                              incomeSourceConnector: IncomeSourceConnector
-                                       ) {
-
-  type StockDividendsPriorDataResponse = Either[ErrorModel, Option[StockDividendsPriorDataModel]]
+class StockDividendsSessionService @Inject()(stockDividendsUserDataRepository: StockDividendsUserDataRepository,
+                                              incomeSourceConnector: IncomeSourceConnector) {
 
   lazy val logger: Logger = Logger(this.getClass)
-
-  def getPriorData(taxYear: Int)(implicit user: User[_], ec: ExecutionContext, hc: HeaderCarrier): Future[StockDividendsPriorDataResponse] = {
-    incomeTaxUserDataConnector.getSubmittedDividends(user.nino, taxYear)(hc.withExtraHeaders("mtditid" -> user.mtditid)).flatMap {
-      case Left(error) => Future.successful(Left(error))
-      case Right(ukDividends) =>
-        stockDividendsUserDataConnector.getDividendsIncomeData(user.nino, taxYear)(hc.withExtraHeaders("mtditid" -> user.mtditid)).map{
-          case Left(error) => Left(error)
-          case Right(stockDividends) =>
-            if (ukDividends.ukDividends.isDefined || ukDividends.otherUkDividends.isDefined ||stockDividends.stockDividend.isDefined ||
-                stockDividends.redeemableShares.isDefined || stockDividends.closeCompanyLoansWrittenOff.isDefined) {
-              Right(Some(StockDividendsPriorDataModel.getFromPrior(ukDividends, Some(stockDividends))))
-            } else {
-              Right(None)
-            }
-        }
-    }
-  }
 
     def getSessionData(taxYear: Int)(implicit user: User[_], ec: ExecutionContext): Future[Either[DatabaseError, Option[StockDividendsUserDataModel]]] = {
       stockDividendsUserDataRepository.find(taxYear).map {
@@ -114,23 +85,6 @@ class StockDividendsSessionService @Inject()(
         case Left(_) => onFail
       }
     }
-  }
-
-  def getAndHandle[R](taxYear: Int)(onFail: R)(block: (Option[StockDividendsUserDataModel], Option[StockDividendsPriorDataModel]) => Future[R])
-                     (implicit executionContext: ExecutionContext, user: User[_], hc: HeaderCarrier): Future[R] = {
-    val result = for {
-      optionalCya <- getSessionData(taxYear)
-      priorDataResponse <- getPriorData(taxYear)
-    } yield {
-      priorDataResponse match {
-        case Right(prior) => optionalCya match {
-          case Left(_) =>  Future(onFail)
-          case Right(cyaData) => block(cyaData, prior)
-        }
-        case Left(_) =>  Future(onFail)
-      }
-    }
-    result.flatten
   }
 
   def clear[R](taxYear: Int)(onFail: R)(onSuccess: R)(implicit user: User[_], ec: ExecutionContext, hc: HeaderCarrier): Future[R] = {

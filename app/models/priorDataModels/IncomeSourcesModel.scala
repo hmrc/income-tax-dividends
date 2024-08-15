@@ -19,9 +19,7 @@ package models.priorDataModels
 import models.dividends.DividendsPriorSubmission
 import play.api.libs.json.{Json, OFormat}
 
-case class IncomeSourcesModel(
-                               dividends: Option[DividendsPriorSubmission] = None
-                             )
+case class IncomeSourcesModel(dividends: Option[DividendsPriorSubmission] = None)
 
 object IncomeSourcesModel {
   implicit val formats: OFormat[IncomeSourcesModel] = Json.format[IncomeSourcesModel]

@@ -19,7 +19,6 @@ package utils
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import common.SessionValues
 import config.AppConfig
-import controllers.predicates.AuthorisedAction
 import helpers.{PlaySessionCookieBaker, WireMockHelper}
 import models.User
 import models.dividends.{DividendsCheckYourAnswersModel, StockDividendsCheckYourAnswersModel, StockDividendsPriorSubmission}
@@ -74,6 +73,7 @@ trait IntegrationTest extends AnyWordSpecLike with Matchers with GuiceOneServerP
 
 
   val completeDividendsCYAModel: DividendsCheckYourAnswersModel = DividendsCheckYourAnswersModel(
+    gateway = Some(true),
     ukDividends = Some(true),
     ukDividendsAmount = Some(50.00),
     otherUkDividends = Some(true),
@@ -81,6 +81,7 @@ trait IntegrationTest extends AnyWordSpecLike with Matchers with GuiceOneServerP
   )
 
   val completeStockDividendsCYAModel: StockDividendsCheckYourAnswersModel = StockDividendsCheckYourAnswersModel(
+    gateway = Some(true),
     ukDividends = Some(true),
     ukDividendsAmount = Some(50.00),
     otherUkDividends = Some(true),

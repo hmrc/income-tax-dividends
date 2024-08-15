@@ -39,11 +39,6 @@ class GetDividendsIncomeControllerSpec extends TestUtils {
   val internalServerErrorModel: ErrorModel =
     ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel("INTERNAL_SERVER_ERROR", "There has been an unexpected error"))
 
-
-  val nino = "nino"
-  val taxYear = 2020
-  val mtditid = "someMtditid"
-
   val dividendsIncomeDataModel: DividendsIncomeDataModel = DividendsIncomeDataModel(
     submittedOn = Some("2020-06-17T10:53:38Z"),
     foreignDividend = Some(Seq(ForeignDividendModel("BES", Some(2323.56), Some(5435.56), Some(4564.67), Some(true), 4564.67))),
@@ -76,7 +71,6 @@ class GetDividendsIncomeControllerSpec extends TestUtils {
 
       status(result) mustBe OK
       bodyOf(result) mustBe finalResult
-
     }
 
     "return a Left response" when {
@@ -104,6 +98,7 @@ class GetDividendsIncomeControllerSpec extends TestUtils {
         }
         status(result) mustBe SERVICE_UNAVAILABLE
       }
+
       "the service returns a BAD_REQUEST" in {
         val result = {
           mockAuth()
@@ -112,6 +107,7 @@ class GetDividendsIncomeControllerSpec extends TestUtils {
         }
         status(result) mustBe BAD_REQUEST
       }
+
       "the service returns a INTERNAL_SERVER_ERROR" in {
         val result = {
           mockAuth()
@@ -122,5 +118,4 @@ class GetDividendsIncomeControllerSpec extends TestUtils {
       }
     }
   }
-
 }

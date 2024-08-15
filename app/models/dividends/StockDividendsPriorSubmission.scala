@@ -24,41 +24,25 @@ case class StockDividendsPriorSubmission(submittedOn: Option[String] = None,
                                          stockDividend: Option[StockDividendModel] = None,
                                          redeemableShares: Option[StockDividendModel] = None,
                                          bonusIssuesOfSecurities: Option[StockDividendModel] = None,
-                                         closeCompanyLoansWrittenOff: Option[StockDividendModel] = None){
-
-  def toSubmission(cya: StockDividendsCheckYourAnswersModel): StockDividendsSubmissionModel = {
-    StockDividendsSubmissionModel(
-      foreignDividend = this.foreignDividend,//This is not in our journey we get from IFS and pass it back
-      dividendIncomeReceivedWhilstAbroad = this.dividendIncomeReceivedWhilstAbroad,//This is not in our journey we get from IFS and pass it back
-      stockDividend = cya.stockDividendsAmount.map(amount => StockDividendModel(None, amount)),
-      redeemableShares = cya.redeemableSharesAmount.map(amount => StockDividendModel(None, amount)),
-      bonusIssuesOfSecurities = this.bonusIssuesOfSecurities,//This is not in our journey we get from IFS and pass it back
-      closeCompanyLoansWrittenOff = cya.closeCompanyLoansWrittenOffAmount.map(amount => StockDividendModel(None, amount))
-    )
-  }
-}
+                                         closeCompanyLoansWrittenOff: Option[StockDividendModel] = None)
 
 object StockDividendsPriorSubmission {
   implicit val formats: OFormat[StockDividendsPriorSubmission] = Json.format[StockDividendsPriorSubmission]
 }
 
-case class ForeignDividendModel(
-                                 countryCode: String,
-                                 amountBeforeTax: Option[BigDecimal],
-                                 taxTakenOff: Option[BigDecimal],
-                                 specialWithholdingTax: Option[BigDecimal],
-                                 foreignTaxCreditRelief: Option[Boolean],
-                                 taxableAmount: BigDecimal
-                               )
+case class ForeignDividendModel(countryCode: String,
+                                amountBeforeTax: Option[BigDecimal],
+                                taxTakenOff: Option[BigDecimal],
+                                specialWithholdingTax: Option[BigDecimal],
+                                foreignTaxCreditRelief: Option[Boolean],
+                                taxableAmount: BigDecimal)
 
 object ForeignDividendModel {
   implicit val formats: OFormat[ForeignDividendModel] = Json.format[ForeignDividendModel]
 }
 
-case class StockDividendModel(
-                               customerReference: Option[String],
-                               grossAmount: BigDecimal
-                             )
+case class StockDividendModel(customerReference: Option[String],
+                              grossAmount: BigDecimal)
 
 object StockDividendModel {
   implicit val formats: OFormat[StockDividendModel] = Json.format[StockDividendModel]

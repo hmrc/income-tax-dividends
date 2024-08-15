@@ -28,10 +28,10 @@ class DeleteDividendsIncomeDataController @Inject()(deleteDividendsIncomeDataSer
                                                     authorisedAction: AuthorisedAction)
                                                    (implicit ec: ExecutionContext) extends BackendController(cc) {
 
-  def deleteDividendsIncomeData(nino: String, taxYear: Int): Action[AnyContent] = authorisedAction.async {
-    implicit user =>
+  def deleteDividendsIncomeData(nino: String, taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
       deleteDividendsIncomeDataService.deleteDividendsIncomeData(nino, taxYear).map {
-        case Right(true) => NoContent
-        case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)      }
+        case Right(_) => NoContent
+        case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
+      }
   }
 }

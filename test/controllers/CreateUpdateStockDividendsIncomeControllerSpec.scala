@@ -16,14 +16,13 @@
 
 package controllers
 
-import connectors.httpParsers.CreateOrAmendDividendsHttpParser.CreateOrAmendDividendsResponse
-import models.dividends.StockDividendsCheckYourAnswersModel
-import models.{CreateOrAmendDividendsResponseModel, ErrorBodyModel, ErrorModel}
+import connectors.httpParsers.CreateUpdateStockDividendsIncomeHttpParser.CreateUpdateStockDividendsIncomeResponse
+import models._
 import org.scalamock.handlers.CallHandler4
 import play.api.http.Status._
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.FakeRequest
-import services.StockDividendsSessionService
+import services.CreateUpdateDividendsIncomeService
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.TestUtils
 
@@ -31,69 +30,94 @@ import scala.concurrent.Future
 
 class CreateUpdateStockDividendsIncomeControllerSpec extends TestUtils {
 
-  val createUpdateDividendsIncomeService: StockDividendsSessionService = mock[StockDividendsSessionService]
-  val createUpdateStockDividendsIncomeController = new CreateUpdateStockDividendsIncomeController(createUpdateDividendsIncomeService,
-    mockControllerComponents, authorisedAction)
-  val nino: String = "123456789"
-  val mtditid: String = "1234567890"
-  val taxYear: Int = 1234
+  val createUpdateDividendsIncomeService: CreateUpdateDividendsIncomeService = mock[CreateUpdateDividendsIncomeService]
+  val createUpdateDividendsIncomeController =
+    new CreateUpdateStockDividendsIncomeController(createUpdateDividendsIncomeService, mockControllerComponents, authorisedAction)
+
+  val reference: String = "RefNo13254687"
+  val countryCode: String = "GBR"
+  val decimalValue: BigDecimal = 123.45
+  val model: StockDividendsSubmissionModel = StockDividendsSubmissionModel(
+    foreignDividend =
+      Some(Seq(
+        ForeignDividendModel(countryCode, Some(decimalValue), Some(decimalValue), Some(decimalValue), Some(true), decimalValue)
+      ))
+    ,
+    dividendIncomeReceivedWhilstAbroad = Some(
+      Seq(
+        ForeignDividendModel(countryCode, Some(decimalValue), Some(decimalValue), Some(decimalValue), Some(true), decimalValue)
+      )
+    ),
+    stockDividend = Some(StockDividendModel(Some(reference), decimalValue)),
+    redeemableShares = Some(StockDividendModel(Some(reference), decimalValue)),
+    bonusIssuesOfSecurities = Some(StockDividendModel(Some(reference), decimalValue)),
+    closeCompanyLoansWrittenOff = Some(StockDividendModel(Some(reference), decimalValue))
+  )
+
   val badRequestModel: ErrorBodyModel = ErrorBodyModel("INVALID_NINO", "Nino is invalid")
   val notFoundModel: ErrorBodyModel = ErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find income source")
   val serverErrorModel: ErrorBodyModel = ErrorBodyModel("SERVER_ERROR", "Internal server error")
   val serviceUnavailableErrorModel: ErrorBodyModel = ErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable")
-  private val fakeGetRequest = FakeRequest("PUT", "/").withHeaders("mtditid" -> mtditid)
-  private val fakeGetRequestWithDifferentMTITID = FakeRequest("PUT", "/").withHeaders("mtditid" -> "123123123")
+  private val fakeGetRequest = FakeRequest("POST", "/").withHeaders("mtditid" -> mtditid)
+  private val fakeGetRequestWithDifferentMTITID = FakeRequest("POST", "/").withHeaders("mtditid" -> "123123123")
 
-  val jsonBody: JsValue = Json.parse("""{"ukDividends": 12345.99, "otherUkDividends": 123456.99}""")
-  val invalidJsonBody: JsValue = Json.parse("""{"notukDividends": 12345.99, "nototherUkDividends": 123456.99}""")
+  val jsonBody: JsValue = Json.toJson(model)
 
-  def mockCreateUpdateStockDividendsIncomeValid(): CallHandler4[String, Int, StockDividendsCheckYourAnswersModel,
-    HeaderCarrier, Future[CreateOrAmendDividendsResponse]] = {
-    val response: CreateOrAmendDividendsResponse = Right(CreateOrAmendDividendsResponseModel("transactionRef"))
-    (createUpdateDividendsIncomeService.createSessionData(_: StockDividendsCheckYourAnswersModel, _: Int)(_: HeaderCarrier))
+  val invalidJsonBody: JsValue = Json.obj(
+    "submittedOn" -> "",
+    "foreignDividend" -> "",
+    "dividendIncomeReceivedWhilstAbroad" -> "",
+    "stockDividend" -> "",
+    "redeemableShares" -> "",
+    "bonusIssuesOfSecurities" -> "",
+    "closeCompanyLoansWrittenOff" -> ""
+  )
+
+  def mockCreateUpdateDividendsIncomeValid(): CallHandler4
+    [String, Int, StockDividendsSubmissionModel, HeaderCarrier, Future[CreateUpdateStockDividendsIncomeResponse]] = {
+    val response: CreateUpdateStockDividendsIncomeResponse = Right(true)
+    (createUpdateDividendsIncomeService.createUpdateDividends(_: String, _: Int, _: StockDividendsSubmissionModel)(_: HeaderCarrier))
       .expects(*, *, *, *)
       .returning(Future.successful(response))
   }
 
-  def mockCreateUpdateStockDividendsIncomeBadRequest(): CallHandler4[String, Int, StockDividendsCheckYourAnswersModel, HeaderCarrier,
-    Future[CreateOrAmendDividendsResponse]] = {
-    val response: CreateOrAmendDividendsResponse = Left(ErrorModel(BAD_REQUEST, badRequestModel))
-    (createUpdateDividendsIncomeService.createSessionData(_: StockDividendsCheckYourAnswersModel, _: Int)(_: HeaderCarrier))
+  def mockCreateUpdateDividendsIncomeBadRequest(): CallHandler4
+    [String, Int, StockDividendsSubmissionModel, HeaderCarrier, Future[CreateUpdateStockDividendsIncomeResponse]] = {
+    val response: CreateUpdateStockDividendsIncomeResponse = Left(ErrorModel(BAD_REQUEST, badRequestModel))
+    (createUpdateDividendsIncomeService.createUpdateDividends(_: String, _: Int, _: StockDividendsSubmissionModel)(_: HeaderCarrier))
       .expects(*, *, *, *)
       .returning(Future.successful(response))
   }
 
-  def mockCreateUpdateStockDividendsIncomeNotFound(): CallHandler4[String, Int, StockDividendsCheckYourAnswersModel,
-    HeaderCarrier, Future[CreateOrAmendDividendsResponse]] = {
+  def mockCreateUpdateDividendsIncomeNotFound(): CallHandler4[String, Int, StockDividendsSubmissionModel, HeaderCarrier, Future[CreateUpdateStockDividendsIncomeResponse]] = {
     val response = Left(ErrorModel(NOT_FOUND, notFoundModel))
-    (createUpdateDividendsIncomeService.createSessionData(_: StockDividendsCheckYourAnswersModel, _: Int)(_: HeaderCarrier))
+    (createUpdateDividendsIncomeService.createUpdateDividends(_: String, _: Int, _: StockDividendsSubmissionModel)(_: HeaderCarrier))
       .expects(*, *, *, *)
       .returning(Future.successful(response))
   }
 
-  def mockCreateUpdateStockDividendsIncomeServerError(): CallHandler4[String, Int, StockDividendsCheckYourAnswersModel,
-    HeaderCarrier, Future[CreateOrAmendDividendsResponse]] = {
+  def mockCreateUpdateDividendsIncomeServerError(): CallHandler4[String, Int, StockDividendsSubmissionModel, HeaderCarrier, Future[CreateUpdateStockDividendsIncomeResponse]] = {
     val response = Left(ErrorModel(INTERNAL_SERVER_ERROR, serverErrorModel))
-    (createUpdateDividendsIncomeService.createSessionData(_: StockDividendsCheckYourAnswersModel, _: Int)(_: HeaderCarrier))
+    (createUpdateDividendsIncomeService.createUpdateDividends(_: String, _: Int, _: StockDividendsSubmissionModel)(_: HeaderCarrier))
       .expects(*, *, *, *)
       .returning(Future.successful(response))
   }
 
-  def mockCreateUpdateStockDividendsIncomeServiceUnavailable()
-  : CallHandler4[String, Int, StockDividendsCheckYourAnswersModel, HeaderCarrier, Future[CreateOrAmendDividendsResponse]] = {
+  def mockCreateUpdateDividendsIncomeServiceUnavailable()
+  : CallHandler4[String, Int, StockDividendsSubmissionModel, HeaderCarrier, Future[CreateUpdateStockDividendsIncomeResponse]] = {
     val response = Left(ErrorModel(SERVICE_UNAVAILABLE, serviceUnavailableErrorModel))
-    (createUpdateDividendsIncomeService.createSessionData(_: StockDividendsCheckYourAnswersModel, _: Int)(_: HeaderCarrier))
+    (createUpdateDividendsIncomeService.createUpdateDividends(_: String, _: Int, _: StockDividendsSubmissionModel)(_: HeaderCarrier))
       .expects(*, *, *, *)
       .returning(Future.successful(response))
   }
 
-  "calling .createUpdateStockDividends" should {
+  "calling .createUpdateDividends" should {
 
     "return a 204 No Content response when called as an individual" in {
       val result = {
         mockAuth()
-        mockCreateUpdateStockDividendsIncomeValid()
-        createUpdateStockDividendsIncomeController.createUpdateStockDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
+        mockCreateUpdateDividendsIncomeValid()
+        createUpdateDividendsIncomeController.createUpdateStockDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
       }
       status(result) mustBe NO_CONTENT
     }
@@ -101,7 +125,7 @@ class CreateUpdateStockDividendsIncomeControllerSpec extends TestUtils {
     "return a 401 when called as an individual" in {
       val result = {
         mockAuth()
-        createUpdateStockDividendsIncomeController.createUpdateStockDividends(nino, taxYear)(fakeGetRequestWithDifferentMTITID.withJsonBody(jsonBody))
+        createUpdateDividendsIncomeController.createUpdateStockDividends(nino, taxYear)(fakeGetRequestWithDifferentMTITID.withJsonBody(jsonBody))
       }
       status(result) mustBe UNAUTHORIZED
     }
@@ -109,8 +133,8 @@ class CreateUpdateStockDividendsIncomeControllerSpec extends TestUtils {
     "return a 204 No Content response when called as an agent" in {
       val result = {
         mockAuthAsAgent()
-        mockCreateUpdateStockDividendsIncomeValid()
-        createUpdateStockDividendsIncomeController.createUpdateStockDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
+        mockCreateUpdateDividendsIncomeValid()
+        createUpdateDividendsIncomeController.createUpdateStockDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
       }
       status(result) mustBe NO_CONTENT
     }
@@ -118,43 +142,43 @@ class CreateUpdateStockDividendsIncomeControllerSpec extends TestUtils {
     "return an badRequest response when called as an individual with an invalid request body" in {
       val result = {
         mockAuth()
-        createUpdateStockDividendsIncomeController.createUpdateStockDividends(nino, taxYear)(fakeGetRequest.withJsonBody(invalidJsonBody))
+        createUpdateDividendsIncomeController.createUpdateStockDividends(nino, taxYear)(fakeGetRequest.withJsonBody(invalidJsonBody))
       }
       status(result) mustBe BAD_REQUEST
     }
 
-    "return a badRequest response when called as an individual and DES returns badRequest" in {
+    "return a badRequest response when called as an individual and IF returns badRequest" in {
       val result = {
         mockAuth()
-        mockCreateUpdateStockDividendsIncomeBadRequest()
-        createUpdateStockDividendsIncomeController.createUpdateStockDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
+        mockCreateUpdateDividendsIncomeBadRequest()
+        createUpdateDividendsIncomeController.createUpdateStockDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
       }
       status(result) mustBe BAD_REQUEST
     }
 
-    "return an badRequest response when called as an agent and DES returns badRequest" in {
+    "return an badRequest response when called as an agent and IF returns badRequest" in {
       val result = {
         mockAuthAsAgent()
-        mockCreateUpdateStockDividendsIncomeBadRequest()
-        createUpdateStockDividendsIncomeController.createUpdateStockDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
+        mockCreateUpdateDividendsIncomeBadRequest()
+        createUpdateDividendsIncomeController.createUpdateStockDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
       }
       status(result) mustBe BAD_REQUEST
     }
 
-    "return a notFound response when called as an individual and DES returns badRequest" in {
+    "return a notFound response when called as an individual and IF returns badRequest" in {
       val result = {
         mockAuth()
-        mockCreateUpdateStockDividendsIncomeNotFound()
-        createUpdateStockDividendsIncomeController.createUpdateStockDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
+        mockCreateUpdateDividendsIncomeNotFound()
+        createUpdateDividendsIncomeController.createUpdateStockDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
       }
       status(result) mustBe NOT_FOUND
     }
 
-    "return an notFound response when called as an agent and DES returns badRequest" in {
+    "return an notFound response when called as an agent and IF returns badRequest" in {
       val result = {
         mockAuthAsAgent()
-        mockCreateUpdateStockDividendsIncomeNotFound()
-        createUpdateStockDividendsIncomeController.createUpdateStockDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
+        mockCreateUpdateDividendsIncomeNotFound()
+        createUpdateDividendsIncomeController.createUpdateStockDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
       }
       status(result) mustBe NOT_FOUND
     }
@@ -162,8 +186,8 @@ class CreateUpdateStockDividendsIncomeControllerSpec extends TestUtils {
     "return an InternalServerError response when called as an individual" in {
       val result = {
         mockAuth()
-        mockCreateUpdateStockDividendsIncomeServerError()
-        createUpdateStockDividendsIncomeController.createUpdateStockDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
+        mockCreateUpdateDividendsIncomeServerError()
+        createUpdateDividendsIncomeController.createUpdateStockDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
       }
       status(result) mustBe INTERNAL_SERVER_ERROR
     }
@@ -171,8 +195,8 @@ class CreateUpdateStockDividendsIncomeControllerSpec extends TestUtils {
     "return an InternalServerError response when called as an agent" in {
       val result = {
         mockAuthAsAgent()
-        mockCreateUpdateStockDividendsIncomeServerError()
-        createUpdateStockDividendsIncomeController.createUpdateStockDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
+        mockCreateUpdateDividendsIncomeServerError()
+        createUpdateDividendsIncomeController.createUpdateStockDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
       }
       status(result) mustBe INTERNAL_SERVER_ERROR
     }
@@ -180,8 +204,8 @@ class CreateUpdateStockDividendsIncomeControllerSpec extends TestUtils {
     "return an ServiceUnavailable response when called as an individual" in {
       val result = {
         mockAuth()
-        mockCreateUpdateStockDividendsIncomeServiceUnavailable()
-        createUpdateStockDividendsIncomeController.createUpdateStockDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
+        mockCreateUpdateDividendsIncomeServiceUnavailable()
+        createUpdateDividendsIncomeController.createUpdateStockDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
       }
       status(result) mustBe SERVICE_UNAVAILABLE
     }
@@ -189,8 +213,8 @@ class CreateUpdateStockDividendsIncomeControllerSpec extends TestUtils {
     "return an ServiceUnavailable response when called as an agent" in {
       val result = {
         mockAuthAsAgent()
-        mockCreateUpdateStockDividendsIncomeServiceUnavailable()
-        createUpdateStockDividendsIncomeController.createUpdateStockDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
+        mockCreateUpdateDividendsIncomeServiceUnavailable()
+        createUpdateDividendsIncomeController.createUpdateStockDividends(nino, taxYear)(fakeGetRequest.withJsonBody(jsonBody))
       }
       status(result) mustBe SERVICE_UNAVAILABLE
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,28 @@
  * limitations under the License.
  */
 
-package models.dividends
+package common
 
-import com.codahale.metrics.SharedMetricRegistries
-import play.api.http.Status.OK
-import play.api.libs.json.{JsObject, Json}
 import utils.TestUtils
 
-class DividendsResponseModelSpec extends TestUtils {
-  SharedMetricRegistries.clear()
+class SessionValuesSpec extends TestUtils {
 
-  val model: DividendsResponseModel = DividendsResponseModel(OK)
-  val jsonModel: JsObject = Json.toJsObject(model)
+  "SessionValues" should {
 
-  "submittedDividends" should {
-
-    "parse to Json" in {
-      Json.toJson(model) mustBe jsonModel
+    "return the correct string for mtditid" in {
+      SessionValues.CLIENT_MTDITID mustBe "ClientMTDID"
     }
 
-    "parse from Json" in {
-      jsonModel.as[DividendsResponseModel]
+    "return the correct string for nino" in {
+      SessionValues.CLIENT_NINO mustBe "ClientNino"
+    }
+
+    "return the correct string for tax year" in {
+      SessionValues.TAX_YEAR mustBe "TAX_YEAR"
+    }
+
+    "return the correct string for valid tax years" in {
+      SessionValues.VALID_TAX_YEARS mustBe "validTaxYears"
     }
   }
-
 }

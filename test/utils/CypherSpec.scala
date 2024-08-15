@@ -17,13 +17,15 @@
 package utils
 
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.crypto.EncryptedValue
 import utils.Cypher.{bigDecimalCypher, booleanCypher, monthCypher, stringCypher}
 
 import java.time.Month
 
-class CypherSpec extends UnitTest
-  with MockFactory {
+class CypherSpec extends AnyWordSpec
+  with MockFactory with Matchers {
 
   private val encryptedBoolean = mock[EncryptedValue]
   private val encryptedString = mock[EncryptedValue]
