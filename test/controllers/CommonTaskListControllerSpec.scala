@@ -27,7 +27,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class CommonTaskListControllerSpec extends TestUtils {
 
-  val nino :String = "123456789"
   val mtdItId :String = "1234567890"
   val specificTaxYear: Int = TaxYearUtils.specificTaxYear
 
