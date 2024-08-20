@@ -21,17 +21,18 @@ import connectors.httpParsers.SubmittedDividendsHttpParser.SubmittedDividendsRes
 import models.taskList._
 import models._
 import play.api.http.Status.NOT_FOUND
+import support.providers.AppConfigStubProvider
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.TestUtils
 
 import scala.concurrent.Future
 
-class CommonTaskListServiceSpec extends TestUtils {
+class CommonTaskListServiceSpec extends TestUtils with AppConfigStubProvider {
 
   val dividendsService: SubmittedDividendsService = mock[SubmittedDividendsService]
   val stockDividendsService: GetDividendsIncomeService = mock[GetDividendsIncomeService]
 
-  val service: CommonTaskListService = new CommonTaskListService(mockAppConfig, dividendsService, stockDividendsService)
+  val service: CommonTaskListService = new CommonTaskListService(appConfigStub, dividendsService, stockDividendsService)
 
   val nino: String = "12345678"
   val taxYear: Int = 1234
@@ -53,13 +54,17 @@ class CommonTaskListServiceSpec extends TestUtils {
   val fullTaskSection: TaskListSection =
     TaskListSection(SectionTitle.DividendsTitle,
       Some(List(
-        TaskListSectionItem(TaskTitle.CashDividends, TaskStatus.Completed, Some("http://localhost:9308/1234/dividends/how-much-dividends-from-uk-companies")),
+        TaskListSectionItem(TaskTitle.CashDividends, TaskStatus.Completed,
+          Some("http://localhost:9308/update-and-submit-income-tax-return/personal-income/1234/dividends/how-much-dividends-from-uk-companies")),
         TaskListSectionItem(TaskTitle.DividendsFromUnitTrusts, TaskStatus.Completed,
-          Some("http://localhost:9308/1234/dividends/how-much-dividends-from-uk-trusts-and-open-ended-investment-companies")),
+          Some("http://localhost:9308/update-and-submit-income-tax-return/personal-income/" +
+            "1234/dividends/how-much-dividends-from-uk-trusts-and-open-ended-investment-companies")),
         TaskListSectionItem(TaskTitle.StockDividends, TaskStatus.Completed,
-          Some("http://localhost:9308/1234/dividends/stock-dividend-amount")),
-        TaskListSectionItem(TaskTitle.FreeRedeemableShares, TaskStatus.Completed, Some("http://localhost:9308/1234/dividends/redeemable-shares-amount")),
-        TaskListSectionItem(TaskTitle.CloseCompanyLoans, TaskStatus.Completed, Some("http://localhost:9308/1234/dividends/close-company-loan-amount"))
+          Some("http://localhost:9308/update-and-submit-income-tax-return/personal-income/1234/dividends/stock-dividend-amount")),
+        TaskListSectionItem(TaskTitle.FreeRedeemableShares, TaskStatus.Completed,
+          Some("http://localhost:9308/update-and-submit-income-tax-return/personal-income/1234/dividends/redeemable-shares-amount")),
+        TaskListSectionItem(TaskTitle.CloseCompanyLoans, TaskStatus.Completed,
+          Some("http://localhost:9308/update-and-submit-income-tax-return/personal-income/1234/dividends/close-company-loan-amount"))
       ))
     )
 
@@ -94,7 +99,7 @@ class CommonTaskListServiceSpec extends TestUtils {
 
       await(underTest) mustBe fullTaskSection.copy(
         taskItems = Some(List(
-          TaskListSectionItem(TaskTitle.CashDividends, TaskStatus.Completed, Some("http://localhost:9308/1234/dividends/how-much-dividends-from-uk-companies"))
+          TaskListSectionItem(TaskTitle.CashDividends, TaskStatus.Completed, Some("http://localhost:9308/update-and-submit-income-tax-return/personal-income/1234/dividends/how-much-dividends-from-uk-companies"))
         ))
       )
     }
