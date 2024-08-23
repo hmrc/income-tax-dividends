@@ -70,14 +70,14 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
 
   val personalFrontendBaseUrl: String = config.get[String]("microservice.services.personal-income-tax-submission-frontend.url") +
     "/update-and-submit-income-tax-return/personal-income"
-  //can i add this here (need for IncomeTaxUserDataConnector) - do i need to bring over ConfigKeys file from personal?
+
   lazy val incomeTaxSubmissionBEBaseUrl: String = s"${config.get[String]("microservice.services.income-tax-submission.url")}/income-tax-submission-service"
 
   lazy val useEncryption: Boolean = servicesConfig.getBoolean("useEncryption")
 
   //TODO: change TTL
   lazy val encryptionKey: String = servicesConfig.getString("mongodb.encryption.key")
-  def mongoTTL: Long = Duration(servicesConfig.getString("mongodb.timeToLive")).toMinutes.toInt
+  def mongoTTL: Long = Duration(servicesConfig.getString("mongodb.timeToLive")).toDays.toInt
 
   def authorisationTokenFor(api: String): String = config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")
 

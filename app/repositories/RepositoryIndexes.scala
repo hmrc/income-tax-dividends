@@ -25,7 +25,6 @@ import java.util.concurrent.TimeUnit
 
 object RepositoryIndexes {
 
-  //TODO: check which indexes we want to use
   private val lookUpIndex: Bson = compoundIndex(
     ascending("sessionId"),
     ascending("mtdItId"),
@@ -35,7 +34,7 @@ object RepositoryIndexes {
 
   def indexes()(implicit appConfig: AppConfig): Seq[IndexModel] = Seq(
     IndexModel(lookUpIndex, IndexOptions().unique(true).name("UserDataLookupIndex")),
-    IndexModel(ascending("lastUpdated"), IndexOptions().expireAfter(appConfig.mongoTTL, TimeUnit.MINUTES).name("UserDataTTL"))
+    IndexModel(ascending("lastUpdated"), IndexOptions().expireAfter(appConfig.mongoTTL, TimeUnit.DAYS).name("UserDataTTL"))
   )
 
 }
