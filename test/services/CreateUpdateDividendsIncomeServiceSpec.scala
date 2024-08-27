@@ -32,8 +32,6 @@ class CreateUpdateDividendsIncomeServiceSpec extends TestUtils {
   val connectorTYS: CreateUpdateStockDividendsIncomeTYSConnector = mock[CreateUpdateStockDividendsIncomeTYSConnector]
   val service: CreateUpdateDividendsIncomeService = new CreateUpdateDividendsIncomeService(connector, connectorTYS)
 
-  val nino: String = "123456789"
-  val taxYear: Int = 1999
   val reference: String = "RefNo13254687"
   val countryCode: String = "GBR"
   val decimalValue: BigDecimal = 123.45

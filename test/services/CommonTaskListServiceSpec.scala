@@ -34,9 +34,6 @@ class CommonTaskListServiceSpec extends TestUtils with AppConfigStubProvider {
 
   val service: CommonTaskListService = new CommonTaskListService(appConfigStub, dividendsService, stockDividendsService)
 
-  val nino: String = "12345678"
-  val taxYear: Int = 1234
-
   val fullDividendsResult: SubmittedDividendsResponse = Right(SubmittedDividendsModel(Some(20.00), Some(20.00), None))
   val emptyDividendsResult: SubmittedDividendsResponse = Left(ErrorModel(NOT_FOUND, ErrorBodyModel("SOME_CODE", "reason")))
 

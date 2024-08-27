@@ -22,10 +22,9 @@ import play.api.libs.json.{JsValue, Json}
 import uk.gov.hmrc.http.HttpResponse
 import utils.TestUtils
 
-class APIParserSpec extends TestUtils{
+class APIParserSpec extends TestUtils {
 
-  object FakeParser extends APIParser {
-  }
+  object FakeParser extends APIParser
 
   def httpResponse(json: JsValue =
                    Json.parse(
@@ -50,10 +49,12 @@ class APIParserSpec extends TestUtils{
           |  } ]
           |} CorrelationId: 1234645654645""".stripMargin
     }
+
     "return the the correct error" in {
       val result = FakeParser.badSuccessJsonFromAPI
       result mustBe Left(ErrorModel(INTERNAL_SERVER_ERROR,ErrorBodyModel("PARSING_ERROR","Error parsing response from API")))
     }
+
     "handle multiple errors" in {
       val result = FakeParser.handleAPIError(httpResponse())
       result mustBe Left(ErrorModel(INTERNAL_SERVER_ERROR,ErrorsBodyModel(Seq(
@@ -61,11 +62,11 @@ class APIParserSpec extends TestUtils{
         ErrorBodyModel("INTERNAL_SERVER_ERROR","The service is currently facing issues.")
       ))))
     }
+
     "handle single errors" in {
       val result = FakeParser.handleAPIError(httpResponse(Json.parse(
         """{"code":"INTERNAL_SERVER_ERROR","reason":"The service is currently facing issues."}""".stripMargin)))
       result mustBe Left(ErrorModel(INTERNAL_SERVER_ERROR,ErrorBodyModel("INTERNAL_SERVER_ERROR","The service is currently facing issues.")))
     }
   }
-
 }

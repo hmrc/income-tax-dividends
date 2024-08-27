@@ -19,6 +19,8 @@ package support.stubs
 import config.AppConfig
 import org.scalamock.scalatest.MockFactory
 
+import scala.concurrent.duration.Duration
+
 class AppConfigStub extends MockFactory {
 
   def config(environment: String = "test"): AppConfig = new AppConfig() {
@@ -38,5 +40,15 @@ class AppConfigStub extends MockFactory {
     override val personalFrontendBaseUrl: String = s"http://localhost:9308/update-and-submit-income-tax-return/personal-income"
 
     override def authorisationTokenFor(apiVersion: String): String = authorisationTokenKey + s".$apiVersion"
+
+    override val useEncryption: Boolean = true
+    override val encryptionKey: String = "1234556"
+
+    override def mongoTTL: Long = Duration("28").toDays
+
+    override val tailoringEnabled: Boolean = true
+    override val interestTailoringEnabled: Boolean = true
+    override val dividendsTailoringEnabled: Boolean = true
+    override val incomeTaxSubmissionBEBaseUrl: String = "http://localhost:9308"
   }
 }
