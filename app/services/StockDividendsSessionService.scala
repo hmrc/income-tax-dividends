@@ -97,5 +97,4 @@ class StockDividendsSessionService @Inject()(stockDividendsUserDataRepository: S
         }
     }
   }
-
 }

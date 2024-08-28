@@ -19,7 +19,7 @@ package controllers
 import controllers.predicates.AuthorisedAction
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import services.{DividendsSessionService, StockDividendsSessionService}
+import services.DividendsSessionService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import javax.inject.Inject

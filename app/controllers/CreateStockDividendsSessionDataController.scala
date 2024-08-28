@@ -34,7 +34,7 @@ class CreateStockDividendsSessionDataController @Inject()(stockDividendsSessionS
   def createSessionData(taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
     user.body.asJson.map(_.validate[StockDividendsCheckYourAnswersModel]) match {
       case Some(JsSuccess(model, _)) =>
-        stockDividendsSessionService.createSessionData(model, taxYear)(NotModified)(NoContent) // review NotModified error.. should be internalServerError
+        stockDividendsSessionService.createSessionData(model, taxYear)(InternalServerError)(Status(NO_CONTENT))
       case _ => Future.successful(BadRequest)
     }
   }

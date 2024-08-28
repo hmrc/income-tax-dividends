@@ -30,6 +30,6 @@ class DeleteStockDividendsSessionDataController @Inject()(stockDividendsSessionS
                                                          (implicit ec: ExecutionContext) extends BackendController(cc) {
 
   def clear(taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
-    stockDividendsSessionService.clear(taxYear)(NotModified)(NoContent)
+    stockDividendsSessionService.clear(taxYear)(InternalServerError)(Status(NO_CONTENT))
   }
 }

@@ -130,6 +130,4 @@ trait UserDataRepository[C <: UserDataTemplate] {
     pagerDutyLog(ENCRYPTION_DECRYPTION_ERROR, s"$startOfMessage ${exception.getMessage}")
     Left(EncryptionDecryptionError(exception.getMessage))
   }
-
-
 }

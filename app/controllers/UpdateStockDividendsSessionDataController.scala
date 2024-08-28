@@ -34,7 +34,7 @@ class UpdateStockDividendsSessionDataController @Inject()(stockDividendsSessionS
   def updateSessionData(taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
     user.body.asJson.map(_.validate[StockDividendsCheckYourAnswersModel]) match {
       case Some(JsSuccess(model, _)) =>
-        stockDividendsSessionService.updateSessionData(model, taxYear)(NotModified)(NoContent) // review NotModified error.. should be internalServerError
+        stockDividendsSessionService.updateSessionData(model, taxYear)(InternalServerError)(Status(NO_CONTENT))
       case _ => Future.successful(BadRequest)
     }
   }

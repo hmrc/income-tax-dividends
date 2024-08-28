@@ -22,4 +22,4 @@ case class RefreshIncomeSourceRequest(incomeSource: String)
 
 object RefreshIncomeSourceRequest {
   implicit val formats: OFormat[RefreshIncomeSourceRequest] = Json.format[RefreshIncomeSourceRequest]
-} 
+}

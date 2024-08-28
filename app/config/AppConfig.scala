@@ -75,7 +75,6 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
 
   lazy val useEncryption: Boolean = servicesConfig.getBoolean("useEncryption")
 
-  //TODO: change TTL
   lazy val encryptionKey: String = servicesConfig.getString("mongodb.encryption.key")
   def mongoTTL: Long = Duration(servicesConfig.getString("mongodb.timeToLive")).toDays.toInt
 
