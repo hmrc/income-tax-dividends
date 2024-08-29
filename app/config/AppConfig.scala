@@ -46,10 +46,6 @@ trait AppConfig {
   def mongoTTL: Long
 
   def authorisationTokenFor(apiVersion: String): String
-
-  val tailoringEnabled: Boolean
-  val interestTailoringEnabled: Boolean
-  val dividendsTailoringEnabled: Boolean
 }
 
 
@@ -79,8 +75,4 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
   def mongoTTL: Long = Duration(servicesConfig.getString("mongodb.timeToLive")).toDays.toInt
 
   def authorisationTokenFor(api: String): String = config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")
-
-  override val tailoringEnabled: Boolean = true
-  override val interestTailoringEnabled: Boolean = true
-  override val dividendsTailoringEnabled: Boolean = true
 }

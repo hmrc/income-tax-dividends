@@ -43,9 +43,6 @@ class MockAppConfig extends AppConfig with MockFactory {
 
   override def mongoTTL: Long = Duration("28").toDays
 
-  override val tailoringEnabled: Boolean = true
-  override val interestTailoringEnabled: Boolean = true
-  override val dividendsTailoringEnabled: Boolean = true
   override val incomeTaxSubmissionBEBaseUrl: String = "http://localhost:9308"
 }
 

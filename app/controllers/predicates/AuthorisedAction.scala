@@ -80,7 +80,7 @@ class AuthorisedAction @Inject()()(implicit val authConnector: AuthConnector,
             enrolments.enrolments.collectFirst {
               case Enrolment(EnrolmentKeys.Individual, enrolmentIdentifiers, _, _)
                 if enrolmentIdentifiers.exists(identifier => identifier.key == EnrolmentIdentifiers.individualId && identifier.value == requestMtdItId) =>
-                block(User(requestMtdItId, None, optionalNino.getOrElse(""), "", optionalSessionId))
+                block(User(requestMtdItId, None, optionalNino.getOrElse(""), optionalSessionId))
             } getOrElse {
               logger.info(s"[AuthorisedAction][individualAuthentication] Non-agent with an invalid MTDITID. " +
                 s"MTDITID in auth matches MTDITID in request: ${authMTDITID == requestMtdItId}")
@@ -116,7 +116,7 @@ class AuthorisedAction @Inject()()(implicit val authConnector: AuthConnector,
 
         enrolmentGetIdentifierValue(EnrolmentKeys.Agent, EnrolmentIdentifiers.agentReference, enrolments) match {
           case Some(arn) =>
-            block(User(mtdItId, Some(arn), "", "", optionalSessionId))
+            block(User(mtdItId, Some(arn), "", optionalSessionId))
           case None =>
             logger.info("[AuthorisedAction][agentAuthentication] Agent with no HMRC-AS-AGENT enrolment.")
             unauthorized

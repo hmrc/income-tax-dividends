@@ -16,18 +16,11 @@
 
 package models.dividends
 
-import config.MockAppConfig
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{JsObject, Json}
 
 class StockDividendsCheckYourAnswersModelSpec extends AnyWordSpec with Matchers {
-
-  object TailoringAppConfig extends MockAppConfig {
-    override val tailoringEnabled: Boolean = true
-    override val interestTailoringEnabled: Boolean = true
-    override val dividendsTailoringEnabled: Boolean = true
-  }
 
   val jsonMax: JsObject = Json.obj(
     "ukDividends" -> Some(true),
@@ -100,5 +93,4 @@ class StockDividendsCheckYourAnswersModelSpec extends AnyWordSpec with Matchers 
 
     }
   }
-
 }

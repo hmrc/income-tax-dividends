@@ -132,10 +132,6 @@ trait IntegrationTest extends AnyWordSpecLike with Matchers with GuiceOneServerP
   )
 
   def config(
-    tailoring: Boolean = false,
-    interestTailoring: Boolean = false,
-    dividendsTailoring: Boolean = false,
-    charityTailoringEnabled:Boolean = false,
     interestSavings: Boolean = false,
     stockDividends: Boolean = false
   ): Map[String, Any] = commonConfig ++ Map(
@@ -144,10 +140,6 @@ trait IntegrationTest extends AnyWordSpecLike with Matchers with GuiceOneServerP
     "defaultTaxYear" -> taxYear,
     "useEncryption" -> true,
     "feature-switch.journeys.stock-dividends" -> stockDividends,
-    "feature-switch.tailoringEnabled" -> tailoring,
-    "feature-switch.tailoring.interest" -> interestTailoring,
-    "feature-switch.tailoring.dividends"-> dividendsTailoring,
-    "feature-switch.tailoring.charity"-> charityTailoringEnabled,
     "feature-switch.journeys.interestSavings"-> interestSavings
   )
 
@@ -161,21 +153,6 @@ trait IntegrationTest extends AnyWordSpecLike with Matchers with GuiceOneServerP
   override implicit lazy val app: Application = new GuiceApplicationBuilder()
     .in(Environment.simple(mode = Mode.Dev))
     .configure(config())
-    .build()
-
-  lazy val appWithTailoring: Application = new GuiceApplicationBuilder()
-    .in(Environment.simple(mode = Mode.Dev))
-    .configure(config(tailoring = true, interestTailoring = true, dividendsTailoring = true, charityTailoringEnabled = true))
-    .build()
-
-  lazy val appWithInterestSavings: Application = new GuiceApplicationBuilder()
-    .in(Environment.simple(mode = Mode.Dev))
-    .configure(config(interestTailoring = true))
-    .build()
-
-  lazy val appWithStockDividends: Application = new GuiceApplicationBuilder()
-    .in(Environment.simple(mode = Mode.Dev))
-    .configure(config(dividendsTailoring = true, stockDividends = true))
     .build()
 
   lazy val appWithInvalidEncryptionKey: Application = GuiceApplicationBuilder()
