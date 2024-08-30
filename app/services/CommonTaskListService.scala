@@ -75,24 +75,29 @@ class CommonTaskListService @Inject()(appConfig: AppConfig,
     val ukDividendsUrl: String = s"${appConfig.personalFrontendBaseUrl}/$taxYear/dividends/how-much-dividends-from-uk-companies"
     val otherUkDividendsUrl: String =
       s"${appConfig.personalFrontendBaseUrl}/$taxYear/dividends/how-much-dividends-from-uk-trusts-and-open-ended-investment-companies"
-    val stockDividendsUrl: String = s"${appConfig.personalFrontendBaseUrl}/$taxYear/dividends/stock-dividend-amount"
+    val stockDividendsUrl: String = s"${appConfig.personalFrontendBaseUrl}/$taxYear/dividends/check-stock-dividend-amount"
     val redeemableUrl: String = s"${appConfig.personalFrontendBaseUrl}/$taxYear/dividends/redeemable-shares-amount"
     val closeCompanyUrl: String = s"${appConfig.personalFrontendBaseUrl}/$taxYear/dividends/close-company-loan-amount"
 
-    val ukDividends: Option[TaskListSectionItem] =
-      d.ukDividends.map(_ => TaskListSectionItem(TaskTitle.CashDividends, TaskStatus.Completed, Some(ukDividendsUrl)))
+    val ukDividends: Option[TaskListSectionItem] = d.ukDividends.map(_ =>
+      TaskListSectionItem(TaskTitle.CashDividends, TaskStatus.Completed, Some(ukDividendsUrl))
+    )
 
-    val otherUkDividends: Option[TaskListSectionItem] =
-      d.otherUkDividends.map(_ => TaskListSectionItem(TaskTitle.DividendsFromUnitTrusts, TaskStatus.Completed, Some(otherUkDividendsUrl)))
+    val otherUkDividends: Option[TaskListSectionItem] = d.otherUkDividends.map(_ =>
+      TaskListSectionItem(TaskTitle.DividendsFromUnitTrusts, TaskStatus.Completed, Some(otherUkDividendsUrl))
+    )
 
-    val stockDividends: Option[TaskListSectionItem] =
-      sd.stockDividend.map(_ => TaskListSectionItem(TaskTitle.StockDividends, TaskStatus.Completed, Some(stockDividendsUrl)))
+    val stockDividends: Option[TaskListSectionItem] = sd.stockDividend.map(_ =>
+      TaskListSectionItem(TaskTitle.StockDividends, TaskStatus.Completed, Some(stockDividendsUrl))
+    )
 
-    val redeemable: Option[TaskListSectionItem] =
-      sd.redeemableShares.map(_ => TaskListSectionItem(TaskTitle.FreeRedeemableShares, TaskStatus.Completed, Some(redeemableUrl)))
+    val redeemable: Option[TaskListSectionItem] = sd.redeemableShares.map(_ =>
+      TaskListSectionItem(TaskTitle.FreeRedeemableShares, TaskStatus.Completed, Some(redeemableUrl))
+    )
 
-    val closeCompany: Option[TaskListSectionItem] =
-      sd.closeCompanyLoansWrittenOff.map(_ => TaskListSectionItem(TaskTitle.CloseCompanyLoans, TaskStatus.Completed, Some(closeCompanyUrl)))
+    val closeCompany: Option[TaskListSectionItem] = sd.closeCompanyLoansWrittenOff.map(_ =>
+      TaskListSectionItem(TaskTitle.CloseCompanyLoans, TaskStatus.Completed, Some(closeCompanyUrl))
+    )
 
     Seq[Option[TaskListSectionItem]](ukDividends, otherUkDividends, stockDividends, redeemable, closeCompany).flatten
   }

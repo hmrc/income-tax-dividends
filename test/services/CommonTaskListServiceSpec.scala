@@ -52,16 +52,16 @@ class CommonTaskListServiceSpec extends TestUtils with AppConfigStubProvider {
     TaskListSection(SectionTitle.DividendsTitle,
       Some(List(
         TaskListSectionItem(TaskTitle.CashDividends, TaskStatus.Completed,
-          Some("http://localhost:9308/update-and-submit-income-tax-return/personal-income/1234/dividends/how-much-dividends-from-uk-companies")),
+          Some(s"http://localhost:9308/update-and-submit-income-tax-return/personal-income/$taxYear/dividends/how-much-dividends-from-uk-companies")),
         TaskListSectionItem(TaskTitle.DividendsFromUnitTrusts, TaskStatus.Completed,
           Some("http://localhost:9308/update-and-submit-income-tax-return/personal-income/" +
-            "1234/dividends/how-much-dividends-from-uk-trusts-and-open-ended-investment-companies")),
+            s"$taxYear/dividends/how-much-dividends-from-uk-trusts-and-open-ended-investment-companies")),
         TaskListSectionItem(TaskTitle.StockDividends, TaskStatus.Completed,
-          Some("http://localhost:9308/update-and-submit-income-tax-return/personal-income/1234/dividends/stock-dividend-amount")),
+          Some(s"http://localhost:9308/update-and-submit-income-tax-return/personal-income/$taxYear/dividends/check-stock-dividend-amount")),
         TaskListSectionItem(TaskTitle.FreeRedeemableShares, TaskStatus.Completed,
-          Some("http://localhost:9308/update-and-submit-income-tax-return/personal-income/1234/dividends/redeemable-shares-amount")),
+          Some(s"http://localhost:9308/update-and-submit-income-tax-return/personal-income/$taxYear/dividends/redeemable-shares-amount")),
         TaskListSectionItem(TaskTitle.CloseCompanyLoans, TaskStatus.Completed,
-          Some("http://localhost:9308/update-and-submit-income-tax-return/personal-income/1234/dividends/close-company-loan-amount"))
+          Some(s"http://localhost:9308/update-and-submit-income-tax-return/personal-income/$taxYear/dividends/close-company-loan-amount"))
       ))
     )
 
@@ -96,7 +96,11 @@ class CommonTaskListServiceSpec extends TestUtils with AppConfigStubProvider {
 
       await(underTest) mustBe fullTaskSection.copy(
         taskItems = Some(List(
-          TaskListSectionItem(TaskTitle.CashDividends, TaskStatus.Completed, Some("http://localhost:9308/update-and-submit-income-tax-return/personal-income/1234/dividends/how-much-dividends-from-uk-companies"))
+          TaskListSectionItem(
+            TaskTitle.CashDividends,
+            TaskStatus.Completed,
+            Some(s"http://localhost:9308/update-and-submit-income-tax-return/personal-income/$taxYear/dividends/how-much-dividends-from-uk-companies")
+          )
         ))
       )
     }
