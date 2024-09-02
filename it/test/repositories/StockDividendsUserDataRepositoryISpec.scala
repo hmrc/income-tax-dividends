@@ -69,9 +69,7 @@ class StockDividendsUserDataRepositoryISpec extends IntegrationTest with FutureA
   "update" should {
 
     "update a document in the collection" in new EmptyDatabase {
-      val testUser: User[AnyContent] = User(
-        mtditid, None, nino, "individual", sessionId
-      )
+      val testUser: User[AnyContent] = User(mtditid, None, nino, sessionId)
 
       val initialData: StockDividendsUserDataModel = StockDividendsUserDataModel(
         testUser.sessionId, testUser.mtditid, testUser.nino, taxYear,
@@ -89,7 +87,7 @@ class StockDividendsUserDataRepositoryISpec extends IntegrationTest with FutureA
 
       val res: Boolean = await(stockDividendsRepo.update(newUserData).map {
         case Right(value) => value
-        case Left(value) => false
+        case Left(_) => false
       })
       res mustBe true
       count mustBe 1
@@ -122,9 +120,7 @@ class StockDividendsUserDataRepositoryISpec extends IntegrationTest with FutureA
       org.mongodb.scala.model.Filters.equal("taxYear", toBson(taxYear))
     )
 
-    val testUser = User(
-      mtditid, None, nino, "individual", sessionId
-    )
+    val testUser = User(mtditid, None, nino, sessionId)
 
     "get a document" in {
       count mustBe 1

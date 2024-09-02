@@ -69,9 +69,7 @@ class DividendsUserDataRepositoryISpec extends IntegrationTest with FutureAwaits
   "update" should {
 
     "update a document in the collection" in new EmptyDatabase {
-      val testUser: User[AnyContent] = User(
-        mtditid, None, nino, "individual", sessionId
-      )
+      val testUser: User[AnyContent] = User(mtditid, None, nino, sessionId)
 
       val initialData: DividendsUserDataModel = DividendsUserDataModel(
         testUser.sessionId, testUser.mtditid, testUser.nino, taxYear,
@@ -120,9 +118,7 @@ class DividendsUserDataRepositoryISpec extends IntegrationTest with FutureAwaits
       org.mongodb.scala.model.Filters.equal("taxYear", toBson(taxYear))
     )
 
-    val testUser = User(
-      mtditid, None, nino, "individual", sessionId
-    )
+    val testUser = User(mtditid, None, nino, sessionId)
 
     "get a document" in {
       count mustBe 1
