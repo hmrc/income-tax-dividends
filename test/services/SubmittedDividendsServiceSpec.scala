@@ -42,15 +42,16 @@ class SubmittedDividendsServiceSpec extends TestUtils {
       val expectedResult: SubmittedDividendsResponse = Right(SubmittedDividendsModel(Some(20.00), Some(20.00), None))
 
       (connector.getSubmittedDividends(_: String, _: Int)(_: HeaderCarrier))
-        .expects("12345678", 1234, *)
+        .expects("12345678", taxYear, *)
         .returning(Future.successful(expectedResult))
 
-      val result = await(service.getSubmittedDividends("12345678", 1234))
+      val result = await(service.getSubmittedDividends("12345678", taxYear))
 
       result mustBe expectedResult
 
     }
   }
+
   "return the if connector response for specific tax year" in {
 
     val expectedResult: SubmittedDividendsResponse = Right(SubmittedDividendsModel(Some(20.00), Some(20.00), None))
@@ -62,7 +63,6 @@ class SubmittedDividendsServiceSpec extends TestUtils {
     val result = await(service.getSubmittedDividends("12345678", specificTaxYear))
 
     result mustBe expectedResult
-
   }
 
   "return the if connector response for specific tax year plus one" in {
@@ -76,6 +76,5 @@ class SubmittedDividendsServiceSpec extends TestUtils {
     val result = await(service.getSubmittedDividends("12345678", specificTaxYearPlusOne))
 
     result mustBe expectedResult
-
   }
 }

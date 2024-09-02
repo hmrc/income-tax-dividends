@@ -21,6 +21,7 @@ import play.api.Configuration
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import javax.inject.Inject
+import scala.concurrent.duration.Duration
 
 @ImplementedBy(classOf[BackendAppConfig])
 trait AppConfig {
@@ -30,6 +31,8 @@ trait AppConfig {
   val auditingEnabled: Boolean
   val graphiteHost: String
   val desBaseUrl: String
+  val incomeTaxSubmissionBEBaseUrl: String
+
 
   val desEnvironment: String
   val authorisationToken: String
@@ -37,6 +40,10 @@ trait AppConfig {
   val ifBaseUrl: String
   val ifEnvironment: String
   val personalFrontendBaseUrl: String
+  val useEncryption: Boolean
+
+  val encryptionKey: String
+  def mongoTTL: Long
 
   def authorisationTokenFor(apiVersion: String): String
 }
@@ -59,6 +66,13 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
 
   val personalFrontendBaseUrl: String = config.get[String]("microservice.services.personal-income-tax-submission-frontend.url") +
     "/update-and-submit-income-tax-return/personal-income"
+
+  lazy val incomeTaxSubmissionBEBaseUrl: String = s"${config.get[String]("microservice.services.income-tax-submission.url")}/income-tax-submission-service"
+
+  lazy val useEncryption: Boolean = servicesConfig.getBoolean("useEncryption")
+
+  lazy val encryptionKey: String = servicesConfig.getString("mongodb.encryption.key")
+  def mongoTTL: Long = Duration(servicesConfig.getString("mongodb.timeToLive")).toDays.toInt
 
   def authorisationTokenFor(api: String): String = config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")
 }

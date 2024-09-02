@@ -32,9 +32,7 @@ class CreateOrAmendDividendsControllerSpec extends TestUtils {
 
   val createOrAmendDividendsService: CreateOrAmendDividendsService = mock[CreateOrAmendDividendsService]
   val createOrAmendDividendsController = new CreateOrAmendDividendsController(createOrAmendDividendsService, mockControllerComponents, authorisedAction)
-  val nino: String = "123456789"
-  val mtditid: String = "1234567890"
-  val taxYear: Int = 1234
+
   val badRequestModel: ErrorBodyModel = ErrorBodyModel("INVALID_NINO", "Nino is invalid")
   val notFoundModel: ErrorBodyModel = ErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find income source")
   val serverErrorModel: ErrorBodyModel = ErrorBodyModel("SERVER_ERROR", "Internal server error")

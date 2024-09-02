@@ -33,9 +33,7 @@ class CreateUpdateDividendsIncomeControllerSpec extends TestUtils {
   val createUpdateDividendsIncomeService: CreateUpdateDividendsIncomeService = mock[CreateUpdateDividendsIncomeService]
   val createUpdateDividendsIncomeController =
     new CreateUpdateDividendsIncomeController(createUpdateDividendsIncomeService, mockControllerComponents, authorisedAction)
-  val nino: String = "123456789"
-  val mtditid: String = "1234567890"
-  val taxYear: Int = 1234
+
   val reference: String = "RefNo13254687"
   val countryCode: String = "GBR"
   val decimalValue: BigDecimal = 123.45

@@ -16,12 +16,13 @@
 
 package utils
 
-import org.apache.pekko.actor.ActorSystem
-import org.apache.pekko.stream.{ActorMaterializer, Materializer}
 import com.codahale.metrics.SharedMetricRegistries
 import common.{EnrolmentIdentifiers, EnrolmentKeys}
 import config.{AppConfig, MockAppConfig}
 import controllers.predicates.AuthorisedAction
+import models.dividends.{DividendsCheckYourAnswersModel, StockDividendsCheckYourAnswersModel}
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.{ActorMaterializer, Materializer}
 import org.scalamock.handlers.CallHandler4
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterEach
@@ -64,6 +65,31 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with BeforeAn
   val defaultActionBuilder: DefaultActionBuilder = DefaultActionBuilder(mockControllerComponents.parsers.default)
   val authorisedAction = new AuthorisedAction()(mockAuthConnector, defaultActionBuilder, mockControllerComponents)
 
+  val nino: String = "123456789"
+  val mtditid: String = "1234567890"
+  val taxYear: Int = 1234
+
+  val completeDividendsCYAModel: DividendsCheckYourAnswersModel = DividendsCheckYourAnswersModel(
+    gateway = Some(true),
+    ukDividends = Some(true),
+    ukDividendsAmount = Some(50.00),
+    otherUkDividends = Some(true),
+    otherUkDividendsAmount = Some(50.00)
+  )
+
+  val completeStockDividendsCYAModel: StockDividendsCheckYourAnswersModel = StockDividendsCheckYourAnswersModel(
+    gateway = Some(true),
+    ukDividends = Some(true),
+    ukDividendsAmount = Some(50.00),
+    otherUkDividends = Some(true),
+    otherUkDividendsAmount = Some(50.00),
+    stockDividends = Some(true),
+    stockDividendsAmount = Some(50.00),
+    redeemableShares = Some(true),
+    redeemableSharesAmount = Some(50.00),
+    closeCompanyLoansWrittenOff = Some(true),
+    closeCompanyLoansWrittenOffAmount = Some(50.00),
+  )
 
   def status(awaitable: Future[Result]): Int = await(awaitable).header.status
 
@@ -94,7 +120,7 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with BeforeAn
   ))
 
   //noinspection ScalaStyle
-  def mockAuthAsAgent(enrolments: Enrolments = agentEnrolments) = {
+  def mockAuthAsAgent(enrolments: Enrolments = agentEnrolments): CallHandler4[Predicate, Retrieval[_], HeaderCarrier, ExecutionContext, Future[Any]] = {
 
     (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
       .expects(*, Retrievals.affinityGroup, *, *)
@@ -106,7 +132,7 @@ trait TestUtils extends AnyWordSpec with Matchers with MockFactory with BeforeAn
   }
 
   //noinspection ScalaStyle
-  def mockAuthReturnException(exception: Exception) = {
+  def mockAuthReturnException(exception: Exception): CallHandler4[Predicate, Retrieval[_], HeaderCarrier, ExecutionContext, Future[Any]] = {
     (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
       .expects(*, *, *, *)
       .returning(Future.failed(exception))

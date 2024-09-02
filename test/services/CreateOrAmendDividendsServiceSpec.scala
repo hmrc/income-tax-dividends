@@ -42,13 +42,12 @@ class CreateOrAmendDividendsServiceSpec extends TestUtils {
       val expectedResult: CreateOrAmendDividendsResponse = Right(CreateOrAmendDividendsResponseModel("transactionRef"))
 
       (connector.createOrAmendDividends(_: String, _: Int, _: CreateOrAmendDividendsModel)(_: HeaderCarrier))
-        .expects("12345678", 1234, *, *)
+        .expects("12345678", taxYear, *, *)
         .returning(Future.successful(expectedResult))
 
-      val result = await(service.createOrAmendDividends("12345678", 1234, CreateOrAmendDividendsModel(Some(12345.66), None)))
+      val result = await(service.createOrAmendDividends("12345678", taxYear, CreateOrAmendDividendsModel(Some(12345.66), None)))
 
       result mustBe expectedResult
-
     }
 
     "return the IF connector response for specific tax year" in {
@@ -62,7 +61,6 @@ class CreateOrAmendDividendsServiceSpec extends TestUtils {
       val result = await(service.createOrAmendDividends("12345678", specificTaxYear, CreateOrAmendDividendsModel(Some(12345.66), None)))
 
       result mustBe expectedResult
-
     }
 
     "return the IF connector response for specific tax year plus one" in {
@@ -76,7 +74,6 @@ class CreateOrAmendDividendsServiceSpec extends TestUtils {
       val result = await(service.createOrAmendDividends("12345678", specificTaxYearPlusOne, CreateOrAmendDividendsModel(Some(12345.66), None)))
 
       result mustBe expectedResult
-
     }
   }
 }

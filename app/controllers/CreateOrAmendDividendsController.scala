@@ -34,7 +34,7 @@ class CreateOrAmendDividendsController @Inject()(createOrAmendDividendsService: 
                                             (implicit ec: ExecutionContext) extends BackendController(cc){
 
   def createOrAmendDividends(nino: String, taxYear:Int): Action[AnyContent] = authorisedAction.async { implicit user =>
-    user.request.body.asJson.map(_.validate[CreateOrAmendDividendsModel]) match {
+    user.body.asJson.map(_.validate[CreateOrAmendDividendsModel]) match {
       case Some(JsSuccess(model, _)) => responseHandler(createOrAmendDividendsService.createOrAmendDividends(nino, taxYear, model))
       case _ => Future.successful(BadRequest)
     }

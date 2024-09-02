@@ -35,5 +35,4 @@ class GetDividendsIncomeService @Inject()(getDividendsIncomeDataConnector: GetDi
       getDividendsIncomeDataConnector.getDividendsIncomeData(nino, taxYear)
     }
   }
-
 }

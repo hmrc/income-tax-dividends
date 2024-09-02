@@ -38,8 +38,8 @@ class DeleteDividendsIncomeDataControllerSpec extends TestUtils{
   val internalServerErrorModel: ErrorModel =
     ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel("INTERNAL_SERVER_ERROR", "There has been an unexpected error"))
 
-  val nino = "nino"
-  val taxYear = 2020
+  override val nino = "nino"
+  override val taxYear = 2020
 
   "DeleteDividendsIncomeData" should {
 

@@ -30,8 +30,7 @@ class GetDividendsIncomeServiceSpec extends TestUtils {
   val connector: GetDividendsIncomeConnector = mock[GetDividendsIncomeConnector]
   val connectorTYS: GetDividendsIncomeTYSConnector = mock[GetDividendsIncomeTYSConnector]
   val service: GetDividendsIncomeService = new GetDividendsIncomeService(connector, connectorTYS)
-  val nino: String = "12345678"
-  val taxYear: Int = 1234
+
   private val specificTaxYear: Int = TaxYearUtils.specificTaxYear
   private val specificTaxYearPlusOne: Int = specificTaxYear + 1
 
@@ -57,7 +56,6 @@ class GetDividendsIncomeServiceSpec extends TestUtils {
       val result = await(service.getDividendsIncomeData(nino, taxYear))
 
       result mustBe expectedResult
-
     }
 
     "return the connector response for specific tax year" in {
@@ -80,7 +78,6 @@ class GetDividendsIncomeServiceSpec extends TestUtils {
       val result = await(service.getDividendsIncomeData(nino, specificTaxYear))
 
       result mustBe expectedResult
-
     }
 
     "return the connector response for specific tax year plus one" in {
@@ -103,7 +100,6 @@ class GetDividendsIncomeServiceSpec extends TestUtils {
       val result = await(service.getDividendsIncomeData(nino, specificTaxYearPlusOne))
 
       result mustBe expectedResult
-
     }
   }
 }

@@ -17,10 +17,11 @@
 package helpers
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock
-import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, delete, equalTo, get, getRequestedFor, patch, post, postRequestedFor, put, stubFor, urlEqualTo, urlMatching, verify}
+import com.github.tomakehurst.wiremock.client.{MappingBuilder, WireMock}
+import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, delete, equalTo, equalToJson, get, getRequestedFor, patch, post, postRequestedFor, put, stubFor, urlEqualTo, urlMatching, verify}
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
+import com.github.tomakehurst.wiremock.http.HttpHeader
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import play.api.inject.guice.GuiceApplicationBuilder
 
@@ -83,6 +84,46 @@ trait WireMockHelper {
           withBody(responseBody)
       )
     )
+
+  def stubGetWithHeadersCheck(url: String, status: Integer, body: String, sessionHeader: (String, String),
+                              mtdidHeader: (String, String)): StubMapping =
+
+
+    stubFor(get(urlMatching(url))
+      .withHeader(sessionHeader._1, equalTo(sessionHeader._2))
+      .withHeader(mtdidHeader._1, equalTo(mtdidHeader._2))
+      .willReturn(
+        aResponse().
+          withStatus(status).
+          withBody(body)
+      )
+    )
+
+  def stubPutWithRequestBody(url: String, status: Integer, requestBody: String, requestHeaders: Seq[HttpHeader] = Seq.empty): StubMapping = {
+    val mappingWithHeaders: MappingBuilder = requestHeaders.foldLeft(put(urlMatching(url))){ (result, nxt) =>
+      result.withHeader(nxt.key(), equalTo(nxt.firstValue()))
+    }
+
+    stubFor(mappingWithHeaders.withRequestBody(equalToJson(requestBody))
+      .willReturn(
+        aResponse().
+          withStatus(status)
+      )
+    )
+  }
+
+  def stubPutWithResponseBody(url: String, requestBody: String, responseBody: String, status: Int, requestHeaders: Seq[HttpHeader] = Seq.empty): StubMapping = {
+    val mappingWithHeaders: MappingBuilder = requestHeaders.foldLeft(put(urlMatching(url))) { (result, nxt) =>
+      result.withHeader(nxt.key(), equalTo(nxt.firstValue()))
+    }
+
+    stubFor(mappingWithHeaders.withRequestBody(equalToJson(requestBody))
+      .willReturn(
+        aResponse()
+          .withBody(responseBody)
+          .withStatus(status)
+          .withHeader("Content-Type", "application/json; charset=utf-8")))
+  }
 
   def stubPut(url: String, status: Integer, responseBody: String): StubMapping =
     stubFor(put(urlMatching(url))

@@ -31,7 +31,7 @@ class SubmittedDividendsIfControllerSpec extends TestUtils {
 
   val submittedDividendsService: SubmittedDividendsService = mock[SubmittedDividendsService]
   val submittedDividendsController = new SubmittedDividendsController(submittedDividendsService, mockControllerComponents,authorisedAction)
-  val nino :String = "123456789"
+
   val mtdItID :String = "1234567890"
   val specificTaxYear: Int = TaxYearUtils.specificTaxYear
   val badRequestModel: ErrorBodyModel = ErrorBodyModel("INVALID_NINO", "Nino is invalid")
@@ -221,6 +221,5 @@ class SubmittedDividendsIfControllerSpec extends TestUtils {
         status(result) mustBe UNPROCESSABLE_ENTITY
       }
     }
-
   }
 }

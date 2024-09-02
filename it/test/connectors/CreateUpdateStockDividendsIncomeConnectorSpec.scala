@@ -154,5 +154,19 @@ class CreateUpdateStockDividendsIncomeConnectorSpec extends WiremockSpec {
       result mustBe Left(expectedResult)
     }
 
+    "return a Bad Request from" in {
+      val responseBody = Json.obj(
+        "code" -> "BAD_REQUEST",
+        "reason" -> "Bad Request"
+      )
+      val expectedResult = ErrorModel(BAD_REQUEST, ErrorBodyModel("BAD_REQUEST", "Bad Request"))
+
+      stubPutWithResponseBody(url, BAD_REQUEST, Json.toJson(model).toString(), responseBody.toString())
+      implicit val hc: HeaderCarrier = HeaderCarrier()
+      val result = await(connector.createUpdateDividends(nino, taxYear, model)(hc))
+
+      result mustBe Left(expectedResult)
+    }
+
   }
 }
