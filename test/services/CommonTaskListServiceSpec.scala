@@ -52,7 +52,7 @@ class CommonTaskListServiceSpec extends TestUtils with AppConfigStubProvider {
     TaskListSection(SectionTitle.DividendsTitle,
       Some(List(
         TaskListSectionItem(TaskTitle.CashDividends, TaskStatus.Completed,
-          Some(s"http://localhost:9308/update-and-submit-income-tax-return/personal-income/$taxYear/dividends/how-much-dividends-from-uk-companies")),
+          Some(s"http://localhost:9308/update-and-submit-income-tax-return/personal-income/$taxYear/dividends/check-how-much-dividends-from-uk-companies")),
         TaskListSectionItem(TaskTitle.DividendsFromUnitTrusts, TaskStatus.Completed,
           Some("http://localhost:9308/update-and-submit-income-tax-return/personal-income/" +
             s"$taxYear/dividends/check-how-much-dividends-from-uk-trusts-and-open-ended-investment-companies")),
@@ -99,7 +99,7 @@ class CommonTaskListServiceSpec extends TestUtils with AppConfigStubProvider {
           TaskListSectionItem(
             TaskTitle.CashDividends,
             TaskStatus.Completed,
-            Some(s"http://localhost:9308/update-and-submit-income-tax-return/personal-income/$taxYear/dividends/how-much-dividends-from-uk-companies")
+            Some(s"http://localhost:9308/update-and-submit-income-tax-return/personal-income/$taxYear/dividends/check-how-much-dividends-from-uk-companies")
           )
         ))
       )

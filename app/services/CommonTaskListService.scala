@@ -72,7 +72,7 @@ class CommonTaskListService @Inject()(appConfig: AppConfig,
   private def getTasks(dividends: SubmittedDividendsModel, stockDividends: DividendsIncomeDataModel, taxYear: Int): Seq[TaskListSectionItem] = {
 
     // TODO: these will be links to the new CYA pages when they are made
-    val ukDividendsUrl: String = s"${appConfig.personalFrontendBaseUrl}/$taxYear/dividends/how-much-dividends-from-uk-companies"
+    val ukDividendsUrl: String = s"${appConfig.personalFrontendBaseUrl}/$taxYear/dividends/check-how-much-dividends-from-uk-companies"
     val otherUkDividendsUrl: String =
       s"${appConfig.personalFrontendBaseUrl}/$taxYear/dividends/check-how-much-dividends-from-uk-trusts-and-open-ended-investment-companies"
     val stockDividendsUrl: String = s"${appConfig.personalFrontendBaseUrl}/$taxYear/dividends/check-stock-dividend-amount"
