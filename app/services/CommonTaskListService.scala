@@ -77,7 +77,7 @@ class CommonTaskListService @Inject()(appConfig: AppConfig,
       s"${appConfig.personalFrontendBaseUrl}/$taxYear/dividends/check-how-much-dividends-from-uk-trusts-and-open-ended-investment-companies"
     val stockDividendsUrl: String = s"${appConfig.personalFrontendBaseUrl}/$taxYear/dividends/check-stock-dividend-amount"
     val redeemableUrl: String = s"${appConfig.personalFrontendBaseUrl}/$taxYear/dividends/check-redeemable-shares-amount"
-    val closeCompanyUrl: String = s"${appConfig.personalFrontendBaseUrl}/$taxYear/dividends/close-company-loan-amount"
+    val closeCompanyUrl: String = s"${appConfig.personalFrontendBaseUrl}/$taxYear/dividends/check-close-company-loan-amount"
 
     val ukDividend: Option[TaskListSectionItem] = dividends.ukDividends.map(_ =>
       TaskListSectionItem(TaskTitle.CashDividends, TaskStatus.Completed, Some(ukDividendsUrl))
