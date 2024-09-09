@@ -61,7 +61,7 @@ class CommonTaskListServiceSpec extends TestUtils with AppConfigStubProvider {
         TaskListSectionItem(TaskTitle.FreeRedeemableShares, TaskStatus.Completed,
           Some(s"http://localhost:9308/update-and-submit-income-tax-return/personal-income/$taxYear/dividends/check-redeemable-shares-amount")),
         TaskListSectionItem(TaskTitle.CloseCompanyLoans, TaskStatus.Completed,
-          Some(s"http://localhost:9308/update-and-submit-income-tax-return/personal-income/$taxYear/dividends/close-company-loan-amount"))
+          Some(s"http://localhost:9308/update-and-submit-income-tax-return/personal-income/$taxYear/dividends/check-close-company-loan-amount"))
       ))
     )
 
