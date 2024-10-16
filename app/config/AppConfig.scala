@@ -33,7 +33,6 @@ trait AppConfig {
   val desBaseUrl: String
   val incomeTaxSubmissionBEBaseUrl: String
 
-
   val desEnvironment: String
   val authorisationToken: String
   val authorisationTokenKey: String
@@ -44,6 +43,7 @@ trait AppConfig {
 
   val encryptionKey: String
   def mongoTTL: Long
+  def replaceIndexes: Boolean
 
   def authorisationTokenFor(apiVersion: String): String
 }
@@ -72,7 +72,8 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
   lazy val useEncryption: Boolean = servicesConfig.getBoolean("useEncryption")
 
   lazy val encryptionKey: String = servicesConfig.getString("mongodb.encryption.key")
-  def mongoTTL: Long = Duration(servicesConfig.getString("mongodb.timeToLive")).toDays.toInt
+  lazy val mongoTTL: Long = Duration(servicesConfig.getString("mongodb.timeToLive")).toDays.toInt
+  val replaceIndexes: Boolean = servicesConfig.getBoolean("mongodb.replaceIndexes")
 
   def authorisationTokenFor(api: String): String = config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")
 }
