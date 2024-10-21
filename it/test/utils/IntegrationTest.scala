@@ -70,7 +70,6 @@ trait IntegrationTest extends AnyWordSpecLike with Matchers with GuiceOneServerP
   val xSessionId: (String, String) = "X-Session-ID" -> sessionId
   val csrfContent: (String, String) = "Csrf-Token" -> "nocheck"
 
-
   val completeDividendsCYAModel: DividendsCheckYourAnswersModel = DividendsCheckYourAnswersModel(
     gateway = Some(true),
     ukDividends = Some(true),
@@ -92,9 +91,6 @@ trait IntegrationTest extends AnyWordSpecLike with Matchers with GuiceOneServerP
     closeCompanyLoansWrittenOff = Some(true),
     closeCompanyLoansWrittenOffAmount = Some(50.00),
   )
-
-
-
 
   implicit lazy val messagesApi: MessagesApi = app.injector.instanceOf[MessagesApi]
   implicit lazy val messages: Messages = messagesApi.preferred(FakeRequest())

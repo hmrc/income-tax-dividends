@@ -18,34 +18,32 @@ package models.mongo
 
 import models.dividends.{DividendsCheckYourAnswersModel, EncryptedDividendsCheckYourAnswersModel}
 import play.api.libs.json._
+import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 import java.time.Instant
 
-case class DividendsUserDataModel(
-                                   sessionId: String,
-                                   mtdItId: String,
-                                   nino: String,
-                                   taxYear: Int,
-                                   dividends: Option[DividendsCheckYourAnswersModel] = None,
-                                   lastUpdated: Instant = Instant.now()
+case class DividendsUserDataModel(sessionId: String,
+                                  mtdItId: String,
+                                  nino: String,
+                                  taxYear: Int,
+                                  dividends: Option[DividendsCheckYourAnswersModel] = None,
+                                  lastUpdated: Instant = Instant.now()
                                  ) extends UserDataTemplate
 
 object DividendsUserDataModel {
-
+  implicit val instantFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
   implicit lazy val formats: OFormat[DividendsUserDataModel] = Json.format[DividendsUserDataModel]
-
 }
 
-case class EncryptedDividendsUserDataModel(
-                                   sessionId: String,
-                                   mtdItId: String,
-                                   nino: String,
-                                   taxYear: Int,
-                                   dividends: Option[EncryptedDividendsCheckYourAnswersModel] = None,
-                                   lastUpdated: Instant = Instant.now()
-                                 ) extends UserDataTemplate
+case class EncryptedDividendsUserDataModel(sessionId: String,
+                                           mtdItId: String,
+                                           nino: String,
+                                           taxYear: Int,
+                                           dividends: Option[EncryptedDividendsCheckYourAnswersModel] = None,
+                                           lastUpdated: Instant = Instant.now()
+                                          ) extends UserDataTemplate
 
 object EncryptedDividendsUserDataModel {
-
+  implicit val instantFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
   implicit lazy val formats: OFormat[EncryptedDividendsUserDataModel] = Json.format[EncryptedDividendsUserDataModel]
 }
