@@ -33,4 +33,3 @@ object TaxYearPathBindable {
   }
   case class TaxYear(taxYear: Int)
 }
-

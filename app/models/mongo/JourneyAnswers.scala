@@ -90,4 +90,5 @@ object JourneyAnswers {
 
     OFormat(encryptedReads orElse reads, encryptedWrites)
   }
+
 }

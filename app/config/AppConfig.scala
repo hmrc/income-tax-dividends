@@ -43,7 +43,7 @@ trait AppConfig {
 
   val encryptionKey: String
   def mongoTTL: Long
-  def mongoJourneyAnswersTTL: Int
+  def mongoJourneyAnswersTTL: Long
   def timeToLive: Long
   def replaceIndexes: Boolean
   def authorisationTokenFor(apiVersion: String): String
@@ -77,7 +77,7 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
   val replaceIndexes: Boolean = servicesConfig.getBoolean("mongodb.replaceIndexes")
   val replaceJourneyAnswersIndexes: Boolean = servicesConfig.getBoolean("mongodb.replaceJourneyAnswersIndexes")
 
-  lazy val mongoJourneyAnswersTTL: Int = Duration(servicesConfig.getString("mongodb.journeyAnswersTimeToLive")).toDays.toInt
+  lazy val mongoJourneyAnswersTTL: Long = Duration(servicesConfig.getString("mongodb.journeyAnswersTimeToLive")).toDays.toInt
   val timeToLive: Long = Duration(config.get[String]("mongodb.timeToLive")).toDays.toInt
 
   def authorisationTokenFor(api: String): String = config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")

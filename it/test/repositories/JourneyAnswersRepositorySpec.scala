@@ -24,14 +24,11 @@ import models.mongo.JourneyAnswers
 import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpec
-import org.scalatest.{BeforeAndAfterAll, OptionValues}
-import org.scalatestplus.play.guice.GuiceOneServerPerSuite
+import org.scalatest.OptionValues
+import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
-import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
 import play.api.{Application, Configuration}
 import uk.gov.hmrc.crypto.{Decrypter, Encrypter, SymmetricCryptoFactory}
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
@@ -42,14 +39,8 @@ import java.time.{Clock, Instant, ZoneId}
 import java.util.Base64
 
 class JourneyAnswersRepositorySpec
-  extends AnyWordSpec
-    with Matchers
-    with FutureAwaits
-    with DefaultAwaitTimeout
-    with GuiceOneServerPerSuite
-    with BeforeAndAfterAll
+  extends WiremockSpec
     with OptionValues
-    with WiremockSpec
     with DefaultPlayMongoRepositorySupport[JourneyAnswers] {
 
   private val instant = Instant.now.truncatedTo(ChronoUnit.MILLIS)
@@ -69,6 +60,10 @@ class JourneyAnswersRepositorySpec
 
   private val configuration = Configuration("crypto.key" -> aesKey)
 
+  implicit lazy val appConfig: AppConfig = mock[AppConfig]
+  private val mockRepoDividends = mock[DividendsUserDataRepository]
+  private val mockRepoStock = mock[StockDividendsUserDataRepository]
+
   private implicit val crypto: Encrypter with Decrypter =
     SymmetricCryptoFactory.aesGcmCryptoFromConfig("crypto", configuration.underlying)
 
@@ -80,7 +75,10 @@ class JourneyAnswersRepositorySpec
 
   override lazy val app: Application = new GuiceApplicationBuilder().overrides(
     bind[AppConfig].toInstance(appConfig),
-    bind[JourneyAnswersRepository].toInstance(repository)
+
+    bind[JourneyAnswersRepository].toInstance(repository),
+    bind[DividendsUserDataRepository].toInstance(mockRepoDividends),
+    bind[StockDividendsUserDataRepository].toInstance(mockRepoStock),
   ).build()
 
   def filterByMtdItIdYear(mtdItId: String, taxYear: Int, journey: String): Bson =
@@ -99,8 +97,8 @@ class JourneyAnswersRepositorySpec
       val setResult: Done = repository.set(userData).futureValue
       val updatedRecord: JourneyAnswers = find(filterByMtdItIdYear(userData.mtdItId, userData.taxYear, userData.journey)).futureValue.headOption.value
 
-      setResult shouldBe Done
-      updatedRecord shouldBe expectedResult
+      setResult mustBe Done
+      updatedRecord mustBe expectedResult
     }
 
     "store the data section as encrypted bytes" in {
@@ -133,7 +131,7 @@ class JourneyAnswersRepositorySpec
         val result = repository.get(userData.mtdItId, userData.taxYear, userData.journey).futureValue
         val expectedResult = userData copy (lastUpdated = instant)
 
-        result.value shouldBe expectedResult
+        result.value mustBe expectedResult
       }
     }
 
@@ -141,12 +139,12 @@ class JourneyAnswersRepositorySpec
 
       "there is no record for this mtdItId" in {
 
-        repository.get("mtdItId that does not exist", userData.taxYear, userData.journey).futureValue should not be defined
+        repository.get("mtdItId that does not exist", userData.taxYear, userData.journey).futureValue must not be defined
       }
 
       "there is no record for this taxYear" in {
 
-        repository.get(userData.mtdItId, invalidTaxYear, userData.journey).futureValue should not be defined
+        repository.get(userData.mtdItId, invalidTaxYear, userData.journey).futureValue must not be defined
       }
     }
   }
@@ -159,20 +157,20 @@ class JourneyAnswersRepositorySpec
 
       val result = repository.clear(userData.mtdItId, userData.taxYear, userData.journey).futureValue
 
-      result shouldBe Done
-      repository.get(userData.mtdItId, userData.taxYear, userData.journey).futureValue should not be defined
+      result mustBe Done
+      repository.get(userData.mtdItId, userData.taxYear, userData.journey).futureValue must not be defined
     }
 
     "should return Done when there is no record for the mtdItId to remove" in {
       val result = repository.clear("mtdItId that does not exist", userData.taxYear, userData.journey).futureValue
 
-      result shouldBe Done
+      result mustBe Done
     }
 
     "should return Done when there is no record for the TaxYear to remove" in {
       val result = repository.clear(userData.mtdItId, invalidTaxYear, userData.journey).futureValue
 
-      result shouldBe Done
+      result mustBe Done
     }
   }
 
@@ -189,9 +187,9 @@ class JourneyAnswersRepositorySpec
 
         val expectedUpdatedAnswers = userData copy (lastUpdated = instant)
 
-        result shouldBe Done
+        result mustBe Done
         val updatedAnswers = find(filterByMtdItIdYear(userData.mtdItId, userData.taxYear, userData.journey)).futureValue.headOption.value
-        updatedAnswers shouldBe expectedUpdatedAnswers
+        updatedAnswers mustBe expectedUpdatedAnswers
       }
     }
 
@@ -199,14 +197,14 @@ class JourneyAnswersRepositorySpec
 
       "return Done" in {
 
-        repository.keepAlive("id that does not exist", 2023, userData.journey).futureValue shouldBe Done
+        repository.keepAlive("id that does not exist", 2023, userData.journey).futureValue mustBe Done
       }
     }
     "when there is no record for this taxYear" should {
 
       "return Done" in {
 
-        repository.keepAlive(userData.mtdItId, invalidTaxYear, userData.journey).futureValue shouldBe Done
+        repository.keepAlive(userData.mtdItId, invalidTaxYear, userData.journey).futureValue mustBe Done
       }
     }
   }

@@ -33,7 +33,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import repositories.JourneyAnswersRepository
+import repositories.{DividendsUserDataRepository, JourneyAnswersRepository, StockDividendsUserDataRepository}
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{affinityGroup, allEnrolments, confidenceLevel}
 import uk.gov.hmrc.auth.core.retrieve.~
@@ -73,6 +73,8 @@ class JourneyAnswersControllerSpec
     )
 
   private val mockRepo = mock[JourneyAnswersRepository]
+  private val mockRepoDividends = mock[DividendsUserDataRepository]
+  private val mockRepoStock = mock[StockDividendsUserDataRepository]
   private val mockAuthConnector = mock[AuthConnector]
 
   private val journey: String = "journey"
@@ -92,6 +94,8 @@ class JourneyAnswersControllerSpec
   private val app = new GuiceApplicationBuilder().overrides(
     bind[AppConfig].toInstance(mock[AppConfig]),
     bind[JourneyAnswersRepository].toInstance(mockRepo),
+    bind[DividendsUserDataRepository].toInstance(mockRepoDividends),
+    bind[StockDividendsUserDataRepository].toInstance(mockRepoStock),
     bind[AuthConnector].toInstance(mockAuthConnector)
   ).build()
 

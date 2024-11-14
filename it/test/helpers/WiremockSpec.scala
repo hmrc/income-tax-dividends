@@ -53,19 +53,19 @@ trait WiremockSpec extends AnyWordSpec with Matchers with BeforeAndAfterEach wit
     )
     .build()
 
-  override def beforeAll(): Unit = {
+  protected override def beforeAll(): Unit = {
     super.beforeAll()
     wireMockServer.start()
     SharedMetricRegistries.clear()
     WireMock.configureFor("localhost", wireMockPort)
   }
 
-  override def afterAll(): Unit = {
+  protected override def afterAll(): Unit = {
     super.afterAll()
     wireMockServer.stop()
   }
 
-  override def beforeEach(): Unit = {
+  protected override def beforeEach(): Unit = {
     super.beforeEach()
     reset()
   }

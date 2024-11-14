@@ -2,8 +2,6 @@
 import play.sbt.routes.RoutesKeys
 import uk.gov.hmrc.DefaultBuildSettings
 
-import scala.collection.immutable.Seq
-
 val appName = "income-tax-dividends"
 
 ThisBuild / majorVersion := 0
