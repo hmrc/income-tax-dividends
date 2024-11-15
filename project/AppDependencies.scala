@@ -31,7 +31,6 @@ object AppDependencies {
 
   val compile: Seq[ModuleID] = Seq(
     "uk.gov.hmrc"                   %% "bootstrap-backend-play-30"              % bootstrapPlay30Version,
-    "uk.gov.hmrc"                   %% "bootstrap-backend-play-30"              % bootstrapPlay30Version,
     "uk.gov.hmrc.mongo"             %% "hmrc-mongo-play-30"                     % hmrcMongoPlay30Version,
     "uk.gov.hmrc"                   %% "crypto-json-play-30"                    % "7.6.0",
     "com.fasterxml.jackson.module"  %% "jackson-module-scala"                   % "2.17.0",
@@ -43,7 +42,6 @@ object AppDependencies {
     "uk.gov.hmrc"             %% "bootstrap-test-play-30"   % bootstrapPlay30Version  % Test,
     "uk.gov.hmrc.mongo"       %% "hmrc-mongo-test-play-30"  % hmrcMongoPlay30Version  % Test,
     "org.scalamock"           %% "scalamock"                % "5.1.0"                 % Test,
-    "org.mockito"             %% "mockito-scala"            % "1.17.37"               % Test,
-    "org.scalatest"           %% "scalatest"                % "3.2.15"                % Test
+    "org.mockito"             %% "mockito-scala"            % "1.17.37"               % Test
   )
 }

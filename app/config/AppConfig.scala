@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ trait AppConfig {
   val encryptionKey: String
   def mongoTTL: Long
   def mongoJourneyAnswersTTL: Long
-  def timeToLive: Long
+
   def replaceIndexes: Boolean
   def authorisationTokenFor(apiVersion: String): String
   def replaceJourneyAnswersIndexes: Boolean
@@ -78,7 +78,6 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
   val replaceJourneyAnswersIndexes: Boolean = servicesConfig.getBoolean("mongodb.replaceJourneyAnswersIndexes")
 
   lazy val mongoJourneyAnswersTTL: Long = Duration(servicesConfig.getString("mongodb.journeyAnswersTimeToLive")).toDays.toInt
-  val timeToLive: Long = Duration(config.get[String]("mongodb.timeToLive")).toDays.toInt
 
   def authorisationTokenFor(api: String): String = config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")
 }
