@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,21 +23,22 @@ import org.mongodb.scala.model.{IndexModel, IndexOptions}
 
 import java.util.concurrent.TimeUnit
 
-object RepositoryIndexes {
+object JourneyAnswersRepositoryIndexes {
 
   private val lookUpIndex: Bson = compoundIndex(
-    ascending("sessionId"),
     ascending("mtdItId"),
-    ascending("nino"),
-    ascending("taxYear")
+    ascending("taxYear"),
+    ascending("journey")
   )
 
   def indexes()(implicit appConfig: AppConfig): Seq[IndexModel] = Seq(
-    IndexModel(lookUpIndex, IndexOptions().unique(true).name("UserDataLookupIndex")),
+    IndexModel(lookUpIndex, IndexOptions().name("mtdItId-taxYear-journey")),
     IndexModel(
       ascending("lastUpdated"),
-      IndexOptions().expireAfter(appConfig.mongoTTL, TimeUnit.DAYS)
-        .name("UserDataTTL"))
+      IndexOptions()
+        .expireAfter(appConfig.mongoJourneyAnswersTTL, TimeUnit.DAYS)
+        .name("last-updated-index")
+    )
   )
 
 }

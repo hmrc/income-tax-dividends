@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,11 +43,12 @@ trait AppConfig {
 
   val encryptionKey: String
   def mongoTTL: Long
+  def mongoJourneyAnswersTTL: Long
+
   def replaceIndexes: Boolean
-
   def authorisationTokenFor(apiVersion: String): String
+  def replaceJourneyAnswersIndexes: Boolean
 }
-
 
 class BackendAppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) extends AppConfig {
 
@@ -74,6 +75,9 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
   lazy val encryptionKey: String = servicesConfig.getString("mongodb.encryption.key")
   lazy val mongoTTL: Long = Duration(servicesConfig.getString("mongodb.timeToLive")).toDays.toInt
   val replaceIndexes: Boolean = servicesConfig.getBoolean("mongodb.replaceIndexes")
+  val replaceJourneyAnswersIndexes: Boolean = servicesConfig.getBoolean("mongodb.replaceJourneyAnswersIndexes")
+
+  lazy val mongoJourneyAnswersTTL: Long = Duration(servicesConfig.getString("mongodb.journeyAnswersTimeToLive")).toDays.toInt
 
   def authorisationTokenFor(api: String): String = config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")
 }

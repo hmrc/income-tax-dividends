@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,18 @@
 
 package config
 
-import com.google.inject.AbstractModule
+import play.api.inject.Binding
+import play.api.{Configuration, Environment}
+import uk.gov.hmrc.crypto.{Decrypter, Encrypter}
 
-class Modules extends AbstractModule {
+import java.time.Clock
 
-  override def configure(): Unit = {
-    bind(classOf[AppConfig]).to(classOf[BackendAppConfig]).asEagerSingleton()
-  }
+class Modules extends play.api.inject.Module {
 
+  override def bindings(environment: Environment, configuration: Configuration): collection.Seq[Binding[_]] =
+    Seq(
+      bind[AppConfig].to[BackendAppConfig].eagerly(),
+      bind[Clock].toInstance(Clock.systemUTC()),
+      bind[Encrypter with Decrypter].toProvider[CryptoProvider]
+    )
 }

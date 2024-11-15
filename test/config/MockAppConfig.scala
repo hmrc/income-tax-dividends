@@ -41,7 +41,11 @@ class MockAppConfig extends AppConfig with MockFactory {
   override val encryptionKey: String = "1234556"
 
   override def mongoTTL: Long = Duration("30").toDays
+
+  override def mongoJourneyAnswersTTL: Long = Duration("30").toDays
+
   override def replaceIndexes: Boolean = false
+  override def replaceJourneyAnswersIndexes: Boolean = false
 
   override val incomeTaxSubmissionBEBaseUrl: String = "http://localhost:9308"
 }

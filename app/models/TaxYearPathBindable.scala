@@ -14,17 +14,22 @@
  * limitations under the License.
  */
 
-package utils
+package models
 
-import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.auth.core.retrieve.Retrieval
-import uk.gov.hmrc.auth.core.{AuthConnector, ConfidenceLevel}
-import uk.gov.hmrc.http.HeaderCarrier
+import play.api.mvc.PathBindable
 
-import scala.concurrent.{ExecutionContext, Future}
+object TaxYearPathBindable {
 
-class MockAuthConnector(stubbedRetrievalResult: Future[_], acceptedConfidenceLevels: Seq[ConfidenceLevel]) extends AuthConnector {
-  def authorise[A](predicate: Predicate, retrieval: Retrieval[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = {
-    stubbedRetrievalResult.map(_.asInstanceOf[A])
+  implicit def pathBindable: PathBindable[TaxYear] = new PathBindable[TaxYear] {
+
+    override def bind(key: String, value: String): Either[String, TaxYear] =
+      value match {
+        case result if result.matches("^20\\d{2}$") => Right(TaxYear(taxYear = result.toInt))
+        case _ => Left("Invalid taxYear")
+      }
+
+    override def unbind(key: String, value: TaxYear): String =
+      value.taxYear.toString
   }
+  case class TaxYear(taxYear: Int)
 }

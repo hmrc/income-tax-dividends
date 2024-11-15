@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package utils
+package config
 
-import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.auth.core.retrieve.Retrieval
-import uk.gov.hmrc.auth.core.{AuthConnector, ConfidenceLevel}
-import uk.gov.hmrc.http.HeaderCarrier
+import play.api.Configuration
+import uk.gov.hmrc.crypto.{Decrypter, Encrypter, SymmetricCryptoFactory}
 
-import scala.concurrent.{ExecutionContext, Future}
+import javax.inject.{Inject, Provider, Singleton}
 
-class MockAuthConnector(stubbedRetrievalResult: Future[_], acceptedConfidenceLevels: Seq[ConfidenceLevel]) extends AuthConnector {
-  def authorise[A](predicate: Predicate, retrieval: Retrieval[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = {
-    stubbedRetrievalResult.map(_.asInstanceOf[A])
-  }
+@Singleton
+class CryptoProvider @Inject()(
+                                 configuration: AppConfig
+                               ) extends Provider[Encrypter with Decrypter] {
+
+  override def get(): Encrypter with Decrypter =
+    SymmetricCryptoFactory.aesGcmCrypto(configuration.encryptionKey)
 }
