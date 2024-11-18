@@ -24,12 +24,10 @@ import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters.{and, equal}
 import org.mongodb.scala.model._
 import play.api.Logging
-import play.api.libs.json.Format
 import uk.gov.hmrc.crypto.{Decrypter, Encrypter}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.Codecs.toBson
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 import java.time.{Clock, Instant}
 import javax.inject.{Inject, Singleton}
@@ -55,7 +53,7 @@ class JourneyAnswersRepositoryImpl @Inject()(
     domainFormat = JourneyAnswers.encryptedFormat,
     indexes = JourneyAnswersRepositoryIndexes.indexes()(appConfig),
     replaceIndexes = appConfig.replaceJourneyAnswersIndexes
-  ) with Logging {
+  ) with Logging with JourneyAnswersRepository {
 
   private def filterByMtdItIdYear(mtdItId: String, taxYear: Int, journey: String): Bson = and(
     equal("mtdItId", toBson(mtdItId)),

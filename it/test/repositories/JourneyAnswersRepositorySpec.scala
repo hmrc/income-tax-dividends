@@ -75,9 +75,9 @@ class JourneyAnswersRepositorySpec
 
   override lazy val app: Application = new GuiceApplicationBuilder().overrides(
     bind[AppConfig].toInstance(appConfig),
-
     bind[DividendsUserDataRepository].toInstance(mockRepoDividends),
     bind[StockDividendsUserDataRepository].toInstance(mockRepoStock),
+    bind[JourneyAnswersRepository].toInstance(repository)
   ).build()
 
   def filterByMtdItIdYear(mtdItId: String, taxYear: Int, journey: String): Bson =
