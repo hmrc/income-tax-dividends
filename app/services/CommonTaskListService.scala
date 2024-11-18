@@ -16,89 +16,109 @@
 
 package services
 
+import cats.data.EitherT
 import config.AppConfig
-import models.taskList._
-import models.{AllDividends, DividendsIncomeDataModel, SubmittedDividendsModel}
+import models.ErrorModel
+import models.mongo.JourneyAnswers
+import models.taskList.TaskStatus.{Completed, InProgress, NotStarted}
+import models.taskList.{SectionTitle, TaskListSection, TaskListSectionItem, TaskStatus, TaskTitle}
+import play.api.Logging
+import repositories.JourneyAnswersRepository
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class CommonTaskListService @Inject()(appConfig: AppConfig,
-                                      dividendsService: SubmittedDividendsService,
-                                      stockDividendsService: GetDividendsIncomeService) {
+class CommonTaskListService @Inject()(
+                                       appConfig: AppConfig,
+                                       dividendsService: SubmittedDividendsService,
+                                       stockDividendsService: GetDividendsIncomeService,
+                                       journeyAnswersRepository: JourneyAnswersRepository
+                                     ) extends Logging {
 
-  def get(taxYear: Int, nino: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[TaskListSection] = {
-    val dividends: Future[SubmittedDividendsModel] = dividendsService.getSubmittedDividends(nino, taxYear).map {
-      case Left(_) => SubmittedDividendsModel(None, None)
-      case Right(value) => value
-    }
+  private lazy val baseUrl = s"${appConfig.personalFrontendBaseUrl}"
 
-    val stockDividends: Future[DividendsIncomeDataModel] = stockDividendsService.getDividendsIncomeData(nino, taxYear).map {
-      case Left(_) => DividendsIncomeDataModel(None, None, None, None, None, None, None)
-      case Right(value) => value
-    }
-
-    val allDividends: Future[AllDividends] = for (
-      ukDividends <- dividends.map(_.ukDividends);
-      otherUkDividends <- dividends.map(_.otherUkDividends);
-      stockDividend <- stockDividends.map(_.stockDividend);
-      redeemable <- stockDividends.map(_.redeemableShares);
-      closeCompany <- stockDividends.map(_.closeCompanyLoansWrittenOff)
-    ) yield {
-      AllDividends(
-        SubmittedDividendsModel(ukDividends, otherUkDividends, deletedPeriod = None),
-        DividendsIncomeDataModel(None, None, None, stockDividend, redeemable, None, closeCompany)
-      )
-    }
-
-    allDividends.map { d =>
-
-      val tasks: Option[Seq[TaskListSectionItem]] = {
-
-        val optionalTasks: Seq[TaskListSectionItem] = getTasks(d.dividends, d.stockDividends, taxYear)
-
-        if (optionalTasks.nonEmpty) {
-          Some(optionalTasks)
-        } else {
-          None
+  private def getTaskForItem(
+                              taskTitle: TaskTitle,
+                              taskUrl: String,
+                              journeyAnswers: Option[JourneyAnswers],
+                              isDataDefined: Boolean
+                            ): Option[TaskListSectionItem] =
+    (journeyAnswers, isDataDefined) match {
+      case (Some(ja), _) =>
+        val status: TaskStatus = ja.data.value("status").validate[TaskStatus].asOpt match {
+          case Some(TaskStatus.Completed) => Completed
+          case Some(TaskStatus.InProgress) => InProgress
+          case _ =>
+            logger.info("[CommonTaskListService][getStatus] status stored in an invalid format, setting as 'Not yet started'.")
+            NotStarted
         }
-      }
-
-      TaskListSection(SectionTitle.DividendsTitle, tasks)
+        Some(TaskListSectionItem(taskTitle, status, Some(taskUrl)))
+      case (_, true) => Some(TaskListSectionItem(taskTitle, Completed, Some(taskUrl)))
+      case _ => None
     }
+
+  private def getDividendTasks(taxYear: Int, nino: String, mtdItId: String)
+                              (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[TaskListSectionItem]] = {
+    val ukDividendsUrl = s"$baseUrl/$taxYear/dividends/check-how-much-dividends-from-uk-companies"
+    val otherUkDividendsUrl = s"$baseUrl/$taxYear/dividends/check-how-much-dividends-from-uk-trusts-and-open-ended-investment-companies"
+    val ukDividendsJourneyName = "cash-dividends"
+    val otherUkDividendsJourneyName = "dividends-from-unit-trusts"
+
+    val result: EitherT[Future, ErrorModel, Seq[TaskListSectionItem]] = {
+      for {
+        dividends <- EitherT(dividendsService.getSubmittedDividends(nino, taxYear))
+        ukJourneyAnswers <- EitherT.right(journeyAnswersRepository.get(mtdItId, taxYear, ukDividendsJourneyName))
+        otherJourneyAnswers <- EitherT.right(journeyAnswersRepository.get(mtdItId, taxYear, otherUkDividendsJourneyName))
+      } yield Seq(
+        getTaskForItem(TaskTitle.CashDividends, ukDividendsUrl, ukJourneyAnswers, dividends.ukDividends.isDefined),
+        getTaskForItem(TaskTitle.DividendsFromUnitTrusts, otherUkDividendsUrl, otherJourneyAnswers, dividends.otherUkDividends.isDefined)
+      ).flatten
+    }
+
+    result.leftMap(_ => Nil).merge
   }
 
-  private def getTasks(dividends: SubmittedDividendsModel, stockDividends: DividendsIncomeDataModel, taxYear: Int): Seq[TaskListSectionItem] = {
+  private def getStockDividendTasks(taxYear: Int, nino: String, mtdItId: String)(
+    implicit ec: ExecutionContext,
+    hc: HeaderCarrier
+  ): Future[Seq[TaskListSectionItem]] = {
+    val stockDividendsUrl = s"$baseUrl/$taxYear/dividends/check-stock-dividend-amount"
+    val redeemableSharesUrl = s"$baseUrl/$taxYear/dividends/check-redeemable-shares-amount"
+    val closeCompanyUrl = s"$baseUrl/$taxYear/dividends/check-close-company-loan-amount"
+    val stockJourneyName = "stock-dividends"
+    val redeemableJourneyName = "free-redeemable-shares"
+    val closeCompanyJourneyName = "close-company-loans"
 
-    // TODO: these will be links to the new CYA pages when they are made
-    val ukDividendsUrl: String = s"${appConfig.personalFrontendBaseUrl}/$taxYear/dividends/check-how-much-dividends-from-uk-companies"
-    val otherUkDividendsUrl: String =
-      s"${appConfig.personalFrontendBaseUrl}/$taxYear/dividends/check-how-much-dividends-from-uk-trusts-and-open-ended-investment-companies"
-    val stockDividendsUrl: String = s"${appConfig.personalFrontendBaseUrl}/$taxYear/dividends/check-stock-dividend-amount"
-    val redeemableUrl: String = s"${appConfig.personalFrontendBaseUrl}/$taxYear/dividends/check-redeemable-shares-amount"
-    val closeCompanyUrl: String = s"${appConfig.personalFrontendBaseUrl}/$taxYear/dividends/check-close-company-loan-amount"
+    val result: EitherT[Future, ErrorModel, Seq[TaskListSectionItem]] = {
+      for {
+        stockDividends <- EitherT(stockDividendsService.getDividendsIncomeData(nino, taxYear))
+        stockJourneyAnswers <- EitherT.right(journeyAnswersRepository.get(mtdItId, taxYear, stockJourneyName))
+        redeemableJourneyAnswers <- EitherT.right(journeyAnswersRepository.get(mtdItId, taxYear, redeemableJourneyName))
+        closeCompanyJourneyAnswers <- EitherT.right(journeyAnswersRepository.get(mtdItId, taxYear, closeCompanyJourneyName))
+      } yield Seq(
+        getTaskForItem(TaskTitle.StockDividends, stockDividendsUrl, stockJourneyAnswers, stockDividends.stockDividend.isDefined),
+        getTaskForItem(TaskTitle.FreeRedeemableShares, redeemableSharesUrl, redeemableJourneyAnswers, stockDividends.redeemableShares.isDefined),
+        getTaskForItem(TaskTitle.CloseCompanyLoans, closeCompanyUrl, closeCompanyJourneyAnswers, stockDividends.closeCompanyLoansWrittenOff.isDefined)
+      ).flatten
+    }
 
-    val ukDividend: Option[TaskListSectionItem] = dividends.ukDividends.map(_ =>
-      TaskListSectionItem(TaskTitle.CashDividends, TaskStatus.Completed, Some(ukDividendsUrl))
-    )
+    result.leftMap(_ => Nil).merge
+  }
 
-    val otherUkDividend: Option[TaskListSectionItem] = dividends.otherUkDividends.map(_ =>
-      TaskListSectionItem(TaskTitle.DividendsFromUnitTrusts, TaskStatus.Completed, Some(otherUkDividendsUrl))
-    )
+  def get(taxYear: Int, nino: String, mtdItId: String)(
+    implicit ec: ExecutionContext,
+    hc: HeaderCarrier
+  ): Future[TaskListSection] = {
+    val result = for {
+      dividendTasks <- getDividendTasks(taxYear, nino, mtdItId)
+      stockDividendTasks <- getStockDividendTasks(taxYear, nino, mtdItId)
+      allTasks = dividendTasks ++ stockDividendTasks
+    } yield {
+      val tasks = if (allTasks.nonEmpty) Some(allTasks) else None
+      TaskListSection(SectionTitle.DividendsTitle, tasks)
+    }
 
-    val stockDividend: Option[TaskListSectionItem] = stockDividends.stockDividend.map(_ =>
-      TaskListSectionItem(TaskTitle.StockDividends, TaskStatus.Completed, Some(stockDividendsUrl))
-    )
-
-    val redeemable: Option[TaskListSectionItem] = stockDividends.redeemableShares.map(_ =>
-      TaskListSectionItem(TaskTitle.FreeRedeemableShares, TaskStatus.Completed, Some(redeemableUrl))
-    )
-
-    val closeCompany: Option[TaskListSectionItem] = stockDividends.closeCompanyLoansWrittenOff.map(_ =>
-      TaskListSectionItem(TaskTitle.CloseCompanyLoans, TaskStatus.Completed, Some(closeCompanyUrl))
-    )
-
-    Seq[Option[TaskListSectionItem]](ukDividend, otherUkDividend, stockDividend, redeemable, closeCompany).flatten
+    result
   }
 }

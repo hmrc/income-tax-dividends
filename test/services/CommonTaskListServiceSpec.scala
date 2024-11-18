@@ -21,6 +21,7 @@ import connectors.httpParsers.SubmittedDividendsHttpParser.SubmittedDividendsRes
 import models.taskList._
 import models._
 import play.api.http.Status.NOT_FOUND
+import repositories.JourneyAnswersRepository
 import support.providers.AppConfigStubProvider
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.TestUtils
@@ -31,8 +32,9 @@ class CommonTaskListServiceSpec extends TestUtils with AppConfigStubProvider {
 
   val dividendsService: SubmittedDividendsService = mock[SubmittedDividendsService]
   val stockDividendsService: GetDividendsIncomeService = mock[GetDividendsIncomeService]
+  val mockJourneyAnswersRepo: JourneyAnswersRepository = mock[JourneyAnswersRepository]
 
-  val service: CommonTaskListService = new CommonTaskListService(appConfigStub, dividendsService, stockDividendsService)
+  val service: CommonTaskListService = new CommonTaskListService(appConfigStub, dividendsService, stockDividendsService, mockJourneyAnswersRepo)
 
   val fullDividendsResult: SubmittedDividendsResponse = Right(SubmittedDividendsModel(Some(20.00), Some(20.00), None))
   val emptyDividendsResult: SubmittedDividendsResponse = Left(ErrorModel(NOT_FOUND, ErrorBodyModel("SOME_CODE", "reason")))
@@ -77,7 +79,9 @@ class CommonTaskListServiceSpec extends TestUtils with AppConfigStubProvider {
         .expects(nino, taxYear, *)
         .returning(Future.successful(fullStockDividendsResult))
 
-      val underTest = service.get(taxYear, nino)
+
+
+      val underTest = service.get(taxYear, nino, mtditid)
 
       await(underTest) mustBe fullTaskSection
     }
@@ -92,7 +96,7 @@ class CommonTaskListServiceSpec extends TestUtils with AppConfigStubProvider {
         .expects(nino, taxYear, *)
         .returning(Future.successful(emptyStockDividendsResult))
 
-      val underTest = service.get(taxYear, nino)
+      val underTest = service.get(taxYear, nino, mtditid)
 
       await(underTest) mustBe fullTaskSection.copy(
         taskItems = Some(List(
@@ -115,7 +119,7 @@ class CommonTaskListServiceSpec extends TestUtils with AppConfigStubProvider {
         .expects(nino, taxYear, *)
         .returning(Future.successful(emptyStockDividendsResult))
 
-      val underTest = service.get(taxYear, nino)
+      val underTest = service.get(taxYear, nino, mtditid)
 
       await(underTest) mustBe TaskListSection(SectionTitle.DividendsTitle, None)
     }
