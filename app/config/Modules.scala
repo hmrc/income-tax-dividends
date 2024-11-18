@@ -19,6 +19,7 @@ package config
 import play.api.inject.Binding
 import play.api.{Configuration, Environment}
 import repositories.{JourneyAnswersRepository, JourneyAnswersRepositoryImpl}
+
 import uk.gov.hmrc.crypto.{Decrypter, Encrypter}
 
 import java.time.Clock
