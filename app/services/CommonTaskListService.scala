@@ -67,9 +67,9 @@ class CommonTaskListService @Inject()(
 
     val result: EitherT[Future, ErrorModel, Seq[TaskListSectionItem]] = {
       for {
-        dividends <- EitherT(dividendsService.getSubmittedDividends(nino, taxYear))
         ukJourneyAnswers <- EitherT.right(journeyAnswersRepository.get(mtdItId, taxYear, ukDividendsJourneyName))
         otherJourneyAnswers <- EitherT.right(journeyAnswersRepository.get(mtdItId, taxYear, otherUkDividendsJourneyName))
+        dividends <- EitherT(dividendsService.getSubmittedDividends(nino, taxYear))
       } yield Seq(
         getTaskForItem(TaskTitle.CashDividends, ukDividendsUrl, ukJourneyAnswers, dividends.ukDividends.isDefined),
         getTaskForItem(TaskTitle.DividendsFromUnitTrusts, otherUkDividendsUrl, otherJourneyAnswers, dividends.otherUkDividends.isDefined)
@@ -92,10 +92,10 @@ class CommonTaskListService @Inject()(
 
     val result: EitherT[Future, ErrorModel, Seq[TaskListSectionItem]] = {
       for {
-        stockDividends <- EitherT(stockDividendsService.getDividendsIncomeData(nino, taxYear))
         stockJourneyAnswers <- EitherT.right(journeyAnswersRepository.get(mtdItId, taxYear, stockJourneyName))
         redeemableJourneyAnswers <- EitherT.right(journeyAnswersRepository.get(mtdItId, taxYear, redeemableJourneyName))
         closeCompanyJourneyAnswers <- EitherT.right(journeyAnswersRepository.get(mtdItId, taxYear, closeCompanyJourneyName))
+        stockDividends <- EitherT(stockDividendsService.getDividendsIncomeData(nino, taxYear))
       } yield Seq(
         getTaskForItem(TaskTitle.StockDividends, stockDividendsUrl, stockJourneyAnswers, stockDividends.stockDividend.isDefined),
         getTaskForItem(TaskTitle.FreeRedeemableShares, redeemableSharesUrl, redeemableJourneyAnswers, stockDividends.redeemableShares.isDefined),
