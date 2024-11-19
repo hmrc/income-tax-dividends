@@ -67,7 +67,7 @@ class JourneyAnswersRepositorySpec
   private implicit val crypto: Encrypter with Decrypter =
     SymmetricCryptoFactory.aesGcmCryptoFromConfig("crypto", configuration.underlying)
 
-  protected override val repository = new JourneyAnswersRepository(
+  protected override val repository = new JourneyAnswersRepositoryImpl(
     mongoComponent = mongoComponent,
     appConfig = appConfig,
     clock = stubClock
@@ -75,10 +75,9 @@ class JourneyAnswersRepositorySpec
 
   override lazy val app: Application = new GuiceApplicationBuilder().overrides(
     bind[AppConfig].toInstance(appConfig),
-
-    bind[JourneyAnswersRepository].toInstance(repository),
     bind[DividendsUserDataRepository].toInstance(mockRepoDividends),
     bind[StockDividendsUserDataRepository].toInstance(mockRepoStock),
+    bind[JourneyAnswersRepository].toInstance(repository)
   ).build()
 
   def filterByMtdItIdYear(mtdItId: String, taxYear: Int, journey: String): Bson =
