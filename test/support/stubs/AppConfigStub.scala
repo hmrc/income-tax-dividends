@@ -51,6 +51,8 @@ class AppConfigStub extends MockFactory {
     override def replaceIndexes: Boolean = false
     override def replaceJourneyAnswersIndexes: Boolean = false
 
+    override val sectionCompletedQuestionEnabled: Boolean = true
+
     override val incomeTaxSubmissionBEBaseUrl: String = "http://localhost:9308"
   }
 }

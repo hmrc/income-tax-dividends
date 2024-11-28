@@ -45,6 +45,8 @@ trait AppConfig {
   def mongoTTL: Long
   def mongoJourneyAnswersTTL: Long
 
+  val sectionCompletedQuestionEnabled: Boolean
+
   def replaceIndexes: Boolean
   def authorisationTokenFor(apiVersion: String): String
   def replaceJourneyAnswersIndexes: Boolean
@@ -71,6 +73,8 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
   lazy val incomeTaxSubmissionBEBaseUrl: String = s"${config.get[String]("microservice.services.income-tax-submission.url")}/income-tax-submission-service"
 
   lazy val useEncryption: Boolean = servicesConfig.getBoolean("useEncryption")
+
+  lazy val sectionCompletedQuestionEnabled: Boolean = servicesConfig.getBoolean("feature-switch.sectionCompletedQuestionEnabled")
 
   lazy val encryptionKey: String = servicesConfig.getString("mongodb.encryption.key")
   lazy val mongoTTL: Long = Duration(servicesConfig.getString("mongodb.timeToLive")).toDays.toInt
