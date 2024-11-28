@@ -35,7 +35,7 @@ class MockAppConfig extends AppConfig with MockFactory {
 
   override def authorisationTokenFor(apiVersion: String): String = "someToken"
 
-  override val personalFrontendBaseUrl: String = "http://localhost:9308"
+  override val personalFrontendBaseUrl: String = "http://localhost:9308/update-and-submit-income-tax-return/personal-income"
 
   override val useEncryption: Boolean = true
   override val encryptionKey: String = "1234556"
