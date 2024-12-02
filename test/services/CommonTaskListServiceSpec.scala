@@ -16,13 +16,14 @@
 
 package services
 
+import config.MockAppConfig
 import connectors.httpParsers.GetDividendsIncomeParser.GetDividendsIncomeDataResponse
 import connectors.httpParsers.SubmittedDividendsHttpParser.SubmittedDividendsResponse
 import models._
 import models.mongo.JourneyAnswers
-import models.taskList.TaskStatus.{Completed, NotStarted}
-import models.taskList.TaskTitle.{CashDividends, CloseCompanyLoans, DividendsFromUnitTrusts, FreeRedeemableShares, StockDividends}
-import models.taskList.{TaskListSectionItem, _}
+import models.taskList.TaskStatus.{Completed, InProgress, NotStarted}
+import models.taskList.TaskTitle.{CashDividends, DividendsFromUnitTrusts}
+import models.taskList._
 import play.api.http.Status.NOT_FOUND
 import play.api.libs.json.{JsObject, JsString, Json}
 import support.mocks.{MockGetDividendsIncomeService, MockJourneyAnswersRepository, MockSubmittedDividendsService}
@@ -75,15 +76,29 @@ class CommonTaskListServiceSpec extends TestUtils
       ))
     )
 
+  val inProgressTaskSection: TaskListSection =
+    TaskListSection(SectionTitle.DividendsTitle,
+      Some(List(
+        TaskListSectionItem(TaskTitle.CashDividends, TaskStatus.InProgress,
+          Some(s"http://localhost:9308/update-and-submit-income-tax-return/personal-income/$taxYear/dividends/check-how-much-dividends-from-uk-companies")),
+        TaskListSectionItem(TaskTitle.DividendsFromUnitTrusts, TaskStatus.InProgress,
+          Some("http://localhost:9308/update-and-submit-income-tax-return/personal-income/" +
+            s"$taxYear/dividends/check-how-much-dividends-from-uk-trusts-and-open-ended-investment-companies")),
+        TaskListSectionItem(TaskTitle.StockDividends, TaskStatus.InProgress,
+          Some(s"http://localhost:9308/update-and-submit-income-tax-return/personal-income/$taxYear/dividends/check-stock-dividend-amount")),
+        TaskListSectionItem(TaskTitle.FreeRedeemableShares, TaskStatus.InProgress,
+          Some(s"http://localhost:9308/update-and-submit-income-tax-return/personal-income/$taxYear/dividends/check-redeemable-shares-amount")),
+        TaskListSectionItem(TaskTitle.CloseCompanyLoans, TaskStatus.InProgress,
+          Some(s"http://localhost:9308/update-and-submit-income-tax-return/personal-income/$taxYear/dividends/check-close-company-loan-amount"))
+      ))
+    )
+
   "CommonTaskList.get" should {
     val dummyException: RuntimeException = new RuntimeException("Dummy error")
 
     val baseUrl = "http://localhost:9308/update-and-submit-income-tax-return/personal-income"
     val ukDividendsUrl = s"$baseUrl/$taxYear/dividends/check-how-much-dividends-from-uk-companies"
     val otherUkDividendsUrl = s"$baseUrl/$taxYear/dividends/check-how-much-dividends-from-uk-trusts-and-open-ended-investment-companies"
-    val stockDividendsUrl = s"$baseUrl/$taxYear/dividends/check-stock-dividend-amount"
-    val redeemableSharesUrl = s"$baseUrl/$taxYear/dividends/check-redeemable-shares-amount"
-    val closeCompanyUrl = s"$baseUrl/$taxYear/dividends/check-close-company-loan-amount"
 
     "when an exception occurs" must {
       "handle appropriately when failing to retrieve ukJourneyAnswers" in {
@@ -98,7 +113,7 @@ class CommonTaskListServiceSpec extends TestUtils
         def result: TaskListSection = await(service.get(taxYear, nino, mtditid))
         assertThrows[RuntimeException](result)
       }
-      
+
       "handle appropriately when failing to retrieve data from SubmittedDividendsService" in {
         mockGetJourneyAnswers(mtditid, taxYear, "cash-dividends", None)
         mockGetJourneyAnswers(mtditid, taxYear, "dividends-from-unit-trusts", None)
@@ -122,14 +137,14 @@ class CommonTaskListServiceSpec extends TestUtils
         mockGetJourneyAnswers(mtditid, taxYear, "cash-dividends", None)
         mockGetJourneyAnswers(mtditid, taxYear, "dividends-from-unit-trusts", None)
         mockGetSubmittedDividendsSuccess(nino, taxYear, fullDividendsResult)
-        
+
         mockGetJourneyAnswers(mtditid, taxYear, "stock-dividends", None)
         mockGetJourneyAnswersException(mtditid, taxYear, "free-redeemable-shares", dummyException)
 
         def result: TaskListSection = await(service.get(taxYear, nino, mtditid))
         assertThrows[RuntimeException](result)
       }
-      
+
       "handle appropriately when failing to retrieve closeCompanyJourneyAnswers" in {
         mockGetJourneyAnswers(mtditid, taxYear, "cash-dividends", None)
         mockGetJourneyAnswers(mtditid, taxYear, "dividends-from-unit-trusts", None)
@@ -186,8 +201,8 @@ class CommonTaskListServiceSpec extends TestUtils
         mockGetDividendsIncomeDataSuccess(nino, taxYear, emptyStockDividendsResult)
 
         val tasks = Seq(
-          TaskListSectionItem(CashDividends, Completed, Some(ukDividendsUrl)),
-          TaskListSectionItem(DividendsFromUnitTrusts, Completed, Some(otherUkDividendsUrl))
+          TaskListSectionItem(CashDividends, InProgress, Some(ukDividendsUrl)),
+          TaskListSectionItem(DividendsFromUnitTrusts, InProgress, Some(otherUkDividendsUrl))
         )
 
         def result: TaskListSection = await(service.get(taxYear, nino, mtditid))
@@ -219,7 +234,7 @@ class CommonTaskListServiceSpec extends TestUtils
 
         val tasks = Seq(
           TaskListSectionItem(CashDividends, NotStarted, Some(ukDividendsUrl)),
-          TaskListSectionItem(DividendsFromUnitTrusts, Completed, Some(otherUkDividendsUrl))
+          TaskListSectionItem(DividendsFromUnitTrusts, InProgress, Some(otherUkDividendsUrl))
         )
 
         def result: TaskListSection = await(service.get(taxYear, nino, mtditid))
@@ -239,57 +254,85 @@ class CommonTaskListServiceSpec extends TestUtils
 
         val tasks = Seq(
           TaskListSectionItem(CashDividends, Completed, Some(ukDividendsUrl)),
-          TaskListSectionItem(DividendsFromUnitTrusts, Completed, Some(otherUkDividendsUrl))
+          TaskListSectionItem(DividendsFromUnitTrusts, InProgress, Some(otherUkDividendsUrl))
         )
 
         def result: TaskListSection = await(service.get(taxYear, nino, mtditid))
         result mustBe TaskListSection(SectionTitle.DividendsTitle, Some(tasks))
       }
+    }
 
-      "when journey answers are not defined, and data exists for dividends in DES" should {
-        "return 'Completed' status" in {
-          mockGetJourneyAnswers(mtditid, taxYear, "cash-dividends", None)
-          mockGetJourneyAnswers(mtditid, taxYear, "dividends-from-unit-trusts", None)
-          mockGetSubmittedDividendsSuccess(nino, taxYear, fullDividendsResult)
+    "when journey answers are not defined" should {
+      "return an empty task list when data does not exist for dividends in DES" in {
+        val emptyDividendsResult: SubmittedDividendsResponse = Right(SubmittedDividendsModel(None, None, None))
 
-          mockGetJourneyAnswers(mtditid, taxYear, "stock-dividends", None)
-          mockGetJourneyAnswers(mtditid, taxYear, "free-redeemable-shares", None)
-          mockGetJourneyAnswers(mtditid, taxYear, "close-company-loans", None)
-          mockGetDividendsIncomeDataSuccess(nino, taxYear, fullStockDividendsResult)
+        val emptyStockDividendsResult: GetDividendsIncomeDataResponse = Right(DividendsIncomeDataModel(
+          None, None, None, None, None, None, None
+        ))
 
-          val tasks = Seq(
-            TaskListSectionItem(CashDividends, Completed, Some(ukDividendsUrl)),
-            TaskListSectionItem(DividendsFromUnitTrusts, Completed, Some(otherUkDividendsUrl)),
-            TaskListSectionItem(StockDividends, Completed, Some(stockDividendsUrl)),
-            TaskListSectionItem(FreeRedeemableShares, Completed, Some(redeemableSharesUrl)),
-            TaskListSectionItem(CloseCompanyLoans, Completed, Some(closeCompanyUrl))
-          )
+        mockGetJourneyAnswers(mtditid, taxYear, "cash-dividends", None)
+        mockGetJourneyAnswers(mtditid, taxYear, "dividends-from-unit-trusts", None)
+        mockGetSubmittedDividendsSuccess(nino, taxYear, emptyDividendsResult)
 
-          def result: TaskListSection = await(service.get(taxYear, nino, mtditid))
-          result mustBe TaskListSection(SectionTitle.DividendsTitle, Some(tasks))
-        }
+        mockGetJourneyAnswers(mtditid, taxYear, "stock-dividends", None)
+        mockGetJourneyAnswers(mtditid, taxYear, "free-redeemable-shares", None)
+        mockGetJourneyAnswers(mtditid, taxYear, "close-company-loans", None)
+        mockGetDividendsIncomeDataSuccess(nino, taxYear, emptyStockDividendsResult)
+
+        def result: TaskListSection = await(service.get(taxYear, nino, mtditid))
+        result mustBe TaskListSection(SectionTitle.DividendsTitle, None)
       }
 
-      "when journey answers are not defined, and data does not exist for dividends in DES" should {
-        "return 'Completed' status" in {
-          val emptyDividendsResult: SubmittedDividendsResponse = Right(SubmittedDividendsModel(None, None, None))
-
-          val emptyStockDividendsResult: GetDividendsIncomeDataResponse = Right(DividendsIncomeDataModel(
-            None, None, None, None, None, None, None
-          ))
-
-          mockGetJourneyAnswers(mtditid, taxYear, "cash-dividends", None)
-          mockGetJourneyAnswers(mtditid, taxYear, "dividends-from-unit-trusts", None)
-          mockGetSubmittedDividendsSuccess(nino, taxYear, emptyDividendsResult)
-
-          mockGetJourneyAnswers(mtditid, taxYear, "stock-dividends", None)
-          mockGetJourneyAnswers(mtditid, taxYear, "free-redeemable-shares", None)
-          mockGetJourneyAnswers(mtditid, taxYear, "close-company-loans", None)
-          mockGetDividendsIncomeDataSuccess(nino, taxYear, emptyStockDividendsResult)
-
-          def result: TaskListSection = await(service.get(taxYear, nino, mtditid))
-          result mustBe TaskListSection(SectionTitle.DividendsTitle, None)
+      "return 'Completed' status when dividends data exists in DES and sectionCompletedQuestionEnabled is false" in {
+        val sCQDisabledAppConfig: MockAppConfig = new MockAppConfig {
+          override val sectionCompletedQuestionEnabled: Boolean = false
         }
+
+        val service: CommonTaskListService = new CommonTaskListService(
+          appConfig = sCQDisabledAppConfig,
+          dividendsService = mockSubmittedDividendsService,
+          stockDividendsService = mockGetDividendsIncomeService,
+          journeyAnswersRepository = mockJourneyAnswersRepo
+        )
+
+        mockGetJourneyAnswers(mtditid, taxYear, "cash-dividends", None)
+        mockGetJourneyAnswers(mtditid, taxYear, "dividends-from-unit-trusts", None)
+        mockGetSubmittedDividendsSuccess(nino, taxYear, fullDividendsResult)
+
+        mockGetJourneyAnswers(mtditid, taxYear, "stock-dividends", None)
+        mockGetJourneyAnswers(mtditid, taxYear, "free-redeemable-shares", None)
+        mockGetJourneyAnswers(mtditid, taxYear, "close-company-loans", None)
+        mockGetDividendsIncomeDataSuccess(nino, taxYear, fullStockDividendsResult)
+
+        def result: TaskListSection = await(service.get(taxYear, nino, mtditid))
+
+        result mustBe fullTaskSection
+      }
+
+      "return 'InProgress' status when dividends data exists in DES and sectionCompletedQuestionEnabled is true" in {
+        val sCQDisabledAppConfig: MockAppConfig = new MockAppConfig {
+          override val sectionCompletedQuestionEnabled: Boolean = true
+        }
+
+        val service: CommonTaskListService = new CommonTaskListService(
+          appConfig = sCQDisabledAppConfig,
+          dividendsService = mockSubmittedDividendsService,
+          stockDividendsService = mockGetDividendsIncomeService,
+          journeyAnswersRepository = mockJourneyAnswersRepo
+        )
+
+        mockGetJourneyAnswers(mtditid, taxYear, "cash-dividends", None)
+        mockGetJourneyAnswers(mtditid, taxYear, "dividends-from-unit-trusts", None)
+        mockGetSubmittedDividendsSuccess(nino, taxYear, fullDividendsResult)
+
+        mockGetJourneyAnswers(mtditid, taxYear, "stock-dividends", None)
+        mockGetJourneyAnswers(mtditid, taxYear, "free-redeemable-shares", None)
+        mockGetJourneyAnswers(mtditid, taxYear, "close-company-loans", None)
+        mockGetDividendsIncomeDataSuccess(nino, taxYear, fullStockDividendsResult)
+
+        def result: TaskListSection = await(service.get(taxYear, nino, mtditid))
+
+        result mustBe inProgressTaskSection
       }
     }
   }
