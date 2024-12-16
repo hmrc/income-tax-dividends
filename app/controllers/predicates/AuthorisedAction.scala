@@ -135,7 +135,7 @@ class AuthorisedAction @Inject()()(implicit val authConnector: AuthConnector,
       if (appConfig.emaSupportingAgentsEnabled) {
         authorised(secondaryAgentPredicate(mtdItId))
           .retrieve(allEnrolments) { enrolments =>
-            populateAgent(block, mtdItId, None, enrolments, isSecondaryAgent = false)
+            populateAgent(block, mtdItId, None, enrolments, isSecondaryAgent = true)
           }.recoverWith {
             case _: AuthorisationException =>
               logger.info(s"[AuthorisedAction][agentAuthentication] - Agent does not have delegated authority for Client.")
