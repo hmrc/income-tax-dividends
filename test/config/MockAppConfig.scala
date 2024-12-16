@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import org.scalamock.scalatest.MockFactory
 
 import scala.concurrent.duration.Duration
 
-class MockAppConfig extends AppConfig with MockFactory {
+class MockAppConfig(supportingAgentsEnabled: Boolean = false) extends AppConfig with MockFactory {
   override val authBaseUrl: String = "/auth"
 
   override val auditingEnabled: Boolean = true
@@ -50,6 +50,8 @@ class MockAppConfig extends AppConfig with MockFactory {
   override val sectionCompletedQuestionEnabled: Boolean = true
 
   override val incomeTaxSubmissionBEBaseUrl: String = "http://localhost:9308"
+
+  override def emaSupportingAgentsEnabled: Boolean = supportingAgentsEnabled
 }
 
 class MockAppConfigEncyrptionOff extends MockAppConfig {

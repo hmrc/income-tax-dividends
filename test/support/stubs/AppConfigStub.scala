@@ -23,7 +23,7 @@ import scala.concurrent.duration.Duration
 
 class AppConfigStub extends MockFactory {
 
-  def config(environment: String = "test"): AppConfig = new AppConfig() {
+  def config(environment: String = "test", supportingAgentsEnabled: Boolean = false): AppConfig = new AppConfig() {
     private val wireMockPort = 11111
     override val authBaseUrl: String = "/auth"
 
@@ -54,5 +54,7 @@ class AppConfigStub extends MockFactory {
     override val sectionCompletedQuestionEnabled: Boolean = true
 
     override val incomeTaxSubmissionBEBaseUrl: String = "http://localhost:9308"
+
+    override def emaSupportingAgentsEnabled: Boolean = supportingAgentsEnabled
   }
 }

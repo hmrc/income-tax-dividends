@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import play.api.mvc.Result
 import play.api.mvc.Results.NoContent
 import play.api.test.FakeRequest
 import services.StockDividendsSessionService
+import uk.gov.hmrc.http.SessionKeys
 import utils.TestUtils
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -35,7 +36,7 @@ class CreateStockDividendsSessionDataControllerSpec extends TestUtils {
   val createStockDividendsSessionDataController = new CreateStockDividendsSessionDataController(stockDividendsSessionService,
     mockControllerComponents, authorisedAction)
 
-  private val fakeGetRequest = FakeRequest("POST", "/").withHeaders("mtditid" -> mtditid)
+  private val fakeGetRequest = FakeRequest("POST", "/").withHeaders("mtditid" -> mtditid, SessionKeys.sessionId -> "some-session-id")
   private val fakeGetRequestWithDifferentMTITID = FakeRequest("PUT", "/").withHeaders("mtditid" -> "123123123")
 
   val jsonBody: JsValue = Json.toJson(completeStockDividendsCYAModel)
