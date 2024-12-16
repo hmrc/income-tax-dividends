@@ -122,7 +122,7 @@ class AuthorisedAction @Inject()()(implicit val authConnector: AuthConnector,
                                                 (implicit request: Request[A], hc: HeaderCarrier): Future[Result] = {
     authorised(agentAuthPredicate(mtdItId))
       .retrieve(allEnrolments) { enrolments =>
-        populateAgent(block, mtdItId, None, enrolments)
+        populateAgent(block, mtdItId, None, enrolments, isSecondaryAgent = false)
       }.recoverWith(agentRecovery(block, mtdItId))
   }
 
@@ -135,7 +135,7 @@ class AuthorisedAction @Inject()()(implicit val authConnector: AuthConnector,
       if (appConfig.emaSupportingAgentsEnabled) {
         authorised(secondaryAgentPredicate(mtdItId))
           .retrieve(allEnrolments) { enrolments =>
-            populateAgent(block, mtdItId, None, enrolments)
+            populateAgent(block, mtdItId, None, enrolments, isSecondaryAgent = false)
           }.recoverWith {
             case _: AuthorisationException =>
               logger.info(s"[AuthorisedAction][agentAuthentication] - Agent does not have delegated authority for Client.")
@@ -150,14 +150,15 @@ class AuthorisedAction @Inject()()(implicit val authConnector: AuthConnector,
   private def populateAgent[A](block: User[A] => Future[Result],
                                mtdItId: String,
                                nino: Option[String],
-                               enrolments: Enrolments)(implicit request: Request[A], hc: HeaderCarrier): Future[Result] = {
+                               enrolments: Enrolments,
+                               isSecondaryAgent: Boolean)(implicit request: Request[A], hc: HeaderCarrier): Future[Result] = {
     enrolmentGetIdentifierValue(EnrolmentKeys.Agent, EnrolmentIdentifiers.agentReference, enrolments) match {
       case Some(arn) =>
         sessionIdFrom(request, hc).fold {
           logger.info(s"[AuthorisedAction][agentAuthentication] - No session id in request.")
           unauthorized
         } { sessionId =>
-          block(User(mtdItId, Some(arn), nino.getOrElse(""), sessionId))
+          block(User(mtdItId, Some(arn), nino.getOrElse(""), sessionId, isSecondaryAgent))
         }
       case None =>
         logger.info("[AuthorisedAction][agentAuthentication] Agent with no HMRC-AS-AGENT enrolment.")
