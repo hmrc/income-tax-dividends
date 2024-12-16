@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import org.scalamock.handlers.CallHandler3
 import play.api.http.Status._
 import play.api.test.FakeRequest
 import services.SubmittedDividendsService
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
 import utils.{TaxYearUtils, TestUtils}
 
 import scala.concurrent.Future
@@ -39,7 +39,7 @@ class SubmittedDividendsIfControllerSpec extends TestUtils {
   val serverErrorModel: ErrorBodyModel = ErrorBodyModel("SERVER_ERROR", "Internal server error")
   val serviceUnavailableErrorModel: ErrorBodyModel = ErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable")
   val unprocessableEntityErrorModel: ErrorBodyModel = ErrorBodyModel("UNPROCESSABLE_ENTITY", "Tax Year unsupported")
-  private val fakeGetRequest = FakeRequest("GET", "/").withHeaders("mtditid" -> mtdItID)
+  private val fakeGetRequest = FakeRequest("GET", "/").withHeaders("mtditid" -> mtdItID, SessionKeys.sessionId -> "some-session-id")
   private val fakeGetRequestWithDifferentMTDITID = FakeRequest("GET", "/").withHeaders("mtditid" -> "123123123")
 
   def mockGetSubmittedDividendsValid(): CallHandler3[String, Int, HeaderCarrier, Future[GetAnnualIncomeSourcePeriod]] = {
