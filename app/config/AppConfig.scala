@@ -73,7 +73,7 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
 
   lazy val incomeTaxSubmissionBEBaseUrl: String = s"${config.get[String]("microservice.services.income-tax-submission.url")}/income-tax-submission-service"
 
-  lazy val useEncryption: Boolean = servicesConfig.getBoolean("useEncryption")
+  lazy val useEncryption: Boolean = servicesConfig.getBoolean("feature-switch.useEncryption")
 
   lazy val sectionCompletedQuestionEnabled: Boolean = servicesConfig.getBoolean("feature-switch.sectionCompletedQuestionEnabled")
 

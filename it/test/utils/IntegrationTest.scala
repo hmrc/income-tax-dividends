@@ -131,16 +131,16 @@ trait IntegrationTest extends AnyWordSpecLike with Matchers with GuiceOneServerP
     stockDividends: Boolean = false
   ): Map[String, Any] = commonConfig ++ Map(
     "taxYearChangeResetsSession" -> false,
-    "useEncryption" -> true,
+    "feature-switch.useEncryption" -> true,
     "defaultTaxYear" -> taxYear,
-    "useEncryption" -> true,
+    "feature-switch.useEncryption" -> true,
     "feature-switch.journeys.stock-dividends" -> stockDividends,
     "feature-switch.journeys.interestSavings"-> interestSavings
   )
 
   def invalidEncryptionConfig: Map[String, Any] = commonConfig ++ Map(
     "taxYearChangeResetsSession" -> false,
-    "useEncryption" -> true,
+    "feature-switch.useEncryption" -> true,
     "mongodb.encryption.key" -> "key",
     "defaultTaxYear" -> taxYear
   )
