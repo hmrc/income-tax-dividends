@@ -315,67 +315,76 @@ class AuthorisedActionSpec extends TestUtils {
         status(result) mustBe INTERNAL_SERVER_ERROR
       }
     }
+  }
 
-    ".async" should {
-      lazy val block: User[AnyContent] => Future[Result] = user =>
-        Future.successful(Ok(s"mtditid: ${user.mtditid}${user.arn.fold("")(arn => " arn: " + arn)}"))
+  ".async" should {
+    lazy val block: User[AnyContent] => Future[Result] = user =>
+      Future.successful(Ok(s"mtditid: ${user.mtditid}${user.arn.fold("")(arn => " arn: " + arn)}"))
 
-      "perform the block action" when {
+    "perform the block action" when {
 
-        "the user is successfully verified as an agent" which {
+      "the user is successfully verified as an agent" which {
 
-          lazy val result = {
-            mockAuthAsAgent()
-            authorisedAction.async(block)(fakeRequest)
-          }
-
-          "should return an OK(200) status" in {
-
-            status(result) mustBe OK
-            bodyOf(result) mustBe "mtditid: 1234567890 arn: 0987654321"
-          }
+        lazy val result = {
+          mockAuthAsAgent()
+          authorisedAction.async(block)(fakeRequest)
         }
 
-        "the user is successfully verified as an individual" in {
-
-          lazy val result = {
-            mockAuth()
-            authorisedAction.async(block)(fakeRequest)
-          }
+        "should return an OK(200) status" in {
 
           status(result) mustBe OK
-          bodyOf(result) mustBe "mtditid: 1234567890"
+          bodyOf(result) mustBe "mtditid: 1234567890 arn: 0987654321"
         }
       }
 
-      "return an Unauthorised" when {
+      "the user is successfully verified as an individual" in {
 
-        "the authorisation service returns an AuthorisationException exception" in {
-
-          lazy val result = {
-            mockAuthReturnException(InsufficientEnrolments())
-            authorisedAction.async(block)
-          }
-          status(result(fakeRequest)) mustBe UNAUTHORIZED
+        lazy val result = {
+          mockAuth()
+          authorisedAction.async(block)(fakeRequest)
         }
 
-        "the authorisation service returns a NoActiveSession exception" in {
+        status(result) mustBe OK
+        bodyOf(result) mustBe "mtditid: 1234567890"
+      }
+    }
 
-          lazy val result = {
-            mockAuthReturnException(BearerTokenExpired())
-            authorisedAction.async(block)
-          }
+    "return an Unauthorised" when {
 
-          status(result(fakeRequest)) mustBe UNAUTHORIZED
+      "the authorisation service returns an AuthorisationException exception" in {
+
+        lazy val result = {
+          mockAuthReturnException(InsufficientEnrolments())
+          authorisedAction.async(block)
         }
-
-        "the mtditid is not in the header" in {
-          lazy val result = authorisedAction.async(block)(FakeRequest())
-          status(result) mustBe UNAUTHORIZED
-        }
-
+        status(result(fakeRequest)) mustBe UNAUTHORIZED
       }
 
+      "the authorisation service returns a NoActiveSession exception" in {
+
+        lazy val result = {
+          mockAuthReturnException(BearerTokenExpired())
+          authorisedAction.async(block)
+        }
+
+        status(result(fakeRequest)) mustBe UNAUTHORIZED
+      }
+
+      "the mtditid is not in the header" in {
+        lazy val result = authorisedAction.async(block)(FakeRequest())
+        status(result) mustBe UNAUTHORIZED
+      }
+    }
+
+    "return ISE" when {
+      "the authorisation service returns any other type of unexpected exception" in {
+
+        mockAuthReturnException(new Exception("bang"))
+
+        val result = authorisedAction.async(block)
+
+        status(result(fakeRequest)) mustBe INTERNAL_SERVER_ERROR
+      }
     }
   }
 }
