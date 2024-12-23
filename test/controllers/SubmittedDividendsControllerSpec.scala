@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import play.api.test.FakeRequest
 import services.SubmittedDividendsService
 import utils.TestUtils
 import play.api.http.Status._
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
 
 import scala.concurrent.Future
 
@@ -38,7 +38,7 @@ class SubmittedDividendsControllerSpec extends TestUtils {
   val notFoundModel: ErrorBodyModel = ErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find income source")
   val serverErrorModel: ErrorBodyModel = ErrorBodyModel("SERVER_ERROR", "Internal server error")
   val serviceUnavailableErrorModel: ErrorBodyModel = ErrorBodyModel("SERVICE_UNAVAILABLE", "Service is unavailable")
-  private val fakeGetRequest = FakeRequest("GET", "/").withHeaders("mtditid" -> mtdItID)
+  private val fakeGetRequest = FakeRequest("GET", "/").withHeaders("mtditid" -> mtdItID, SessionKeys.sessionId -> "some-session-id")
   private val fakeGetRequestWithDifferentMTDITID = FakeRequest("GET", "/").withHeaders("mtditid" -> "123123123")
 
   def mockGetSubmittedDividendsValid(): CallHandler3[String, Int, HeaderCarrier, Future[SubmittedDividendsResponse]] = {

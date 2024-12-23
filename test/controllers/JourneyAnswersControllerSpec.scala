@@ -37,6 +37,7 @@ import repositories.{DividendsUserDataRepository, JourneyAnswersRepository, Stoc
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{affinityGroup, allEnrolments, confidenceLevel}
 import uk.gov.hmrc.auth.core.retrieve.~
+import uk.gov.hmrc.http.SessionKeys
 
 import java.time.temporal.ChronoUnit
 import java.time.{Clock, Instant, ZoneId}
@@ -113,7 +114,7 @@ class JourneyAnswersControllerSpec
 
       val request =
         FakeRequest(GET, routes.JourneyAnswersController.get(journey, taxYear).url)
-          .withHeaders("mtditid" -> userData.mtdItId)
+          .withHeaders("mtditid" -> userData.mtdItId, SessionKeys.sessionId -> "some-session-id")
 
       val result = route(app, request).value
 
@@ -127,7 +128,7 @@ class JourneyAnswersControllerSpec
 
       val request =
         FakeRequest(GET, routes.JourneyAnswersController.get(journey, taxYear).url)
-          .withHeaders("mtditid" -> userData.mtdItId)
+          .withHeaders("mtditid" -> userData.mtdItId, SessionKeys.sessionId -> "some-session-id")
 
       val result = route(app, request).value
 
@@ -146,7 +147,7 @@ class JourneyAnswersControllerSpec
     "return BAD_REQUEST when the taxYear is not valid" in {
 
       val request = FakeRequest(GET, routes.JourneyAnswersController.get(journey, invalidTaxYear).url)
-        .withHeaders("mtditid" -> userData.mtdItId)
+        .withHeaders("mtditid" -> userData.mtdItId, SessionKeys.sessionId -> "some-session-id")
 
       val result = route(app, request).value
 
@@ -159,7 +160,7 @@ class JourneyAnswersControllerSpec
 
       val request =
         FakeRequest(GET, routes.JourneyAnswersController.get(journey, taxYear).url)
-          .withHeaders("mtditid" -> userData.mtdItId)
+          .withHeaders("mtditid" -> userData.mtdItId, SessionKeys.sessionId -> "some-session-id")
 
       val result = route(app, request).value
 
@@ -176,7 +177,7 @@ class JourneyAnswersControllerSpec
       val request =
         FakeRequest(POST, routes.JourneyAnswersController.set.url)
           .withHeaders(
-            "mtditid" -> userData.mtdItId,
+            "mtditid" -> userData.mtdItId, SessionKeys.sessionId -> "some-session-id",
             "Content-Type" -> "application/json"
           )
           .withBody(Json.toJson(userData).toString)
@@ -194,7 +195,7 @@ class JourneyAnswersControllerSpec
       val request =
         FakeRequest(POST, routes.JourneyAnswersController.set.url)
           .withHeaders(
-            "mtditid" -> userData.mtdItId,
+            "mtditid" -> userData.mtdItId, SessionKeys.sessionId -> "some-session-id",
             "Content-Type" -> "application/json"
           )
           .withBody(Json.toJson(userData.copy(taxYear = invalidTaxYearInt)).toString)
@@ -223,7 +224,7 @@ class JourneyAnswersControllerSpec
       val request =
         FakeRequest(POST, routes.JourneyAnswersController.set.url)
           .withHeaders(
-            "mtditid" -> userData.mtdItId,
+            "mtditid" -> userData.mtdItId, SessionKeys.sessionId -> "some-session-id",
             "Content-Type" -> "application/json"
           )
           .withBody(badPayload)
@@ -240,7 +241,7 @@ class JourneyAnswersControllerSpec
       val request =
         FakeRequest(POST, routes.JourneyAnswersController.set.url)
           .withHeaders(
-            "mtditid" -> userData.mtdItId,
+            "mtditid" -> userData.mtdItId, SessionKeys.sessionId -> "some-session-id",
             "Content-Type" -> "application/json"
           )
           .withBody(Json.toJson(userData).toString)
@@ -259,7 +260,7 @@ class JourneyAnswersControllerSpec
 
       val request =
         FakeRequest(DELETE, routes.JourneyAnswersController.clear(journey, taxYear).url)
-          .withHeaders("mtditid" -> userData.mtdItId)
+          .withHeaders("mtditid" -> userData.mtdItId, SessionKeys.sessionId -> "some-session-id")
 
       val result = route(app, request).value
 
@@ -298,7 +299,7 @@ class JourneyAnswersControllerSpec
 
       val request =
         FakeRequest(POST, routes.JourneyAnswersController.keepAlive(journey, taxYear).url)
-          .withHeaders("mtditid" -> userData.mtdItId)
+          .withHeaders("mtditid" -> userData.mtdItId, SessionKeys.sessionId -> "some-session-id")
 
       val result = route(app, request).value
 

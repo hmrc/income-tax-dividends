@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import play.api.mvc.Result
 import play.api.mvc.Results.NoContent
 import play.api.test.FakeRequest
 import services.StockDividendsSessionService
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
 import utils.TestUtils
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -34,7 +34,7 @@ class DeleteStockDividendsSessionDataControllerSpec extends TestUtils {
   private val controller =
     new DeleteStockDividendsSessionDataController(dividendsSessionService, mockControllerComponents, authorisedAction)
 
-  private val fakeGetRequest = FakeRequest("DELETE", "/").withHeaders("mtditid" -> mtditid)
+  private val fakeGetRequest = FakeRequest("DELETE", "/").withHeaders("mtditid" -> mtditid, SessionKeys.sessionId -> "some-session-id")
   private val fakeGetRequestWithDifferentMTITID = FakeRequest("DELETE", "/").withHeaders("mtditid" -> "123123123")
 
   def mockDeleteDividendsSessionData():

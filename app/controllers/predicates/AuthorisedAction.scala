@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,32 @@
 
 package controllers.predicates
 
-import common.{EnrolmentIdentifiers, EnrolmentKeys}
-
-import javax.inject.Inject
+import common.{DelegatedAuthRules, EnrolmentIdentifiers, EnrolmentKeys}
+import config.AppConfig
 import models.User
 import models.logging.CorrelationIdMdc.withEnrichedCorrelationId
 import play.api.Logger
-import play.api.mvc.Results.Unauthorized
+import play.api.mvc.Results.{InternalServerError, Unauthorized}
 import play.api.mvc._
 import uk.gov.hmrc.auth.core._
+import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{affinityGroup, allEnrolments, confidenceLevel}
 import uk.gov.hmrc.auth.core.retrieve.~
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class AuthorisedAction @Inject()()(implicit val authConnector: AuthConnector,
                                    defaultActionBuilder: DefaultActionBuilder,
+                                   val appConfig: AppConfig,
                                    val cc: ControllerComponents) extends AuthorisedFunctions {
 
   lazy val logger: Logger = Logger.apply(this.getClass)
   implicit val executionContext: ExecutionContext = cc.executionContext
 
-  val unauthorized: Future[Result] = Future(Unauthorized)
+  val unauthorized: Future[Result] = Future.successful(Unauthorized)
 
   def async(block: User[AnyContent] => Future[Result]): Action[AnyContent] = defaultActionBuilder.async { implicit request =>
     withEnrichedCorrelationId(request) { request =>
@@ -58,8 +60,11 @@ class AuthorisedAction @Inject()()(implicit val authConnector: AuthConnector,
               logger.info(s"[AuthorisedAction][async] - No active session.")
               Unauthorized
             case _: AuthorisationException =>
-              logger.info(s"[AuthorisedAction][async] - User failed to authenticate")
+              logger.warn(s"[AuthorisedAction][async] - User failed to authenticate")
               Unauthorized
+            case e =>
+              logger.error(s"[AuthorisedAction][async] - Unexpected exception of type '${e.getClass.getSimpleName}' was caught.")
+              InternalServerError
           }
       )
     }
@@ -68,66 +73,102 @@ class AuthorisedAction @Inject()()(implicit val authConnector: AuthConnector,
   val minimumConfidenceLevel: Int = ConfidenceLevel.L250.level
 
   private[predicates] def individualAuthentication[A](block: User[A] => Future[Result], requestMtdItId: String)
-                                 (implicit request: Request[A], hc: HeaderCarrier): Future[Result] = {
+                                                     (implicit request: Request[A], hc: HeaderCarrier): Future[Result] = {
     authorised().retrieve(allEnrolments and confidenceLevel) {
       case enrolments ~ userConfidence if userConfidence.level >= minimumConfidenceLevel =>
         val optionalMtdItId: Option[String] = enrolmentGetIdentifierValue(EnrolmentKeys.Individual, EnrolmentIdentifiers.individualId, enrolments)
         val optionalNino: Option[String] = enrolmentGetIdentifierValue(EnrolmentKeys.nino, EnrolmentIdentifiers.nino, enrolments)
-        val optionalSessionId: String = request.headers.get("sessionId").getOrElse("")
 
         (optionalMtdItId, optionalNino) match {
           case (Some(authMTDITID), Some(_)) =>
-            enrolments.enrolments.collectFirst {
-              case Enrolment(EnrolmentKeys.Individual, enrolmentIdentifiers, _, _)
-                if enrolmentIdentifiers.exists(identifier => identifier.key == EnrolmentIdentifiers.individualId && identifier.value == requestMtdItId) =>
-                block(User(requestMtdItId, None, optionalNino.getOrElse(""), optionalSessionId))
-            } getOrElse {
-              logger.info(s"[AuthorisedAction][individualAuthentication] Non-agent with an invalid MTDITID. " +
-                s"MTDITID in auth matches MTDITID in request: ${authMTDITID == requestMtdItId}")
-              unauthorized
+            sessionIdFrom(request, hc) match {
+              case Some(sessionId) =>
+                enrolments.enrolments.collectFirst {
+                  case Enrolment(EnrolmentKeys.Individual, enrolmentIdentifiers, _, _)
+                    if enrolmentIdentifiers.exists(identifier => identifier.key == EnrolmentIdentifiers.individualId && identifier.value == requestMtdItId) =>
+                    block(User(requestMtdItId, None, optionalNino.getOrElse(""), sessionId))
+                } getOrElse {
+                  logger.warn(s"[AuthorisedAction][individualAuthentication] Non-agent with an invalid MTDITID. " +
+                    s"MTDITID in auth matches MTDITID in request: ${authMTDITID == requestMtdItId}")
+                  unauthorized
+                }
+              case None =>
+                logger.warn(s"[AuthorisedAction] - No session id in request")
+                unauthorized
             }
+
           case (_, None) =>
-            logger.info(s"[AuthorisedAction][individualAuthentication] - User has no nino.")
+            logger.warn(s"[AuthorisedAction][individualAuthentication] - User has no nino.")
             unauthorized
           case (None, _) =>
-            logger.info(s"[AuthorisedAction][individualAuthentication] - User has no MTD IT enrolment.")
+            logger.warn(s"[AuthorisedAction][individualAuthentication] - User has no MTD IT enrolment.")
             unauthorized
         }
       case _ =>
-        logger.info("[AuthorisedAction][individualAuthentication] User has confidence level below 250.")
+        logger.warn("[AuthorisedAction][individualAuthentication] User has confidence level below 250.")
         unauthorized
     }
   }
 
+  private[predicates] def agentAuthPredicate(mtdId: String): Predicate =
+    Enrolment(EnrolmentKeys.Individual)
+      .withIdentifier(EnrolmentIdentifiers.individualId, mtdId)
+      .withDelegatedAuthRule(DelegatedAuthRules.agentDelegatedAuthRule)
+
+  private[predicates] def secondaryAgentPredicate(mtdId: String): Predicate =
+    Enrolment(EnrolmentKeys.SupportingAgent)
+      .withIdentifier(EnrolmentIdentifiers.individualId, mtdId)
+      .withDelegatedAuthRule(DelegatedAuthRules.supportingAgentDelegatedAuthRule)
+
   private[predicates] def agentAuthentication[A](block: User[A] => Future[Result], mtdItId: String)
                                                 (implicit request: Request[A], hc: HeaderCarrier): Future[Result] = {
-
-    val optionalSessionId: String = request.headers.get("sessionId").getOrElse("")
-
-    lazy val agentDelegatedAuthRuleKey = "mtd-it-auth"
-
-    lazy val agentAuthPredicate: String => Enrolment = identifierId =>
-    Enrolment(EnrolmentKeys.Individual)
-      .withIdentifier(EnrolmentIdentifiers.individualId, identifierId)
-      .withDelegatedAuthRule(agentDelegatedAuthRuleKey)
-
     authorised(agentAuthPredicate(mtdItId))
       .retrieve(allEnrolments) { enrolments =>
+        populateAgent(block, mtdItId, None, enrolments, isSecondaryAgent = false)
+      }.recoverWith(agentRecovery(block, mtdItId))
+  }
 
-        enrolmentGetIdentifierValue(EnrolmentKeys.Agent, EnrolmentIdentifiers.agentReference, enrolments) match {
-          case Some(arn) =>
-            block(User(mtdItId, Some(arn), "", optionalSessionId))
-          case None =>
-            logger.info("[AuthorisedAction][agentAuthentication] Agent with no HMRC-AS-AGENT enrolment.")
+  private def agentRecovery[A](block: User[A] => Future[Result], mtdItId: String)
+                              (implicit request: Request[A], hc: HeaderCarrier): PartialFunction[Throwable, Future[Result]] = {
+    case _: NoActiveSession =>
+      logger.info(s"[AuthorisedAction][agentAuthentication] - No active session.")
+      unauthorized
+    case _: AuthorisationException if appConfig.emaSupportingAgentsEnabled =>
+      authorised(secondaryAgentPredicate(mtdItId))
+        .retrieve(allEnrolments) { enrolments =>
+          populateAgent(block, mtdItId, None, enrolments, isSecondaryAgent = true)
+        }.recoverWith {
+          case _: AuthorisationException =>
+            logger.warn(s"[AuthorisedAction][agentAuthentication] - Agent does not have delegated authority for Client.")
             unauthorized
+          case e =>
+            logger.error(s"[AuthorisedAction][agentAuthentication] - Unexpected exception of type '${e.getClass.getSimpleName}' was caught.")
+            Future(InternalServerError)
         }
-      } recover {
-      case _: NoActiveSession =>
-        logger.info(s"[AuthorisedAction][agentAuthentication] - No active session.")
-        Unauthorized
-      case _: AuthorisationException =>
-        logger.info(s"[AuthorisedAction][agentAuthentication] - Agent does not have delegated authority for Client.")
-        Unauthorized
+    case _: AuthorisationException =>
+      logger.warn(s"[AuthorisedAction][agentAuthentication] - Agent does not have secondary delegated authority for Client.")
+      unauthorized
+    case e =>
+      logger.error(s"[AuthorisedAction][agentAuthentication] - Unexpected exception of type '${e.getClass.getSimpleName}' was caught.")
+      Future(InternalServerError)
+  }
+
+  private def populateAgent[A](block: User[A] => Future[Result],
+                               mtdItId: String,
+                               nino: Option[String],
+                               enrolments: Enrolments,
+                               isSecondaryAgent: Boolean)(implicit request: Request[A], hc: HeaderCarrier): Future[Result] = {
+    enrolmentGetIdentifierValue(EnrolmentKeys.Agent, EnrolmentIdentifiers.agentReference, enrolments) match {
+      case Some(arn) =>
+        sessionIdFrom(request, hc).fold {
+          logger.warn(s"[AuthorisedAction][agentAuthentication] - No session id in request.")
+          unauthorized
+        } { sessionId =>
+          block(User(mtdItId, Some(arn), nino.getOrElse(""), sessionId, isSecondaryAgent))
+        }
+      case None =>
+        logger.warn("[AuthorisedAction][agentAuthentication] Agent with no HMRC-AS-AGENT enrolment.")
+        unauthorized
     }
   }
 
@@ -138,5 +179,11 @@ class AuthorisedAction @Inject()()(implicit val authConnector: AuthConnector,
       case EnrolmentIdentifier(`checkedIdentifier`, identifierValue) => identifierValue
     }
   }.flatten
+
+  private def sessionIdFrom(request: Request[_], hc: HeaderCarrier): Option[String] = hc.sessionId match {
+    case Some(sessionId) => Some(sessionId.value)
+    case _ => request.headers.get(SessionKeys.sessionId)
+
+  }
 
 }

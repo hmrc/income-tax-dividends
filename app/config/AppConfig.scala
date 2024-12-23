@@ -50,6 +50,7 @@ trait AppConfig {
   def replaceIndexes: Boolean
   def authorisationTokenFor(apiVersion: String): String
   def replaceJourneyAnswersIndexes: Boolean
+  def emaSupportingAgentsEnabled: Boolean
 }
 
 class BackendAppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) extends AppConfig {
@@ -72,7 +73,7 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
 
   lazy val incomeTaxSubmissionBEBaseUrl: String = s"${config.get[String]("microservice.services.income-tax-submission.url")}/income-tax-submission-service"
 
-  lazy val useEncryption: Boolean = servicesConfig.getBoolean("useEncryption")
+  lazy val useEncryption: Boolean = servicesConfig.getBoolean("feature-switch.useEncryption")
 
   lazy val sectionCompletedQuestionEnabled: Boolean = servicesConfig.getBoolean("feature-switch.sectionCompletedQuestionEnabled")
 
@@ -84,4 +85,5 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
   lazy val mongoJourneyAnswersTTL: Long = Duration(servicesConfig.getString("mongodb.journeyAnswersTimeToLive")).toDays.toInt
 
   def authorisationTokenFor(api: String): String = config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")
+  def emaSupportingAgentsEnabled: Boolean = config.get[Boolean]("feature-switch.ema-supporting-agents-enabled")
 }
