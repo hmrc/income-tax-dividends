@@ -16,7 +16,6 @@
 
 package config
 
-import play.api.Configuration
 import uk.gov.hmrc.crypto.{Decrypter, Encrypter, SymmetricCryptoFactory}
 
 import javax.inject.{Inject, Provider, Singleton}

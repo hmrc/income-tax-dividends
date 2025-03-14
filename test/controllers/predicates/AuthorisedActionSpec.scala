@@ -198,45 +198,6 @@ class AuthorisedActionSpec extends TestUtils {
           bodyOf(result) mustBe "1234567890 0987654321"
         }
       }
-
-      "the agent is authorised as an ema supporting agent, and the supporting agent feature is enabled" which {
-
-        val enrolments = Enrolments(Set(
-          Enrolment(
-            key = EnrolmentKeys.SupportingAgent,
-            identifiers = Seq(EnrolmentIdentifier(EnrolmentIdentifiers.individualId, "1234567890")),
-            state = "Activated",
-            delegatedAuthRule = Some(DelegatedAuthRules.supportingAgentDelegatedAuthRule)
-          ),
-          Enrolment(
-            key = EnrolmentKeys.Agent,
-            identifiers = Seq(EnrolmentIdentifier(EnrolmentIdentifiers.agentReference, "0987654321")),
-            state = "Activated"
-          )
-        ))
-
-        lazy val result = {
-
-          object AuthException extends AuthorisationException("not primary agent")
-          mockAuthReturnException(InsufficientEnrolments()).once()
-
-          (() => mockAppConfig.emaSupportingAgentsEnabled).expects().returning(true)
-
-          (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
-            .expects(*, Retrievals.allEnrolments, *, *)
-            .returning(Future.successful(enrolments))
-            .once()
-
-          authorisedAction.agentAuthentication(block, "1234567890")(fakeRequest, emptyHeaderCarrier)
-        }
-
-        "has a status of OK" in {
-          status(result) mustBe OK
-        }
-        "has the correct body" in {
-          bodyOf(result) mustBe "1234567890 0987654321"
-        }
-      }
     }
 
     "return a UNAUTHORIZED" when {
@@ -251,27 +212,10 @@ class AuthorisedActionSpec extends TestUtils {
         status(result) mustBe UNAUTHORIZED
       }
 
-      "the authorisation service returns an AuthorisationException exception (and ema supporting agent is disabled)" in {
+      "the authorisation service returns an AuthorisationException exception" in {
 
         lazy val result = {
           mockAuthReturnException(InsufficientEnrolments())
-          //Disable EMA Supporting Agent feature
-          (() => mockAppConfig.emaSupportingAgentsEnabled).expects().returning(false)
-
-          authorisedAction.agentAuthentication(block, "1234567890")(fakeRequest, emptyHeaderCarrier)
-        }
-        status(result) mustBe UNAUTHORIZED
-      }
-
-      "the authorisation service returns an AuthorisationException exception for a delegated ema Support Agent" in {
-
-        lazy val result = {
-
-          mockAuthReturnException(InsufficientEnrolments()).once()
-
-          (() => mockAppConfig.emaSupportingAgentsEnabled).expects().returning(true)
-
-          mockAuthReturnException(InsufficientEnrolments()).once()
 
           authorisedAction.agentAuthentication(block, "1234567890")(fakeRequest, emptyHeaderCarrier)
         }
@@ -297,17 +241,6 @@ class AuthorisedActionSpec extends TestUtils {
 
       "an Exception that isn't an Authorisation exception is returned (Primary Agent)" in {
 
-        mockAuthReturnException(new Exception("bang"))
-
-        val result = authorisedAction.agentAuthentication(block, "1234567890")(fakeRequest, emptyHeaderCarrier)
-
-        status(result) mustBe INTERNAL_SERVER_ERROR
-      }
-
-      "an Exception that isn't an Authorisation exception is returned (Secondary Agent)" in {
-
-        mockAuthReturnException(InsufficientEnrolments()).once()
-        (() => mockAppConfig.emaSupportingAgentsEnabled).expects().returning(true)
         mockAuthReturnException(new Exception("bang"))
 
         val result = authorisedAction.agentAuthentication(block, "1234567890")(fakeRequest, emptyHeaderCarrier)

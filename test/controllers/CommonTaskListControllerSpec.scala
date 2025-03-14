@@ -17,7 +17,6 @@
 package controllers
 
 import models.taskList.{SectionTitle, TaskListSection}
-import org.scalamock.handlers.CallHandler4
 import play.api.http.Status.OK
 import services.CommonTaskListService
 import uk.gov.hmrc.http.HeaderCarrier
@@ -38,7 +37,7 @@ class CommonTaskListControllerSpec extends TestUtils {
     cc = mockControllerComponents
   )
 
-  private def mockDividendsService() {
+  private def mockDividendsService(): Unit = {
     (commonTaskListService.get(_: Int, _: String, _: String)(_: ExecutionContext, _: HeaderCarrier))
       .expects(*, *, *, *, *)
       .returning(Future.successful(TaskListSection(SectionTitle.DividendsTitle, None)))
