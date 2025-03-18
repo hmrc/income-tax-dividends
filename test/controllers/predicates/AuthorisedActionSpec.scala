@@ -37,7 +37,7 @@ class AuthorisedActionSpec extends TestUtils {
 
   override lazy val mockAppConfig: AppConfig = mock[AppConfig]
   override val authorisedAction: AuthorisedAction = {
-    new AuthorisedAction()(mockAuthConnector, defaultActionBuilder, mockAppConfig, mockControllerComponents)
+    new AuthorisedAction()(mockAuthConnector, defaultActionBuilder, mockControllerComponents)
   }
 
   ".enrolmentGetIdentifierValue" should {

@@ -17,7 +17,6 @@
 package controllers.predicates
 
 import common.{DelegatedAuthRules, EnrolmentIdentifiers, EnrolmentKeys}
-import config.AppConfig
 import models.User
 import models.logging.CorrelationIdMdc.withEnrichedCorrelationId
 import play.api.Logger
@@ -35,7 +34,6 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class AuthorisedAction @Inject()()(implicit val authConnector: AuthConnector,
                                    defaultActionBuilder: DefaultActionBuilder,
-                                   val appConfig: AppConfig,
                                    val cc: ControllerComponents) extends AuthorisedFunctions {
 
   lazy val logger: Logger = Logger.apply(this.getClass)
