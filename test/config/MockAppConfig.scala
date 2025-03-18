@@ -20,7 +20,7 @@ import org.scalamock.scalatest.MockFactory
 
 import scala.concurrent.duration.Duration
 
-class MockAppConfig(supportingAgentsEnabled: Boolean = false) extends AppConfig with MockFactory {
+class MockAppConfig() extends AppConfig with MockFactory {
   override val authBaseUrl: String = "/auth"
 
   override val auditingEnabled: Boolean = true
@@ -50,8 +50,6 @@ class MockAppConfig(supportingAgentsEnabled: Boolean = false) extends AppConfig 
   override val sectionCompletedQuestionEnabled: Boolean = true
 
   override val incomeTaxSubmissionBEBaseUrl: String = "http://localhost:9308"
-
-  override def emaSupportingAgentsEnabled: Boolean = supportingAgentsEnabled
 }
 
 class MockAppConfigEncyrptionOff extends MockAppConfig {
