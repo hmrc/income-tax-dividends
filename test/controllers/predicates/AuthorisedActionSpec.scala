@@ -235,6 +235,28 @@ class AuthorisedActionSpec extends TestUtils {
         }
         status(result) mustBe UNAUTHORIZED
       }
+
+      "the session id does not exist in the headers" which {
+        "returns an UNAUTHORIZED status" in {
+          val enrolments = Enrolments(Set(
+            Enrolment(EnrolmentKeys.Individual, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.individualId, "1234567890")), "Activated"),
+            Enrolment(EnrolmentKeys.Agent, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.agentReference, "0987654321")), "Activated")
+          ))
+
+          val request = FakeRequest("GET",
+            "/income-tax-dividends/income-tax/nino/AA123456A/sources?taxYear=2024").withHeaders("mtditid" -> "1234567890")
+
+          lazy val result = {
+            (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
+              .expects(*, Retrievals.allEnrolments, *, *)
+              .returning(Future.successful(enrolments))
+
+            authorisedAction.agentAuthentication(block, "1234567890")(request, emptyHeaderCarrier)
+          }
+
+          status(result) mustBe UNAUTHORIZED
+        }
+      }
     }
 
     "return ISE" when {
