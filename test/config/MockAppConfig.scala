@@ -16,11 +16,9 @@
 
 package config
 
-import org.scalamock.scalatest.MockFactory
-
 import scala.concurrent.duration.Duration
 
-class MockAppConfig() extends AppConfig with MockFactory {
+class MockAppConfig() extends AppConfig {
   override val authBaseUrl: String = "/auth"
 
   override val auditingEnabled: Boolean = true
