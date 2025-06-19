@@ -19,12 +19,13 @@ package support.mocks
 import connectors.httpParsers.GetDividendsIncomeParser.GetDividendsIncomeDataResponse
 import org.scalamock.handlers.CallHandler3
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.TestSuite
 import services.GetDividendsIncomeService
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-trait MockGetDividendsIncomeService extends MockFactory {
+trait MockGetDividendsIncomeService extends MockFactory { _: TestSuite =>
   private type GetDividendsIncomeMockResult = CallHandler3[String, Int, HeaderCarrier, Future[GetDividendsIncomeDataResponse]]
   val mockGetDividendsIncomeService: GetDividendsIncomeService = mock[GetDividendsIncomeService]
 

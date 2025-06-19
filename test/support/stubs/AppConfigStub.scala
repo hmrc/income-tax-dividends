@@ -17,11 +17,9 @@
 package support.stubs
 
 import config.AppConfig
-import org.scalamock.scalatest.MockFactory
-
 import scala.concurrent.duration.Duration
 
-class AppConfigStub extends MockFactory {
+class AppConfigStub {
 
   def config(environment: String = "test"): AppConfig = new AppConfig() {
     private val wireMockPort = 11111
