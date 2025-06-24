@@ -44,7 +44,7 @@ class StockDividendsSessionService @Inject()(stockDividendsUserDataRepository: S
       }
     }
 
-  def createSessionData[A](cyaModel: StockDividendsCheckYourAnswersModel, taxYear: Int)(onFail: A)(onSuccess: A)
+  def createSessionData[A](cyaModel: StockDividendsCheckYourAnswersModel, taxYear: Int)(onFail: => A)(onSuccess: => A)
                           (implicit user: User[_], ec: ExecutionContext): Future[A] = {
 
     val userData = StockDividendsUserDataModel(
@@ -62,7 +62,7 @@ class StockDividendsSessionService @Inject()(stockDividendsUserDataRepository: S
     }
   }
 
-  def updateSessionData[A](cyaModel: StockDividendsCheckYourAnswersModel, taxYear: Int, needsCreating: Boolean = false)(onFail: A)(onSuccess: A)
+  def updateSessionData[A](cyaModel: StockDividendsCheckYourAnswersModel, taxYear: Int, needsCreating: Boolean = false)(onFail: => A)(onSuccess: => A)
                           (implicit user: User[_], ec: ExecutionContext): Future[A] = {
 
     val userData = StockDividendsUserDataModel(
@@ -87,7 +87,7 @@ class StockDividendsSessionService @Inject()(stockDividendsUserDataRepository: S
     }
   }
 
-  def clear[R](taxYear: Int)(onFail: R)(onSuccess: R)(implicit user: User[_], ec: ExecutionContext, hc: HeaderCarrier): Future[R] = {
+  def clear[R](taxYear: Int)(onFail: => R)(onSuccess: => R)(implicit user: User[_], ec: ExecutionContext, hc: HeaderCarrier): Future[R] = {
     incomeSourceConnector.put(taxYear, user.nino, IncomeSources.STOCK_DIVIDENDS)(hc.withExtraHeaders("mtditid" -> user.mtditid)).flatMap {
       case Left(_) => Future.successful(onFail)
       case _ =>

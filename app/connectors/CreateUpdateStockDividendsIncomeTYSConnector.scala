@@ -38,6 +38,6 @@ class CreateUpdateStockDividendsIncomeTYSConnector @Inject()(http: HttpClient, v
     val url = appConfig.ifBaseUrl + s"/income-tax/income/dividends/$taxYearParameter/$nino"
 
     http.PUT[StockDividendsSubmissionModel, CreateUpdateStockDividendsIncomeResponse](url, createUpdatedDividendsIncomeModel)(
-      StockDividendsSubmissionModel.formats.writes, CreateUpdateDividendsIncomeHttpReads, ifHeaderCarrier(url, putDividendsIncomeTYS), ec)
+      StockDividendsSubmissionModel.formats, CreateUpdateDividendsIncomeHttpReads, ifHeaderCarrier(url, putDividendsIncomeTYS), ec)
   }
 }

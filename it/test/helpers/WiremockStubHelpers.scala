@@ -123,9 +123,4 @@ trait WiremockStubHelpers {
       .withRequestBody(equalToJson(body.toString(), true, true))
     )
 
-  def auditStubs(): Unit = {
-    val auditResponseCode = 204
-    stubPostWithoutResponseAndRequestBody("/write/audit", auditResponseCode)
-  }
-
 }
