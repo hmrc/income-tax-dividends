@@ -19,12 +19,10 @@ package repositories
 import models.User
 import models.dividends.StockDividendsCheckYourAnswersModel
 import models.mongo._
-import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.result.InsertOneResult
 import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
 import play.api.mvc.AnyContent
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits}
-import uk.gov.hmrc.mongo.play.json.Codecs.toBson
 import utils.IntegrationTest
 
 class StockDividendsUserDataRepositoryISpec extends IntegrationTest with FutureAwaits with DefaultAwaitTimeout {
@@ -113,12 +111,6 @@ class StockDividendsUserDataRepositoryISpec extends IntegrationTest with FutureA
   }
 
   "find" should {
-    def filter(sessionId: String, mtdItId: String, nino: String, taxYear: Int): Bson = org.mongodb.scala.model.Filters.and(
-      org.mongodb.scala.model.Filters.equal("sessionId", toBson(sessionId)),
-      org.mongodb.scala.model.Filters.equal("mtdItId", toBson(mtdItId)),
-      org.mongodb.scala.model.Filters.equal("nino", toBson(nino)),
-      org.mongodb.scala.model.Filters.equal("taxYear", toBson(taxYear))
-    )
 
     val testUser = User(mtditid, None, nino, sessionId)
 

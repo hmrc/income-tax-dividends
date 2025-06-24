@@ -25,6 +25,7 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
+import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.{WSClient, WSRequest}
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
@@ -46,9 +47,9 @@ trait WiremockSpec extends AnyWordSpec with Matchers with BeforeAndAfterEach wit
   def servicesToUrlConfig: Seq[(String, String)] = connectedServices
     .flatMap(service => Seq(s"microservice.services.$service.host" -> s"localhost", s"microservice.services.$service.port" -> wireMockPort.toString))
 
-  override implicit lazy val app = GuiceApplicationBuilder()
+  override implicit lazy val app: Application = GuiceApplicationBuilder()
     .configure(
-      ("auditing.consumer.baseUri.port" -> wireMockPort) +:
+      ("auditing.enabled" -> false) +:
         servicesToUrlConfig: _*
     )
     .build()

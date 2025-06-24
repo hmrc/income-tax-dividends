@@ -33,7 +33,7 @@ class DividendsSessionService @Inject()(incomeSourceConnector: IncomeSourceConne
 
   lazy val logger: Logger = Logger(this.getClass)
 
-  def createSessionData[A](cyaModel: DividendsCheckYourAnswersModel, taxYear: Int)(onFail: A)(onSuccess: A)
+  def createSessionData[A](cyaModel: DividendsCheckYourAnswersModel, taxYear: Int)(onFail: => A)(onSuccess: => A)
                           (implicit user: User[_], ec: ExecutionContext): Future[A] = {
 
     val userData = DividendsUserDataModel(
@@ -61,7 +61,7 @@ class DividendsSessionService @Inject()(incomeSourceConnector: IncomeSourceConne
     }
   }
 
-  def updateSessionData[A](cyaModel: DividendsCheckYourAnswersModel, taxYear: Int, needsCreating: Boolean = false)(onFail: A)(onSuccess: A)
+  def updateSessionData[A](cyaModel: DividendsCheckYourAnswersModel, taxYear: Int, needsCreating: Boolean = false)(onFail: => A)(onSuccess: => A)
                           (implicit user: User[_], ec: ExecutionContext): Future[A] = {
 
     val userData = DividendsUserDataModel(
@@ -86,7 +86,7 @@ class DividendsSessionService @Inject()(incomeSourceConnector: IncomeSourceConne
     }
   }
 
-  def clear[R](taxYear: Int)(onFail: R)(onSuccess: R)(implicit user: User[_], ec: ExecutionContext, hc: HeaderCarrier): Future[R] = {
+  def clear[R](taxYear: Int)(onFail: => R)(onSuccess: => R)(implicit user: User[_], ec: ExecutionContext, hc: HeaderCarrier): Future[R] = {
     incomeSourceConnector.put(taxYear, user.nino, IncomeSources.DIVIDENDS)(hc.withExtraHeaders("mtditid" -> user.mtditid)).flatMap {
       case Left(_) => Future.successful(onFail)
       case _ =>
