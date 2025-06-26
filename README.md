@@ -6,42 +6,35 @@ This is where we make API calls from users for creating, viewing and making chan
 ## Running the service locally
 
 You will need to have the following:
+- Installed [MongoDB](https://docs.mongodb.com/manual/installation/)
 - Installed/configured [service manager](https://github.com/hmrc/sm2).
+
+This can be found in the [developer handbook](https://docs.tax.service.gov.uk/mdtp-handbook/documentation/developer-set-up/)
 
 The service manager profile for this service is:
 
     sm2 --start INCOME_TAX_DIVIDENDS
+
 Run the following command to start the remaining services locally:
 
 sudo mongod (If not already running)
-sm2 --start INCOME_TAX_SUBMISSION_ALL -r
+sm2 --start INCOME_TAX_SUBMISSION_ALL
 
 This service runs on port: `localhost:9307`
 
-### Dividends endpoints:
 
-- **GET     /income-tax/nino/:nino/income-source/dividends/annual/:taxYear** (Retrieves details for the dividends income source over the accounting period which matches the tax year provided)
-- **POST    /income-tax/nino/:nino/income-source/dividends/annual/:taxYear** (Provides the ability for a user to submit periodic annual income for dividends)
+### Running Tests
+- Run Unit Tests:  `sbt test`
+- Run Integration Tests: `sbt it/test`
+- Run Unit and Integration Tests: `sbt test it/test`
+- Run Unit and Integration Tests with coverage report using the script `./check.sh`
 
-### Downstream services:
+### Feature Switches
+| Feature                         | Description                                                       |
+|---------------------------------|-------------------------------------------------------------------|
+| useEncryption	               | Enables SymmetricCryptoFactory instead of EncryptedValue          |
+| sectionCompletedQuestionEnabled | Redirects user to Have you completed this section from CYA page   |
 
-All interest data is retrieved/updated via the downstream system.
-
-- DES (Data Exchange Service)
-
-### Dividends income source
-
-<details>
-<summary>Click here to see an example of a users dividends data (JSON)</summary>
-
-```json
-{
-  "ukDividends": 293206807.99,
-  "otherUkDividends": 170603870.99
-}
-```
-
-</details>
 
 ## Ninos with stubbed data for dividends
 
