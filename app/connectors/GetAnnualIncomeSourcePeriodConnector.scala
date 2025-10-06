@@ -18,13 +18,14 @@ package connectors
 
 import config.AppConfig
 import connectors.httpParsers.GetAnnualIncomeSourcePeriodHttpParser._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 import utils.TaxYearUtils.convertSpecificTaxYear
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class GetAnnualIncomeSourcePeriodConnector @Inject()(val http: HttpClient,
+class GetAnnualIncomeSourcePeriodConnector @Inject()(val http: HttpClientV2,
                                                      val appConfig: AppConfig)(implicit ec: ExecutionContext) extends IFConnector {
 
   def getAnnualIncomeSourcePeriod(nino: String,
@@ -33,6 +34,7 @@ class GetAnnualIncomeSourcePeriodConnector @Inject()(val http: HttpClient,
 
     val taxYearParameter = convertSpecificTaxYear(taxYear)
     val incomeSourcesUri: String = appConfig.ifBaseUrl + s"/income-tax/$taxYearParameter/$nino/income-source/dividends/annual?deleteReturnPeriod=false"
-    http.GET[GetAnnualIncomeSourcePeriod](incomeSourcesUri)(GetAnnualIncomeSourcePeriodReads, ifHeaderCarrier(incomeSourcesUri, GetAnnualIncomeSourcePeriod), ec)
+    http.get(url"$incomeSourcesUri")(ifHeaderCarrier(incomeSourcesUri, GetAnnualIncomeSourcePeriod))
+      .execute[GetAnnualIncomeSourcePeriod]
   }
 }

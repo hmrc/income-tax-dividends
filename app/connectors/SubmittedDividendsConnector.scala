@@ -18,12 +18,13 @@ package connectors
 
 import config.AppConfig
 import connectors.httpParsers.SubmittedDividendsHttpParser._
-import javax.inject.Inject
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class SubmittedDividendsConnector @Inject() (val http: HttpClient,
+class SubmittedDividendsConnector @Inject() (val http: HttpClientV2,
                                              val appConfig: AppConfig)(implicit ec:ExecutionContext) extends DesConnector {
 
   def getSubmittedDividends(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[SubmittedDividendsResponse] = {
@@ -31,7 +32,8 @@ class SubmittedDividendsConnector @Inject() (val http: HttpClient,
       s"annual/$taxYear"
 
     def desCall(implicit hc: HeaderCarrier): Future[SubmittedDividendsResponse] = {
-      http.GET[SubmittedDividendsResponse](incomeSourcesUri)
+      http.get(url"$incomeSourcesUri")
+        .execute[SubmittedDividendsResponse]
     }
 
     desCall(desHeaderCarrier(incomeSourcesUri))

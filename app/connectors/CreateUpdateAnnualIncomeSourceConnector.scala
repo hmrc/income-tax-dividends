@@ -19,13 +19,15 @@ package connectors
 import config.AppConfig
 import connectors.httpParsers.CreateUpdateAnnualIncomeSourceHttpParser.{CreateUpdateAnnualIncomeSourceHttpReads, CreateUpdateAnnualIncomeSourceResponse}
 import models.CreateOrAmendDividendsModel
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import play.api.libs.json.Json
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 import utils.TaxYearUtils.convertSpecificTaxYear
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class CreateUpdateAnnualIncomeSourceConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends IFConnector{
+class CreateUpdateAnnualIncomeSourceConnector @Inject()(http: HttpClientV2, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends IFConnector{
   def createUpdateAnnualIncomeSource(
                                       nino: String, taxYear: Int, dividendsModel: CreateOrAmendDividendsModel
                             )(implicit hc: HeaderCarrier): Future[CreateUpdateAnnualIncomeSourceResponse] = {
@@ -33,7 +35,9 @@ class CreateUpdateAnnualIncomeSourceConnector @Inject()(http: HttpClient, val ap
     val createUpdateAnnualIncomeSourceUrl: String = appConfig.ifBaseUrl + s"/income-tax/$formattedTaxYear/$nino/income-source/dividends/annual"
 
     def ifCall(implicit hc: HeaderCarrier): Future[CreateUpdateAnnualIncomeSourceResponse] = {
-      http.POST[CreateOrAmendDividendsModel, CreateUpdateAnnualIncomeSourceResponse](createUpdateAnnualIncomeSourceUrl, dividendsModel)
+      http.post(url"$createUpdateAnnualIncomeSourceUrl").
+        withBody(Json.toJson(dividendsModel)).
+        execute[CreateUpdateAnnualIncomeSourceResponse]
     }
 
     ifCall(ifHeaderCarrier(createUpdateAnnualIncomeSourceUrl, "1784"))
