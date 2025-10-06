@@ -18,13 +18,14 @@ package connectors
 
 import config.AppConfig
 import connectors.httpParsers.DeleteDividendsIncomeTYSParser.{DeleteDividendsIncomeTYSHttpReads, DeleteDividendsIncomeTYSResponse}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 import utils.TaxYearUtils.convertSpecificTaxYear
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class DeleteDividendsIncomeDataTYSConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends IFConnector {
+class DeleteDividendsIncomeDataTYSConnector @Inject()(http: HttpClientV2, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends IFConnector {
 
   val deleteDividendsIncomeTYS = "1908"
 
@@ -34,7 +35,7 @@ class DeleteDividendsIncomeDataTYSConnector @Inject()(http: HttpClient, val appC
     val taxYearParameter = convertSpecificTaxYear(taxYear)
     val deleteDividendsIncomeTYSUrl: String = appConfig.ifBaseUrl + s"/income-tax/income/dividends/$taxYearParameter/$nino"
 
-    http.DELETE[DeleteDividendsIncomeTYSResponse](deleteDividendsIncomeTYSUrl)(DeleteDividendsIncomeTYSHttpReads,
-      ifHeaderCarrier(deleteDividendsIncomeTYSUrl, deleteDividendsIncomeTYS), ec)
+    http.delete(url"$deleteDividendsIncomeTYSUrl")(ifHeaderCarrier(deleteDividendsIncomeTYSUrl, deleteDividendsIncomeTYS))
+      .execute[DeleteDividendsIncomeTYSResponse]
   }
 }

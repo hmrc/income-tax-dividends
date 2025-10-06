@@ -19,12 +19,14 @@ package connectors
 import config.AppConfig
 import connectors.httpParsers.CreateOrAmendDividendsHttpParser._
 import models.CreateOrAmendDividendsModel
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import play.api.libs.json.Json
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class CreateOrAmendDividendsConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends DesConnector {
+class CreateOrAmendDividendsConnector @Inject()(http: HttpClientV2, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends DesConnector {
 
   def createOrAmendDividends(
                              nino: String, taxYear: Int, dividendsModel: CreateOrAmendDividendsModel
@@ -33,7 +35,9 @@ class CreateOrAmendDividendsConnector @Inject()(http: HttpClient, val appConfig:
       s"annual/$taxYear"
 
     def desCall(implicit hc: HeaderCarrier): Future[CreateOrAmendDividendsResponse] = {
-      http.POST[CreateOrAmendDividendsModel, CreateOrAmendDividendsResponse](createOrAmendDividendsUrl, dividendsModel)
+      http.post(url"$createOrAmendDividendsUrl")
+        .withBody(Json.toJson(dividendsModel))
+        .execute[CreateOrAmendDividendsResponse]
     }
 
     desCall(desHeaderCarrier(createOrAmendDividendsUrl))
