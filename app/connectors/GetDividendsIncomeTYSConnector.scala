@@ -18,20 +18,22 @@ package connectors
 
 import config.AppConfig
 import connectors.httpParsers.GetDividendsIncomeTYSParser.{DividendsIncomeDataTYSHttpReads, GetDividendsIncomeDataTYSResponse}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 import utils.TaxYearUtils.convertSpecificTaxYear
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class GetDividendsIncomeTYSConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends IFConnector {
+class GetDividendsIncomeTYSConnector @Inject()(http: HttpClientV2, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends IFConnector {
 
   val GetDividendsIncomeDataTYS = "1907"
 
   def getDividendsIncomeData(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetDividendsIncomeDataTYSResponse] = {
     val taxYearParameter = convertSpecificTaxYear(taxYear)
     val dividendsIncomeDataTYSUrl = appConfig.ifBaseUrl + s"/income-tax/income/dividends/$taxYearParameter/$nino"
-    http.GET[GetDividendsIncomeDataTYSResponse](dividendsIncomeDataTYSUrl)(
-      DividendsIncomeDataTYSHttpReads, ifHeaderCarrier(dividendsIncomeDataTYSUrl, GetDividendsIncomeDataTYS), ec)
+    http.get(url"$dividendsIncomeDataTYSUrl")(ifHeaderCarrier(dividendsIncomeDataTYSUrl, GetDividendsIncomeDataTYS))
+      .setHeader()
+    .execute[GetDividendsIncomeDataTYSResponse]
   }
 }

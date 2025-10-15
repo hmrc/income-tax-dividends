@@ -18,20 +18,21 @@ package connectors
 
 import config.AppConfig
 import connectors.httpParsers.GetDividendsIncomeParser.{DividendsIncomeDataHttpReads, GetDividendsIncomeDataResponse}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 import utils.TaxYearUtils.convertStringTaxYear
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class GetDividendsIncomeConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends IFConnector {
+class GetDividendsIncomeConnector @Inject()(http: HttpClientV2, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends IFConnector {
 
   val GetDividendsIncomeData = "1609"
 
   def getDividendsIncomeData(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[GetDividendsIncomeDataResponse] = {
     val taxYearParameter = convertStringTaxYear(taxYear)
     val dividendsIncomeDataUrl = appConfig.ifBaseUrl + s"/income-tax/income/dividends/$nino/$taxYearParameter"
-    http.GET[GetDividendsIncomeDataResponse](dividendsIncomeDataUrl)(
-      DividendsIncomeDataHttpReads, ifHeaderCarrier(dividendsIncomeDataUrl, GetDividendsIncomeData), ec)
+    http.get(url"$dividendsIncomeDataUrl")(ifHeaderCarrier(dividendsIncomeDataUrl, GetDividendsIncomeData))
+      .execute[GetDividendsIncomeDataResponse]
   }
 }

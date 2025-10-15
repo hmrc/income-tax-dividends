@@ -20,14 +20,16 @@ import com.typesafe.config.ConfigFactory
 import config.AppConfig
 import connectors.httpParsers.CreateUpdateStockDividendsIncomeHttpParser.{CreateUpdateDividendsIncomeHttpReads, CreateUpdateStockDividendsIncomeResponse}
 import models.StockDividendsSubmissionModel
+import play.api.libs.json.Json
 import uk.gov.hmrc.http.HeaderCarrier.Config
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 import utils.TaxYearUtils.convertSpecificTaxYear
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class CreateUpdateStockDividendsIncomeTYSConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends IFConnector {
+class CreateUpdateStockDividendsIncomeTYSConnector @Inject()(http: HttpClientV2, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends IFConnector {
 
   override val headerCarrierConfig: Config = HeaderCarrier.Config.fromConfig(ConfigFactory.load())
 
@@ -37,7 +39,8 @@ class CreateUpdateStockDividendsIncomeTYSConnector @Inject()(http: HttpClient, v
     val taxYearParameter = convertSpecificTaxYear(taxYear)
     val url = appConfig.ifBaseUrl + s"/income-tax/income/dividends/$taxYearParameter/$nino"
 
-    http.PUT[StockDividendsSubmissionModel, CreateUpdateStockDividendsIncomeResponse](url, createUpdatedDividendsIncomeModel)(
-      StockDividendsSubmissionModel.formats, CreateUpdateDividendsIncomeHttpReads, ifHeaderCarrier(url, putDividendsIncomeTYS), ec)
+    http.put(url"$url")(ifHeaderCarrier(url, putDividendsIncomeTYS))
+      .withBody(Json.toJson(createUpdatedDividendsIncomeModel))
+      .execute[CreateUpdateStockDividendsIncomeResponse](CreateUpdateDividendsIncomeHttpReads, ec)
   }
 }
