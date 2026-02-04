@@ -33,16 +33,16 @@ object AppDependencies {
     "uk.gov.hmrc"                   %% "bootstrap-backend-play-30"              % bootstrapPlay30Version,
     "uk.gov.hmrc.mongo"             %% "hmrc-mongo-play-30"                     % hmrcMongoPlay30Version,
     "uk.gov.hmrc"                   %% "crypto-json-play-30"                    % "8.4.0",
-    "com.fasterxml.jackson.module"  %% "jackson-module-scala"                   % "2.20.1",
-    "com.beachape"                  %% "enumeratum"                             % "1.9.0",
+    "com.fasterxml.jackson.module"  %% "jackson-module-scala"                   % "2.21.0",
+    "com.beachape"                  %% "enumeratum"                             % "1.9.4",
     "org.typelevel"                 %% "cats-core"                              % "2.13.0",
-    "com.beachape"                  %% "enumeratum-play-json"                   % "1.9.0" excludeAll (jacksonAndPlayExclusions *)
+    "com.beachape"                  %% "enumeratum-play-json"                   % "1.9.4" excludeAll (jacksonAndPlayExclusions *)
   )
 
   val test: Seq[ModuleID] = Seq(
     "uk.gov.hmrc"             %% "bootstrap-test-play-30"   % bootstrapPlay30Version,
     "uk.gov.hmrc.mongo"       %% "hmrc-mongo-test-play-30"  % hmrcMongoPlay30Version,
-    "org.scalamock"           %% "scalamock"                % "7.5.2",
+    "org.scalamock"           %% "scalamock"                % "7.5.5",
     "org.mockito"             %% "mockito-scala"            % "2.0.0"
   ).map(_ % Test)
 }
