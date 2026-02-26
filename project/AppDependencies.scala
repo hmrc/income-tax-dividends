@@ -18,7 +18,7 @@ import sbt.*
 
 object AppDependencies {
 
-  private val bootstrapPlay30Version = "10.5.0"
+  private val bootstrapPlay30Version = "10.6.0"
   private val hmrcMongoPlay30Version = "2.12.0"
 
   private val jacksonAndPlayExclusions: Seq[InclusionRule] = Seq(
@@ -33,10 +33,10 @@ object AppDependencies {
     "uk.gov.hmrc"                   %% "bootstrap-backend-play-30"              % bootstrapPlay30Version,
     "uk.gov.hmrc.mongo"             %% "hmrc-mongo-play-30"                     % hmrcMongoPlay30Version,
     "uk.gov.hmrc"                   %% "crypto-json-play-30"                    % "8.4.0",
-    "com.fasterxml.jackson.module"  %% "jackson-module-scala"                   % "2.21.0",
-    "com.beachape"                  %% "enumeratum"                             % "1.9.4",
+    "com.fasterxml.jackson.module"  %% "jackson-module-scala"                   % "2.21.1",
+    "com.beachape"                  %% "enumeratum"                             % "1.9.5",
     "org.typelevel"                 %% "cats-core"                              % "2.13.0",
-    "com.beachape"                  %% "enumeratum-play-json"                   % "1.9.4" excludeAll (jacksonAndPlayExclusions *)
+    "com.beachape"                  %% "enumeratum-play-json"                   % "1.9.5" excludeAll (jacksonAndPlayExclusions *)
   )
 
   val test: Seq[ModuleID] = Seq(
