@@ -18,54 +18,33 @@ package support.mocks
 
 import models.Done
 import models.mongo.JourneyAnswers
-import org.scalamock.handlers.{CallHandler1, CallHandler3}
-import org.scalamock.scalatest.MockFactory
-import org.scalatest.TestSuite
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchersSugar.eqTo
+import org.mockito.Mockito.when
+import org.scalatestplus.mockito.MockitoSugar
 import repositories.JourneyAnswersRepository
 
 import scala.concurrent.Future
 
-trait MockJourneyAnswersRepository extends MockFactory { _: TestSuite =>
+trait MockJourneyAnswersRepository extends MockitoSugar {
   protected val mockJourneyAnswersRepo: JourneyAnswersRepository = mock[JourneyAnswersRepository]
 
-  def mockKeepAliveJourneyAnswers(mtdItId: String,
-                                  taxYear: Int,
-                                  journey: String,
-                                  result: Done): CallHandler3[String, Int, String, Future[Done]] = {
-    (mockJourneyAnswersRepo.keepAlive _)
-      .expects(mtdItId, taxYear, journey)
-      .returning(Future.successful(result))
-  }
+  def mockKeepAliveJourneyAnswers(mtdItId: String, taxYear: Int, journey: String, result: Done): Unit =
+    when(mockJourneyAnswersRepo.keepAlive(eqTo(mtdItId), eqTo(taxYear), eqTo(journey)))
+      .thenReturn(Future.successful(result))
 
-  def mockGetJourneyAnswers(mtdItId: String,
-                            taxYear: Int,
-                            journey: String,
-                            result: Option[JourneyAnswers]): CallHandler3[String, Int, String, Future[Option[JourneyAnswers]]] = {
-    (mockJourneyAnswersRepo.get(_: String, _: Int, _: String))
-      .expects(mtdItId, taxYear, journey)
-      .returning(Future.successful(result))
-  }
+  def mockGetJourneyAnswers(mtdItId: String, taxYear: Int, journey: String, result: Option[JourneyAnswers]): Unit =
+    when(mockJourneyAnswersRepo.get(eqTo(mtdItId), eqTo(taxYear), eqTo(journey)))
+      .thenReturn(Future.successful(result))
 
-  def mockGetJourneyAnswersException(mtdItId: String,
-                                     taxYear: Int,
-                                     journey: String,
-                                     result: Throwable): CallHandler3[String, Int, String, Future[Option[JourneyAnswers]]] = {
-    (mockJourneyAnswersRepo.get(_: String, _: Int, _: String))
-      .expects(mtdItId, taxYear, journey)
-      .returning(Future.failed(result))
-  }
+  def mockGetJourneyAnswersException(mtdItId: String, taxYear: Int, journey: String, result: Throwable): Unit =
+    when(mockJourneyAnswersRepo.get(eqTo(mtdItId), eqTo(taxYear), eqTo(journey)))
+      .thenReturn(Future.failed(result))
 
-  def mockSetJourneyAnswers(userData: JourneyAnswers,
-                            result: Done): CallHandler1[JourneyAnswers, Future[Done]] =
-    (mockJourneyAnswersRepo.set(_: JourneyAnswers))
-      .expects(userData)
-      .returning(Future.successful(result))
+  def mockSetJourneyAnswers(userData: JourneyAnswers, result: Done): Unit =
+    when(mockJourneyAnswersRepo.set(eqTo(userData))).thenReturn(Future.successful(result))
 
-  def mockClearJourneyAnswers(mtdItId: String,
-                              taxYear: Int,
-                              journey: String,
-                              result: Done): CallHandler3[String, Int, String, Future[Done]] =
-    (mockJourneyAnswersRepo.clear(_: String, _: Int, _: String))
-      .expects(mtdItId, taxYear, journey)
-      .returning(Future.successful(result))
+  def mockClearJourneyAnswers(mtdItId: String, taxYear: Int, journey: String, result: Done): Unit =
+    when(mockJourneyAnswersRepo.clear(eqTo(mtdItId), eqTo(taxYear), eqTo(journey)))
+      .thenReturn(Future.successful(result))
 }

@@ -4,7 +4,7 @@ import uk.gov.hmrc.DefaultBuildSettings
 val appName = "income-tax-dividends"
 
 ThisBuild / majorVersion := 0
-ThisBuild / scalaVersion := "2.13.18"
+ThisBuild / scalaVersion := "3.8.3"
 
 lazy val coverageSettings: Seq[Setting[?]] = {
   import scoverage.ScoverageKeys
@@ -36,6 +36,8 @@ lazy val microservice = Project(appName, file("."))
   .enablePlugins(PlayScala, SbtDistributablesPlugin)
   .settings(
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
+    scalacOptions := scalacOptions.value.filterNot(option => option == "-release" || option == "11") ++ Seq("-release", "17"),
+    javacOptions := javacOptions.value.filterNot(option => option == "--release" || option == "11") ++ Seq("--release", "17"),
     scalacOptions += s"-Wconf:src=${target.value}/.*:s"
   )
   .configs(Test)
@@ -48,7 +50,9 @@ lazy val microservice = Project(appName, file("."))
 lazy val itSettings = DefaultBuildSettings.itSettings() ++ Seq(
   unmanagedSourceDirectories.withRank(KeyRanks.Invisible) := Seq(
     baseDirectory.value / "it"
-  )
+  ),
+  scalacOptions := scalacOptions.value.filterNot(option => option == "-release" || option == "11") ++ Seq("-release", "17"),
+  javacOptions := javacOptions.value.filterNot(option => option == "--release" || option == "11") ++ Seq("--release", "17")
 )
 
 lazy val it = project

@@ -16,8 +16,11 @@
 
 package controllers
 
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchersSugar.eqTo
+import org.mockito.Mockito.when
+
 import models.{ErrorBodyModel, ErrorModel}
-import org.scalamock.handlers.CallHandler3
 import play.api.http.Status._
 import services.DeleteDividendsIncomeDataService
 import connectors.httpParsers.DeleteDividendsIncomeParser.DeleteDividendsIncomeResponse
@@ -47,10 +50,8 @@ class DeleteDividendsIncomeDataControllerSpec extends TestUtils{
 
       val serviceResult = Right(true)
 
-      def serviceCallMock(): CallHandler3[String, Int, HeaderCarrier, Future[DeleteDividendsIncomeResponse] ]=
-        (serviceMock.deleteDividendsIncomeData(_: String, _: Int)(_: HeaderCarrier))
-          .expects(nino, taxYear, *)
-          .returning(Future.successful(serviceResult))
+      def serviceCallMock(): Unit =
+        when(serviceMock.deleteDividendsIncomeData(eqTo(nino), eqTo(taxYear))(any[HeaderCarrier]())).thenReturn(Future.successful(serviceResult))
 
       val result = {
         mockAuth()
@@ -64,10 +65,8 @@ class DeleteDividendsIncomeDataControllerSpec extends TestUtils{
 
     "return a Left response" when {
 
-      def mockDeleteDividendsIncomeDataWithError(errorModel: ErrorModel): CallHandler3[String, Int, HeaderCarrier, Future[DeleteDividendsIncomeResponse]] = {
-        (serviceMock.deleteDividendsIncomeData(_: String, _: Int)(_: HeaderCarrier))
-          .expects(nino, taxYear, *)
-          .returning(Future.successful(Left(errorModel)))
+      def mockDeleteDividendsIncomeDataWithError(errorModel: ErrorModel): Unit = {
+        when(serviceMock.deleteDividendsIncomeData(eqTo(nino), eqTo(taxYear))(any[HeaderCarrier]())).thenReturn(Future.successful(Left(errorModel)))
       }
 
       "the service returns a NO_CONTENT" in {

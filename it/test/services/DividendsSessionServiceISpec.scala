@@ -17,6 +17,7 @@
 package services
 
 import connectors.{IncomeSourceConnector, IncomeTaxUserDataConnector}
+import org.mongodb.scala.SingleObservableFuture
 import repositories.DividendsUserDataRepository
 import utils.IntegrationTest
 

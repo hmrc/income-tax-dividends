@@ -16,6 +16,10 @@
 
 package services
 
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchersSugar.eqTo
+import org.mockito.Mockito.when
+
 import com.codahale.metrics.SharedMetricRegistries
 import connectors.{GetAnnualIncomeSourcePeriodConnector, SubmittedDividendsConnector}
 import connectors.httpParsers.SubmittedDividendsHttpParser.SubmittedDividendsResponse
@@ -41,9 +45,7 @@ class SubmittedDividendsServiceSpec extends TestUtils {
 
       val expectedResult: SubmittedDividendsResponse = Right(SubmittedDividendsModel(Some(20.00), Some(20.00), None))
 
-      (connector.getSubmittedDividends(_: String, _: Int)(_: HeaderCarrier))
-        .expects("12345678", taxYear, *)
-        .returning(Future.successful(expectedResult))
+      when(connector.getSubmittedDividends(eqTo("12345678"), eqTo(taxYear))(any[HeaderCarrier]())).thenReturn(Future.successful(expectedResult))
 
       val result = await(service.getSubmittedDividends("12345678", taxYear))
 
@@ -56,9 +58,7 @@ class SubmittedDividendsServiceSpec extends TestUtils {
 
     val expectedResult: SubmittedDividendsResponse = Right(SubmittedDividendsModel(Some(20.00), Some(20.00), None))
 
-    (ifConnector.getAnnualIncomeSourcePeriod(_: String, _: Int, _: Option[Boolean])(_: HeaderCarrier))
-      .expects("12345678", specificTaxYear, Some(false), *)
-      .returning(Future.successful(expectedResult))
+    when(ifConnector.getAnnualIncomeSourcePeriod(eqTo("12345678"), eqTo(specificTaxYear), eqTo(Some(false)))(any[HeaderCarrier]())).thenReturn(Future.successful(expectedResult))
 
     val result = await(service.getSubmittedDividends("12345678", specificTaxYear))
 
@@ -69,9 +69,7 @@ class SubmittedDividendsServiceSpec extends TestUtils {
 
     val expectedResult: SubmittedDividendsResponse = Right(SubmittedDividendsModel(Some(20.00), Some(20.00), None))
 
-    (ifConnector.getAnnualIncomeSourcePeriod(_: String, _: Int, _: Option[Boolean])(_: HeaderCarrier))
-      .expects("12345678", specificTaxYearPlusOne, Some(false), *)
-      .returning(Future.successful(expectedResult))
+    when(ifConnector.getAnnualIncomeSourcePeriod(eqTo("12345678"), eqTo(specificTaxYearPlusOne), eqTo(Some(false)))(any[HeaderCarrier]())).thenReturn(Future.successful(expectedResult))
 
     val result = await(service.getSubmittedDividends("12345678", specificTaxYearPlusOne))
 

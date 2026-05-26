@@ -19,8 +19,9 @@ package repositories
 import models.User
 import models.dividends.StockDividendsCheckYourAnswersModel
 import models.mongo._
+import org.mongodb.scala.SingleObservableFuture
 import org.mongodb.scala.result.InsertOneResult
-import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
+import org.scalatest.matchers.must.Matchers.mustBe
 import play.api.mvc.AnyContent
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits}
 import utils.IntegrationTest
@@ -157,8 +158,8 @@ class StockDividendsUserDataRepositoryISpec extends IntegrationTest with FutureA
       } catch {
         case e: Exception => Left(e)
       }
-      result.isLeft mustBe true
-      result.left.e.swap.getOrElse(new Exception("wrong message")).getMessage must include(
+      result.isLeft shouldBe true
+      result.left.e.swap.getOrElse(new Exception("wrong message")).getMessage should include(
         "E11000 duplicate key error collection: income-tax-dividends.stockDividendsUserData index: UserDataLookupIndex dup key:")
     }
 

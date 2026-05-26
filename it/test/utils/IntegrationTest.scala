@@ -223,7 +223,7 @@ trait IntegrationTest extends AnyWordSpecLike with Matchers with GuiceOneServerP
     ConfidenceLevel.L500
   )
 
-  def authService(stubbedRetrieval: Future[_], acceptedConfidenceLevel: Seq[ConfidenceLevel]): AuthService = new AuthService(
+  def authService(stubbedRetrieval: Future[Any], acceptedConfidenceLevel: Seq[ConfidenceLevel]): AuthService = new AuthService(
     new MockAuthConnector(stubbedRetrieval, acceptedConfidenceLevel)
   )
 

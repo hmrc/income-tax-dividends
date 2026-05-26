@@ -16,9 +16,12 @@
 
 package controllers
 
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchersSugar.eqTo
+import org.mockito.Mockito.when
+
 import connectors.httpParsers.GetDividendsIncomeParser.GetDividendsIncomeDataResponse
 import models._
-import org.scalamock.handlers.CallHandler3
 import play.api.http.Status._
 import play.api.libs.json.Json
 import services.GetDividendsIncomeService
@@ -57,10 +60,8 @@ class GetDividendsIncomeControllerSpec extends TestUtils {
       val serviceResult = Right(dividendsIncomeDataModel)
       val finalResult = Json.toJson(dividendsIncomeDataModel).toString()
 
-      def serviceCallMock(): CallHandler3[String, Int, HeaderCarrier, Future[GetDividendsIncomeDataResponse]] =
-        (serviceMock.getDividendsIncomeData(_: String, _: Int)(_: HeaderCarrier))
-          .expects(nino, taxYear, *)
-          .returning(Future.successful(serviceResult))
+      def serviceCallMock(): Unit =
+        when(serviceMock.getDividendsIncomeData(eqTo(nino), eqTo(taxYear))(any[HeaderCarrier]())).thenReturn(Future.successful(serviceResult))
 
 
       val result = {
@@ -75,10 +76,8 @@ class GetDividendsIncomeControllerSpec extends TestUtils {
 
     "return a Left response" when {
 
-      def mockGetDividendsIncomeDataWithError(errorModel: ErrorModel): CallHandler3[String, Int, HeaderCarrier, Future[GetDividendsIncomeDataResponse]] = {
-        (serviceMock.getDividendsIncomeData(_: String, _: Int)(_: HeaderCarrier))
-          .expects(nino, taxYear, *)
-          .returning(Future.successful(Left(errorModel)))
+      def mockGetDividendsIncomeDataWithError(errorModel: ErrorModel): Unit = {
+        when(serviceMock.getDividendsIncomeData(eqTo(nino), eqTo(taxYear))(any[HeaderCarrier]())).thenReturn(Future.successful(Left(errorModel)))
       }
 
       "the service returns a NO_CONTENT" in {

@@ -32,7 +32,7 @@ object AppDependencies {
 
   val compile: Seq[ModuleID] = Seq(
     "uk.gov.hmrc"                   %% "bootstrap-backend-play-30"              % bootstrapPlay30Version,
-    "uk.gov.hmrc.mongo"             %% "hmrc-mongo-play-30"                     % hmrcMongoPlay30Version,
+    "uk.gov.hmrc.mongo"             %% "hmrc-mongo-play-30"                     % hmrcMongoPlay30Version excludeAll ExclusionRule("org.scala-lang", "scala-reflect"),
     "uk.gov.hmrc"                   %% "crypto-json-play-30"                    % "8.4.0",
     "com.fasterxml.jackson.module"  %% "jackson-module-scala"                   % "2.21.1",
     "com.beachape"                  %% "enumeratum"                             % enumeratumVersion,
@@ -42,8 +42,7 @@ object AppDependencies {
 
   val test: Seq[ModuleID] = Seq(
     "uk.gov.hmrc"             %% "bootstrap-test-play-30"   % bootstrapPlay30Version,
-    "uk.gov.hmrc.mongo"       %% "hmrc-mongo-test-play-30"  % hmrcMongoPlay30Version,
-    "org.scalamock"           %% "scalamock"                % "7.5.5",
-    "org.mockito"             %% "mockito-scala"            % "2.1.0"
+    "uk.gov.hmrc.mongo"       %% "hmrc-mongo-test-play-30"  % hmrcMongoPlay30Version excludeAll ExclusionRule("org.scala-lang", "scala-reflect"),
+    "org.mockito"             %% "mockito-scala"            % "2.2.1"
   ).map(_ % Test)
 }

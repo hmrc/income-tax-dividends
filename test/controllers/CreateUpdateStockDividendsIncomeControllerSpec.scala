@@ -16,9 +16,12 @@
 
 package controllers
 
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchersSugar.eqTo
+import org.mockito.Mockito.when
+
 import connectors.httpParsers.CreateUpdateStockDividendsIncomeHttpParser.CreateUpdateStockDividendsIncomeResponse
 import models._
-import org.scalamock.handlers.CallHandler4
 import play.api.http.Status._
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.FakeRequest
@@ -73,42 +76,30 @@ class CreateUpdateStockDividendsIncomeControllerSpec extends TestUtils {
     "closeCompanyLoansWrittenOff" -> ""
   )
 
-  def mockCreateUpdateDividendsIncomeValid(): CallHandler4
-    [String, Int, StockDividendsSubmissionModel, HeaderCarrier, Future[CreateUpdateStockDividendsIncomeResponse]] = {
+  def mockCreateUpdateDividendsIncomeValid(): Unit = {
     val response: CreateUpdateStockDividendsIncomeResponse = Right(true)
-    (createUpdateDividendsIncomeService.createUpdateDividends(_: String, _: Int, _: StockDividendsSubmissionModel)(_: HeaderCarrier))
-      .expects(*, *, *, *)
-      .returning(Future.successful(response))
+    when(createUpdateDividendsIncomeService.createUpdateDividends(any[String](), any[Int](), any[StockDividendsSubmissionModel]())(any[HeaderCarrier]())).thenReturn(Future.successful(response))
   }
 
-  def mockCreateUpdateDividendsIncomeBadRequest(): CallHandler4
-    [String, Int, StockDividendsSubmissionModel, HeaderCarrier, Future[CreateUpdateStockDividendsIncomeResponse]] = {
+  def mockCreateUpdateDividendsIncomeBadRequest(): Unit = {
     val response: CreateUpdateStockDividendsIncomeResponse = Left(ErrorModel(BAD_REQUEST, badRequestModel))
-    (createUpdateDividendsIncomeService.createUpdateDividends(_: String, _: Int, _: StockDividendsSubmissionModel)(_: HeaderCarrier))
-      .expects(*, *, *, *)
-      .returning(Future.successful(response))
+    when(createUpdateDividendsIncomeService.createUpdateDividends(any[String](), any[Int](), any[StockDividendsSubmissionModel]())(any[HeaderCarrier]())).thenReturn(Future.successful(response))
   }
 
-  def mockCreateUpdateDividendsIncomeNotFound(): CallHandler4[String, Int, StockDividendsSubmissionModel, HeaderCarrier, Future[CreateUpdateStockDividendsIncomeResponse]] = {
+  def mockCreateUpdateDividendsIncomeNotFound(): Unit = {
     val response = Left(ErrorModel(NOT_FOUND, notFoundModel))
-    (createUpdateDividendsIncomeService.createUpdateDividends(_: String, _: Int, _: StockDividendsSubmissionModel)(_: HeaderCarrier))
-      .expects(*, *, *, *)
-      .returning(Future.successful(response))
+    when(createUpdateDividendsIncomeService.createUpdateDividends(any[String](), any[Int](), any[StockDividendsSubmissionModel]())(any[HeaderCarrier]())).thenReturn(Future.successful(response))
   }
 
-  def mockCreateUpdateDividendsIncomeServerError(): CallHandler4[String, Int, StockDividendsSubmissionModel, HeaderCarrier, Future[CreateUpdateStockDividendsIncomeResponse]] = {
+  def mockCreateUpdateDividendsIncomeServerError(): Unit = {
     val response = Left(ErrorModel(INTERNAL_SERVER_ERROR, serverErrorModel))
-    (createUpdateDividendsIncomeService.createUpdateDividends(_: String, _: Int, _: StockDividendsSubmissionModel)(_: HeaderCarrier))
-      .expects(*, *, *, *)
-      .returning(Future.successful(response))
+    when(createUpdateDividendsIncomeService.createUpdateDividends(any[String](), any[Int](), any[StockDividendsSubmissionModel]())(any[HeaderCarrier]())).thenReturn(Future.successful(response))
   }
 
   def mockCreateUpdateDividendsIncomeServiceUnavailable()
-  : CallHandler4[String, Int, StockDividendsSubmissionModel, HeaderCarrier, Future[CreateUpdateStockDividendsIncomeResponse]] = {
+  : Unit = {
     val response = Left(ErrorModel(SERVICE_UNAVAILABLE, serviceUnavailableErrorModel))
-    (createUpdateDividendsIncomeService.createUpdateDividends(_: String, _: Int, _: StockDividendsSubmissionModel)(_: HeaderCarrier))
-      .expects(*, *, *, *)
-      .returning(Future.successful(response))
+    when(createUpdateDividendsIncomeService.createUpdateDividends(any[String](), any[Int](), any[StockDividendsSubmissionModel]())(any[HeaderCarrier]())).thenReturn(Future.successful(response))
   }
 
   "calling .createUpdateDividends" should {

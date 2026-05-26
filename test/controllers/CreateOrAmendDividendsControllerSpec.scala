@@ -16,9 +16,12 @@
 
 package controllers
 
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchersSugar.eqTo
+import org.mockito.Mockito.when
+
 import connectors.httpParsers.CreateOrAmendDividendsHttpParser.CreateOrAmendDividendsResponse
 import models.{CreateOrAmendDividendsModel, CreateOrAmendDividendsResponseModel, ErrorBodyModel, ErrorModel}
-import org.scalamock.handlers.CallHandler4
 import play.api.http.Status._
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.FakeRequest
@@ -43,40 +46,30 @@ class CreateOrAmendDividendsControllerSpec extends TestUtils {
   val jsonBody: JsValue = Json.parse("""{"ukDividends": 12345.99, "otherUkDividends": 123456.99}""")
   val invalidJsonBody: JsValue = Json.parse("""{"notukDividends": 12345.99, "nototherUkDividends": 123456.99}""")
 
-  def mockCreateOrAmendDividendsValid(): CallHandler4[String, Int, CreateOrAmendDividendsModel, HeaderCarrier, Future[CreateOrAmendDividendsResponse]] = {
+  def mockCreateOrAmendDividendsValid(): Unit = {
     val response: CreateOrAmendDividendsResponse = Right(CreateOrAmendDividendsResponseModel("transactionRef"))
-    (createOrAmendDividendsService.createOrAmendDividends(_: String, _: Int, _: CreateOrAmendDividendsModel)(_: HeaderCarrier))
-      .expects(*, *, *, *)
-      .returning(Future.successful(response))
+    when(createOrAmendDividendsService.createOrAmendDividends(any[String](), any[Int](), any[CreateOrAmendDividendsModel]())(any[HeaderCarrier]())).thenReturn(Future.successful(response))
   }
 
-  def mockCreateOrAmendDividendsBadRequest(): CallHandler4[String, Int, CreateOrAmendDividendsModel, HeaderCarrier, Future[CreateOrAmendDividendsResponse]] = {
+  def mockCreateOrAmendDividendsBadRequest(): Unit = {
     val response: CreateOrAmendDividendsResponse = Left(ErrorModel(BAD_REQUEST, badRequestModel))
-    (createOrAmendDividendsService.createOrAmendDividends(_: String, _: Int, _: CreateOrAmendDividendsModel)(_: HeaderCarrier))
-      .expects(*, *, *, *)
-      .returning(Future.successful(response))
+    when(createOrAmendDividendsService.createOrAmendDividends(any[String](), any[Int](), any[CreateOrAmendDividendsModel]())(any[HeaderCarrier]())).thenReturn(Future.successful(response))
   }
 
-  def mockCreateOrAmendDividendsNotFound(): CallHandler4[String, Int, CreateOrAmendDividendsModel, HeaderCarrier, Future[CreateOrAmendDividendsResponse]] = {
+  def mockCreateOrAmendDividendsNotFound(): Unit = {
     val response = Left(ErrorModel(NOT_FOUND, notFoundModel))
-    (createOrAmendDividendsService.createOrAmendDividends(_: String, _: Int, _: CreateOrAmendDividendsModel)(_: HeaderCarrier))
-      .expects(*, *, *, *)
-      .returning(Future.successful(response))
+    when(createOrAmendDividendsService.createOrAmendDividends(any[String](), any[Int](), any[CreateOrAmendDividendsModel]())(any[HeaderCarrier]())).thenReturn(Future.successful(response))
   }
 
-  def mockCreateOrAmendDividendsServerError(): CallHandler4[String, Int, CreateOrAmendDividendsModel, HeaderCarrier, Future[CreateOrAmendDividendsResponse]] = {
+  def mockCreateOrAmendDividendsServerError(): Unit = {
     val response = Left(ErrorModel(INTERNAL_SERVER_ERROR, serverErrorModel))
-    (createOrAmendDividendsService.createOrAmendDividends(_: String, _: Int, _: CreateOrAmendDividendsModel)(_: HeaderCarrier))
-      .expects(*, *, *, *)
-      .returning(Future.successful(response))
+    when(createOrAmendDividendsService.createOrAmendDividends(any[String](), any[Int](), any[CreateOrAmendDividendsModel]())(any[HeaderCarrier]())).thenReturn(Future.successful(response))
   }
 
   def mockCreateOrAmendDividendsServiceUnavailable()
-  : CallHandler4[String, Int, CreateOrAmendDividendsModel, HeaderCarrier, Future[CreateOrAmendDividendsResponse]] = {
+  : Unit = {
     val response = Left(ErrorModel(SERVICE_UNAVAILABLE, serviceUnavailableErrorModel))
-    (createOrAmendDividendsService.createOrAmendDividends(_: String, _: Int, _: CreateOrAmendDividendsModel)(_: HeaderCarrier))
-      .expects(*, *, *, *)
-      .returning(Future.successful(response))
+    when(createOrAmendDividendsService.createOrAmendDividends(any[String](), any[Int](), any[CreateOrAmendDividendsModel]())(any[HeaderCarrier]())).thenReturn(Future.successful(response))
   }
 
   "calling .createOrAmendDividends" should {

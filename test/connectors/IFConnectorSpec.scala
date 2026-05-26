@@ -18,7 +18,6 @@ package connectors
 
 import config.AppConfig
 import models.logging.CorrelationId.CorrelationIdHeaderKey
-import org.scalamock.scalatest.MockFactory
 import support.providers.AppConfigStubProvider
 import support.stubs.AppConfigStub
 import utils.TestUtils
@@ -28,7 +27,6 @@ import uk.gov.hmrc.http.{Authorization, HeaderCarrier, SessionId}
 import java.util.UUID
 
 class IFConnectorSpec extends TestUtils
-  with MockFactory
   with AppConfigStubProvider {
 
   private val underTest = new IFConnector {

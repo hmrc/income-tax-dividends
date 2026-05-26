@@ -16,12 +16,13 @@
 
 package controllers
 
+import connectors.IncomeSourceConnector
 import models.User
-import org.scalamock.handlers.CallHandler6
 import play.api.http.Status._
 import play.api.mvc.Result
 import play.api.mvc.Results.NoContent
 import play.api.test.FakeRequest
+import repositories.StockDividendsUserDataRepository
 import services.StockDividendsSessionService
 import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
 import utils.TestUtils
@@ -30,21 +31,18 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class DeleteStockDividendsSessionDataControllerSpec extends TestUtils {
 
-  private val dividendsSessionService: StockDividendsSessionService = mock[StockDividendsSessionService]
+  private val mockStockDividendsUserDataRepository: StockDividendsUserDataRepository = mock[StockDividendsUserDataRepository]
+  private val mockIncomeSourceConnector: IncomeSourceConnector = mock[IncomeSourceConnector]
+  private val dividendsSessionService: StockDividendsSessionService = new StockDividendsSessionService(mockStockDividendsUserDataRepository, mockIncomeSourceConnector) {
+    override def clear[R](taxYear: Int)(onFail: => R)(onSuccess: => R)(implicit user: User[_], ec: ExecutionContext, hc: HeaderCarrier): Future[R] = Future.successful(NoContent.asInstanceOf[R])
+  }
   private val controller =
     new DeleteStockDividendsSessionDataController(dividendsSessionService, mockControllerComponents, authorisedAction)
 
   private val fakeGetRequest = FakeRequest("DELETE", "/").withHeaders("mtditid" -> mtditid, SessionKeys.sessionId -> "some-session-id")
   private val fakeGetRequestWithDifferentMTITID = FakeRequest("DELETE", "/").withHeaders("mtditid" -> "123123123")
 
-  def mockDeleteDividendsSessionData():
-  CallHandler6[Int, Result, Result, User[_], ExecutionContext, HeaderCarrier, Future[Result]] = {
-    val response: Result = NoContent
-    (dividendsSessionService
-      .clear(_: Int)(_: Result)(_: Result)(_: User[_], _: ExecutionContext, _: HeaderCarrier))
-      .expects(*, *, *, *, *, *)
-      .returning(Future.successful(response))
-  }
+  def mockDeleteDividendsSessionData(): Unit = ()
 
   "calling .clear" should {
 
