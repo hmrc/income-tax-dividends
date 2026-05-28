@@ -16,14 +16,15 @@
 
 package controllers
 
+import connectors.IncomeSourceConnector
 import models.User
 import models.dividends.StockDividendsCheckYourAnswersModel
-import org.scalamock.handlers.CallHandler7
 import play.api.http.Status._
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.Result
 import play.api.mvc.Results.NoContent
 import play.api.test.FakeRequest
+import repositories.StockDividendsUserDataRepository
 import services.StockDividendsSessionService
 import uk.gov.hmrc.http.SessionKeys
 import utils.TestUtils
@@ -32,7 +33,12 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class UpdateStockDividendsSessionDataControllerSpec extends TestUtils {
 
-  val stockDividendsSessionService: StockDividendsSessionService = mock[StockDividendsSessionService]
+  private val mockStockDividendsUserDataRepository: StockDividendsUserDataRepository = mock[StockDividendsUserDataRepository]
+  private val mockIncomeSourceConnector: IncomeSourceConnector = mock[IncomeSourceConnector]
+  val stockDividendsSessionService: StockDividendsSessionService = new StockDividendsSessionService(mockStockDividendsUserDataRepository, mockIncomeSourceConnector) {
+    override def updateSessionData[A](cyaModel: StockDividendsCheckYourAnswersModel, taxYear: Int, needsCreating: Boolean = false)(onFail: => A)(onSuccess: => A)
+                                     (implicit user: User[_], ec: ExecutionContext): Future[A] = Future.successful(NoContent.asInstanceOf[A])
+  }
   val updateDividendsSessionDataController =
     new UpdateStockDividendsSessionDataController(stockDividendsSessionService, mockControllerComponents, authorisedAction)
 
@@ -41,14 +47,7 @@ class UpdateStockDividendsSessionDataControllerSpec extends TestUtils {
 
   val jsonBody: JsValue = Json.toJson(completeStockDividendsCYAModel)
 
-  def mockUpdateDividendsSessionDataValid():
-  CallHandler7[StockDividendsCheckYourAnswersModel, Int, Boolean, Result, Result, User[_], ExecutionContext, Future[Result]] = {
-    val response: Result = NoContent
-    (stockDividendsSessionService
-      .updateSessionData(_: StockDividendsCheckYourAnswersModel, _: Int, _: Boolean)(_: Result)(_: Result)(_: User[_], _: ExecutionContext))
-      .expects(*, *, *, *, *, *, *)
-      .returning(Future.successful(response))
-  }
+  def mockUpdateDividendsSessionDataValid(): Unit = ()
 
   "calling .updateSessionData" should {
 

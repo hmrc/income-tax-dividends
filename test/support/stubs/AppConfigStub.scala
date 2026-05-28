@@ -32,8 +32,8 @@ class AppConfigStub {
     override val desBaseUrl: String = s"http://localhost:$wireMockPort"
     override val desEnvironment: String = environment
 
-    override lazy val ifBaseUrl: String = s"http://localhost:$wireMockPort"
-    override lazy val ifEnvironment: String = environment
+    override val ifBaseUrl: String = s"http://localhost:$wireMockPort"
+    override val ifEnvironment: String = environment
 
     override val personalFrontendBaseUrl: String = s"http://localhost:9308/update-and-submit-income-tax-return/personal-income"
 

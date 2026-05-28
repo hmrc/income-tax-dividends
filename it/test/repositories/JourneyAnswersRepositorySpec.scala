@@ -67,7 +67,7 @@ class JourneyAnswersRepositorySpec
   private implicit val crypto: Encrypter with Decrypter =
     SymmetricCryptoFactory.aesGcmCryptoFromConfig("crypto", configuration.underlying)
 
-  protected override val repository = new JourneyAnswersRepositoryImpl(
+  protected override val repository: JourneyAnswersRepositoryImpl = new JourneyAnswersRepositoryImpl(
     mongoComponent = mongoComponent,
     appConfig = appConfig,
     clock = stubClock
@@ -91,7 +91,7 @@ class JourneyAnswersRepositorySpec
 
     "set the last updated time on the supplied user answers to `now`, and save them" in {
 
-      val expectedResult: JourneyAnswers = userData copy (lastUpdated = instant)
+      val expectedResult: JourneyAnswers = userData.copy(lastUpdated = instant)
 
       val setResult: Done = repository.set(userData).futureValue
       val updatedRecord: JourneyAnswers = find(filterByMtdItIdYear(userData.mtdItId, userData.taxYear, userData.journey)).futureValue.headOption.value
@@ -128,7 +128,7 @@ class JourneyAnswersRepositorySpec
         insert(userData).futureValue
 
         val result = repository.get(userData.mtdItId, userData.taxYear, userData.journey).futureValue
-        val expectedResult = userData copy (lastUpdated = instant)
+        val expectedResult = userData.copy(lastUpdated = instant)
 
         result.value mustBe expectedResult
       }
@@ -184,7 +184,7 @@ class JourneyAnswersRepositorySpec
 
         val result = repository.keepAlive(userData.mtdItId, userData.taxYear, userData.journey).futureValue
 
-        val expectedUpdatedAnswers = userData copy (lastUpdated = instant)
+        val expectedUpdatedAnswers = userData.copy(lastUpdated = instant)
 
         result mustBe Done
         val updatedAnswers = find(filterByMtdItIdYear(userData.mtdItId, userData.taxYear, userData.journey)).futureValue.headOption.value

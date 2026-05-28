@@ -16,9 +16,12 @@
 
 package controllers
 
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchersSugar.eqTo
+import org.mockito.Mockito.when
+
 import connectors.httpParsers.GetAnnualIncomeSourcePeriodHttpParser.GetAnnualIncomeSourcePeriod
 import models.{ErrorBodyModel, ErrorModel, SubmittedDividendsModel}
-import org.scalamock.handlers.CallHandler3
 import play.api.http.Status._
 import play.api.test.FakeRequest
 import services.SubmittedDividendsService
@@ -42,46 +45,34 @@ class SubmittedDividendsIfControllerSpec extends TestUtils {
   private val fakeGetRequest = FakeRequest("GET", "/").withHeaders("mtditid" -> mtdItID, SessionKeys.sessionId -> "some-session-id")
   private val fakeGetRequestWithDifferentMTDITID = FakeRequest("GET", "/").withHeaders("mtditid" -> "123123123")
 
-  def mockGetSubmittedDividendsValid(): CallHandler3[String, Int, HeaderCarrier, Future[GetAnnualIncomeSourcePeriod]] = {
+  def mockGetSubmittedDividendsValid(): Unit = {
     val validSubmittedDividends: GetAnnualIncomeSourcePeriod = Right(SubmittedDividendsModel(Some(12345.67),Some(12345.67)))
-    (submittedDividendsService.getSubmittedDividends(_: String, _: Int)(_: HeaderCarrier))
-      .expects(*, *, *)
-      .returning(Future.successful(validSubmittedDividends))
+    when(submittedDividendsService.getSubmittedDividends(any[String](), any[Int]())(any[HeaderCarrier]())).thenReturn(Future.successful(validSubmittedDividends))
   }
 
-  def mockGetSubmittedDividendsBadRequest(): CallHandler3[String, Int, HeaderCarrier, Future[GetAnnualIncomeSourcePeriod]] = {
+  def mockGetSubmittedDividendsBadRequest(): Unit = {
     val invalidSubmittedDividends: GetAnnualIncomeSourcePeriod = Left(ErrorModel(BAD_REQUEST, badRequestModel))
-    (submittedDividendsService.getSubmittedDividends(_: String, _: Int)(_: HeaderCarrier))
-      .expects(*, *, *)
-      .returning(Future.successful(invalidSubmittedDividends))
+    when(submittedDividendsService.getSubmittedDividends(any[String](), any[Int]())(any[HeaderCarrier]())).thenReturn(Future.successful(invalidSubmittedDividends))
   }
 
-  def mockGetSubmittedDividendsNotFound(): CallHandler3[String, Int, HeaderCarrier, Future[GetAnnualIncomeSourcePeriod]] = {
+  def mockGetSubmittedDividendsNotFound(): Unit = {
     val invalidSubmittedDividends: GetAnnualIncomeSourcePeriod = Left(ErrorModel(NOT_FOUND, notFoundModel))
-    (submittedDividendsService.getSubmittedDividends(_: String, _: Int)(_: HeaderCarrier))
-      .expects(*, *, *)
-      .returning(Future.successful(invalidSubmittedDividends))
+    when(submittedDividendsService.getSubmittedDividends(any[String](), any[Int]())(any[HeaderCarrier]())).thenReturn(Future.successful(invalidSubmittedDividends))
   }
 
-  def mockGetSubmittedDividendsServerError(): CallHandler3[String, Int, HeaderCarrier, Future[GetAnnualIncomeSourcePeriod]] = {
+  def mockGetSubmittedDividendsServerError(): Unit = {
     val invalidSubmittedDividends: GetAnnualIncomeSourcePeriod = Left(ErrorModel(INTERNAL_SERVER_ERROR, serverErrorModel))
-    (submittedDividendsService.getSubmittedDividends(_: String, _: Int)(_: HeaderCarrier))
-      .expects(*, *, *)
-      .returning(Future.successful(invalidSubmittedDividends))
+    when(submittedDividendsService.getSubmittedDividends(any[String](), any[Int]())(any[HeaderCarrier]())).thenReturn(Future.successful(invalidSubmittedDividends))
   }
 
-  def mockGetSubmittedDividendsServiceUnavailable(): CallHandler3[String, Int, HeaderCarrier, Future[GetAnnualIncomeSourcePeriod]] = {
+  def mockGetSubmittedDividendsServiceUnavailable(): Unit = {
     val invalidSubmittedDividends: GetAnnualIncomeSourcePeriod = Left(ErrorModel(SERVICE_UNAVAILABLE, serviceUnavailableErrorModel))
-    (submittedDividendsService.getSubmittedDividends(_: String, _: Int)(_: HeaderCarrier))
-      .expects(*, *, *)
-      .returning(Future.successful(invalidSubmittedDividends))
+    when(submittedDividendsService.getSubmittedDividends(any[String](), any[Int]())(any[HeaderCarrier]())).thenReturn(Future.successful(invalidSubmittedDividends))
   }
 
-  def mockGetSubmittedDividendsUnprocessableEntity(): CallHandler3[String, Int, HeaderCarrier, Future[GetAnnualIncomeSourcePeriod]] = {
+  def mockGetSubmittedDividendsUnprocessableEntity(): Unit = {
     val invalidSubmittedDividends: GetAnnualIncomeSourcePeriod = Left(ErrorModel(UNPROCESSABLE_ENTITY, unprocessableEntityErrorModel))
-    (submittedDividendsService.getSubmittedDividends(_: String, _: Int)(_: HeaderCarrier))
-      .expects(*, *, *)
-      .returning(Future.successful(invalidSubmittedDividends))
+    when(submittedDividendsService.getSubmittedDividends(any[String](), any[Int]())(any[HeaderCarrier]())).thenReturn(Future.successful(invalidSubmittedDividends))
   }
 
   "calling .getSubmittedDividends" should {

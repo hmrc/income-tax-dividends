@@ -16,21 +16,23 @@
 
 package utils
 
-import org.scalamock.scalatest.MockFactory
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchersSugar.eqTo
+import org.mockito.Mockito.when
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 import uk.gov.hmrc.crypto.EncryptedValue
 import utils.Cypher.{bigDecimalCypher, booleanCypher, monthCypher, stringCypher}
 
 import java.time.Month
 
-class CypherSpec extends AnyWordSpec
-  with MockFactory with Matchers {
+class CypherSpec extends AnyWordSpec with MockitoSugar with Matchers {
 
-  private val encryptedBoolean = mock[EncryptedValue]
-  private val encryptedString = mock[EncryptedValue]
-  private val encryptedBigDecimal = mock[EncryptedValue]
-  private val encryptedMonth = mock[EncryptedValue]
+  private val encryptedBoolean = EncryptedValue("encrypted-boolean", "boolean-nonce")
+  private val encryptedString = EncryptedValue("encrypted-string", "string-nonce")
+  private val encryptedBigDecimal = EncryptedValue("encrypted-bigdecimal", "bigdecimal-nonce")
+  private val encryptedMonth = EncryptedValue("encrypted-month", "month-nonce")
   private val encryptedValue = EncryptedValue("some-value", "some-nonce")
 
   private implicit val aesGcmAdCrypto: AesGcmAdCrypto = mock[AesGcmAdCrypto]
@@ -39,15 +41,11 @@ class CypherSpec extends AnyWordSpec
   "stringCypher" should {
     val stringValue = "some-string-value"
     "encrypt string values" in {
-      (aesGcmAdCrypto.encrypt(_: String)(_: String)).expects(stringValue, associatedText).returning(encryptedString)
-
+      when(aesGcmAdCrypto.encrypt(eqTo(stringValue))(eqTo(associatedText))).thenReturn(encryptedString)
       stringCypher.encrypt(stringValue) shouldBe encryptedString
     }
-
     "decrypt to string values" in {
-      (aesGcmAdCrypto.decrypt(_: EncryptedValue)(_: String))
-        .expects(encryptedValue, associatedText).returning(stringValue)
-
+      when(aesGcmAdCrypto.decrypt(eqTo(encryptedValue))(eqTo(associatedText))).thenReturn(stringValue)
       stringCypher.decrypt(encryptedValue) shouldBe stringValue
     }
   }
@@ -55,15 +53,11 @@ class CypherSpec extends AnyWordSpec
   "booleanCypher" should {
     val someBoolean = true
     "encrypt boolean values" in {
-      (aesGcmAdCrypto.encrypt(_: String)(_: String)).expects(someBoolean.toString, associatedText).returning(encryptedBoolean)
-
+      when(aesGcmAdCrypto.encrypt(eqTo(someBoolean.toString))(eqTo(associatedText))).thenReturn(encryptedBoolean)
       booleanCypher.encrypt(someBoolean) shouldBe encryptedBoolean
     }
-
     "decrypt to boolean values" in {
-      (aesGcmAdCrypto.decrypt(_: EncryptedValue)(_: String))
-        .expects(encryptedValue, associatedText).returning(someBoolean.toString)
-
+      when(aesGcmAdCrypto.decrypt(eqTo(encryptedValue))(eqTo(associatedText))).thenReturn(someBoolean.toString)
       booleanCypher.decrypt(encryptedValue) shouldBe someBoolean
     }
   }
@@ -71,32 +65,23 @@ class CypherSpec extends AnyWordSpec
   "bigDecimalCypher" should {
     val bigDecimalValue: BigDecimal = 500.0
     "encrypt BigDecimal values" in {
-      (aesGcmAdCrypto.encrypt(_: String)(_: String)).expects(bigDecimalValue.toString, associatedText).returning(encryptedBigDecimal)
-
+      when(aesGcmAdCrypto.encrypt(eqTo(bigDecimalValue.toString))(eqTo(associatedText))).thenReturn(encryptedBigDecimal)
       bigDecimalCypher.encrypt(bigDecimalValue) shouldBe encryptedBigDecimal
     }
-
     "decrypt to BigDecimal values" in {
-      (aesGcmAdCrypto.decrypt(_: EncryptedValue)(_: String))
-        .expects(encryptedValue, associatedText).returning(bigDecimalValue.toString)
-
+      when(aesGcmAdCrypto.decrypt(eqTo(encryptedValue))(eqTo(associatedText))).thenReturn(bigDecimalValue.toString)
       bigDecimalCypher.decrypt(encryptedValue) shouldBe bigDecimalValue
     }
   }
 
-
   "monthCypher" should {
     val monthValue: Month = Month.APRIL
     "encrypt Month values" in {
-      (aesGcmAdCrypto.encrypt(_: String)(_: String)).expects(monthValue.toString, associatedText).returning(encryptedMonth)
-
+      when(aesGcmAdCrypto.encrypt(eqTo(monthValue.toString))(eqTo(associatedText))).thenReturn(encryptedMonth)
       monthCypher.encrypt(monthValue) shouldBe encryptedMonth
     }
-
     "decrypt to Month values" in {
-      (aesGcmAdCrypto.decrypt(_: EncryptedValue)(_: String))
-        .expects(encryptedValue, associatedText).returning(monthValue.toString)
-
+      when(aesGcmAdCrypto.decrypt(eqTo(encryptedValue))(eqTo(associatedText))).thenReturn(monthValue.toString)
       monthCypher.decrypt(encryptedValue) shouldBe monthValue
     }
   }

@@ -63,25 +63,25 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
   val desEnvironment: String = config.get[String]("microservice.services.des.environment")
   val authorisationToken: String = config.get[String]("microservice.services.des.authorisation-token")
 
-  lazy val authorisationTokenKey: String = "microservice.services.integration-framework.authorisation-token"
-  lazy val ifBaseUrl: String = servicesConfig.baseUrl(serviceName = "integration-framework")
-  lazy val ifEnvironment: String = servicesConfig.getString(key = "microservice.services.integration-framework.environment")
+  val authorisationTokenKey: String = "microservice.services.integration-framework.authorisation-token"
+  val ifBaseUrl: String = servicesConfig.baseUrl(serviceName = "integration-framework")
+  val ifEnvironment: String = servicesConfig.getString(key = "microservice.services.integration-framework.environment")
 
   val personalFrontendBaseUrl: String = config.get[String]("microservice.services.personal-income-tax-submission-frontend.url") +
     "/update-and-submit-income-tax-return/personal-income"
 
-  lazy val incomeTaxSubmissionBEBaseUrl: String = s"${config.get[String]("microservice.services.income-tax-submission.url")}/income-tax-submission-service"
+  val incomeTaxSubmissionBEBaseUrl: String = s"${config.get[String]("microservice.services.income-tax-submission.url")}/income-tax-submission-service"
 
-  lazy val useEncryption: Boolean = servicesConfig.getBoolean("feature-switch.useEncryption")
+  val useEncryption: Boolean = servicesConfig.getBoolean("feature-switch.useEncryption")
 
-  lazy val sectionCompletedQuestionEnabled: Boolean = servicesConfig.getBoolean("feature-switch.sectionCompletedQuestionEnabled")
+  val sectionCompletedQuestionEnabled: Boolean = servicesConfig.getBoolean("feature-switch.sectionCompletedQuestionEnabled")
 
-  lazy val encryptionKey: String = servicesConfig.getString("mongodb.encryption.key")
-  lazy val mongoTTL: Long = Duration(servicesConfig.getString("mongodb.timeToLive")).toDays.toInt
+  val encryptionKey: String = servicesConfig.getString("mongodb.encryption.key")
+  lazy val mongoTTL: Long = Duration(servicesConfig.getString("mongodb.timeToLive")).toDays
   val replaceIndexes: Boolean = servicesConfig.getBoolean("mongodb.replaceIndexes")
   val replaceJourneyAnswersIndexes: Boolean = servicesConfig.getBoolean("mongodb.replaceJourneyAnswersIndexes")
 
-  lazy val mongoJourneyAnswersTTL: Long = Duration(servicesConfig.getString("mongodb.journeyAnswersTimeToLive")).toDays.toInt
+  lazy val mongoJourneyAnswersTTL: Long = Duration(servicesConfig.getString("mongodb.journeyAnswersTimeToLive")).toDays
 
   def authorisationTokenFor(api: String): String = config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")
 }

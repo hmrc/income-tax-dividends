@@ -16,6 +16,10 @@
 
 package services
 
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchersSugar.eqTo
+import org.mockito.Mockito.when
+
 import connectors.{DeleteDividendsIncomeDataConnector, DeleteDividendsIncomeDataTYSConnector}
 import connectors.httpParsers.DeleteDividendsIncomeParser.DeleteDividendsIncomeResponse
 import connectors.httpParsers.DeleteDividendsIncomeTYSParser.DeleteDividendsIncomeTYSResponse
@@ -38,9 +42,7 @@ class DeleteDividendsIncomeDataServiceSpec extends TestUtils {
 
       val expectedResult: DeleteDividendsIncomeResponse = Right(true)
 
-      (connector.deleteDividendsIncomeData(_: String, _: Int)(_: HeaderCarrier))
-        .expects("12345678", taxYear, *)
-        .returning(Future.successful(expectedResult))
+      when(connector.deleteDividendsIncomeData(eqTo("12345678"), eqTo(taxYear))(any[HeaderCarrier]())).thenReturn(Future.successful(expectedResult))
 
       val result = await(service.deleteDividendsIncomeData("12345678", taxYear))
 
@@ -54,9 +56,7 @@ class DeleteDividendsIncomeDataServiceSpec extends TestUtils {
 
       val expectedResult: DeleteDividendsIncomeTYSResponse = Right(true)
 
-      (connectorTYS.deleteDividendsIncomeData(_: String, _: Int)(_: HeaderCarrier))
-        .expects("12345678", specificTaxYear, *)
-        .returning(Future.successful(expectedResult))
+      when(connectorTYS.deleteDividendsIncomeData(eqTo("12345678"), eqTo(specificTaxYear))(any[HeaderCarrier]())).thenReturn(Future.successful(expectedResult))
 
       val result = await(service.deleteDividendsIncomeData("12345678", specificTaxYear))
 
@@ -70,9 +70,7 @@ class DeleteDividendsIncomeDataServiceSpec extends TestUtils {
 
       val expectedResult: DeleteDividendsIncomeTYSResponse = Right(true)
 
-      (connectorTYS.deleteDividendsIncomeData(_: String, _: Int)(_: HeaderCarrier))
-        .expects("12345678", specificTaxYearPlusOne, *)
-        .returning(Future.successful(expectedResult))
+      when(connectorTYS.deleteDividendsIncomeData(eqTo("12345678"), eqTo(specificTaxYearPlusOne))(any[HeaderCarrier]())).thenReturn(Future.successful(expectedResult))
 
       val result = await(service.deleteDividendsIncomeData("12345678", specificTaxYearPlusOne))
 

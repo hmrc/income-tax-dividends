@@ -41,7 +41,7 @@ class DeleteDividendsIncomeDataTYSConnectorISpec extends PlaySpec with WiremockS
   lazy val httpClient: HttpClientV2 = app.injector.instanceOf[HttpClientV2]
 
   def appConfig(ifHost: String): AppConfig = new BackendAppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
-    override lazy val ifBaseUrl: String = s"http://$ifHost:$wireMockPort"
+    override val ifBaseUrl: String = s"http://$ifHost:$wireMockPort"
   }
 
   "DeleteDividendsIncomeDataTYS" should {

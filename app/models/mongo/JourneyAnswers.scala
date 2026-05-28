@@ -57,7 +57,7 @@ object JourneyAnswers {
         (__ \ "journey").write[String] and
         (__ \ "data").write[JsObject] and
         (__ \ "lastUpdated").write(MongoJavatimeFormats.instantFormat)
-      )(unlift(JourneyAnswers.unapply))
+      )(ja => (ja.mtdItId, ja.taxYear, ja.journey, ja.data, ja.lastUpdated))
   }
 
   implicit val format: OFormat[JourneyAnswers] = OFormat(reads, writes)

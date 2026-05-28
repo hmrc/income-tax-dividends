@@ -17,30 +17,23 @@
 package support.mocks
 
 import connectors.httpParsers.GetDividendsIncomeParser.GetDividendsIncomeDataResponse
-import org.scalamock.handlers.CallHandler3
-import org.scalamock.scalatest.MockFactory
-import org.scalatest.TestSuite
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchersSugar.eqTo
+import org.mockito.Mockito.when
+import org.scalatestplus.mockito.MockitoSugar
 import services.GetDividendsIncomeService
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-trait MockGetDividendsIncomeService extends MockFactory { _: TestSuite =>
-  private type GetDividendsIncomeMockResult = CallHandler3[String, Int, HeaderCarrier, Future[GetDividendsIncomeDataResponse]]
+trait MockGetDividendsIncomeService extends MockitoSugar {
   val mockGetDividendsIncomeService: GetDividendsIncomeService = mock[GetDividendsIncomeService]
 
-  def mockGetDividendsIncomeDataSuccess(nino: String,
-                                        taxYear: Int,
-                                        result: GetDividendsIncomeDataResponse): GetDividendsIncomeMockResult =
-    (mockGetDividendsIncomeService.getDividendsIncomeData(_: String, _: Int)(_: HeaderCarrier))
-      .expects(nino, taxYear, *)
-      .returning(Future.successful(result))
+  def mockGetDividendsIncomeDataSuccess(nino: String, taxYear: Int, result: GetDividendsIncomeDataResponse): Unit =
+    when(mockGetDividendsIncomeService.getDividendsIncomeData(eqTo(nino), eqTo(taxYear))(any[HeaderCarrier]()))
+      .thenReturn(Future.successful(result))
 
-  def mockGetDividendsIncomeDataFailure(nino: String,
-                                        taxYear: Int,
-                                        result: Throwable): GetDividendsIncomeMockResult =
-    (mockGetDividendsIncomeService.getDividendsIncomeData(_: String, _: Int)(_: HeaderCarrier))
-      .expects(nino, taxYear, *)
-      .returning(Future.failed(result))
-
+  def mockGetDividendsIncomeDataFailure(nino: String, taxYear: Int, result: Throwable): Unit =
+    when(mockGetDividendsIncomeService.getDividendsIncomeData(eqTo(nino), eqTo(taxYear))(any[HeaderCarrier]()))
+      .thenReturn(Future.failed(result))
 }

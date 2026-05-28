@@ -16,6 +16,10 @@
 
 package services
 
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchersSugar.eqTo
+import org.mockito.Mockito.when
+
 import com.codahale.metrics.SharedMetricRegistries
 import connectors.{CreateUpdateStockDividendsIncomeConnector, CreateUpdateStockDividendsIncomeTYSConnector}
 import connectors.httpParsers.CreateUpdateStockDividendsIncomeHttpParser.CreateUpdateStockDividendsIncomeResponse
@@ -63,9 +67,7 @@ class CreateUpdateDividendsIncomeServiceSpec extends TestUtils {
 
       val expectedResult: CreateUpdateStockDividendsIncomeResponse = Right(true)
 
-      (connector.createUpdateDividends(_: String, _: Int, _: StockDividendsSubmissionModel)(_: HeaderCarrier))
-        .expects(nino, taxYear, *, *)
-        .returning(Future.successful(expectedResult))
+      when(connector.createUpdateDividends(eqTo(nino), eqTo(taxYear), any[StockDividendsSubmissionModel]())(any[HeaderCarrier]())).thenReturn(Future.successful(expectedResult))
 
       val result = await(service.createUpdateDividends(nino, taxYear, model))
 
@@ -80,9 +82,7 @@ class CreateUpdateDividendsIncomeServiceSpec extends TestUtils {
 
       val expectedResult: CreateUpdateStockDividendsIncomeResponse = Right(true)
 
-      (connectorTYS.createUpdateDividends(_: String, _: Int, _: StockDividendsSubmissionModel)(_: HeaderCarrier))
-        .expects(nino, specificTaxYear, *, *)
-        .returning(Future.successful(expectedResult))
+      when(connectorTYS.createUpdateDividends(eqTo(nino), eqTo(specificTaxYear), any[StockDividendsSubmissionModel]())(any[HeaderCarrier]())).thenReturn(Future.successful(expectedResult))
 
       val result = await(service.createUpdateDividends(nino, specificTaxYear, model))
 
@@ -97,9 +97,7 @@ class CreateUpdateDividendsIncomeServiceSpec extends TestUtils {
 
       val expectedResult: CreateUpdateStockDividendsIncomeResponse = Right(true)
 
-      (connectorTYS.createUpdateDividends(_: String, _: Int, _: StockDividendsSubmissionModel)(_: HeaderCarrier))
-        .expects(nino, specificTaxYearPlusOne, *, *)
-        .returning(Future.successful(expectedResult))
+      when(connectorTYS.createUpdateDividends(eqTo(nino), eqTo(specificTaxYearPlusOne), any[StockDividendsSubmissionModel]())(any[HeaderCarrier]())).thenReturn(Future.successful(expectedResult))
 
       val result = await(service.createUpdateDividends(nino, specificTaxYearPlusOne, model))
 

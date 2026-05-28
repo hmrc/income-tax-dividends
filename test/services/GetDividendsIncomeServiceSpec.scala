@@ -16,6 +16,10 @@
 
 package services
 
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchersSugar.eqTo
+import org.mockito.Mockito.when
+
 import connectors.{GetDividendsIncomeConnector, GetDividendsIncomeTYSConnector}
 import connectors.httpParsers.GetDividendsIncomeParser.GetDividendsIncomeDataResponse
 import connectors.httpParsers.GetDividendsIncomeTYSParser.GetDividendsIncomeDataTYSResponse
@@ -49,9 +53,7 @@ class GetDividendsIncomeServiceSpec extends TestUtils {
         closeCompanyLoansWrittenOff = Some(StockDividendModel(Some("Close Company Loans WrittenOff Customer Reference"), 6743.23))
       ))
 
-      (connector.getDividendsIncomeData(_: String, _: Int)(_: HeaderCarrier))
-        .expects(nino, taxYear, *)
-        .returning(Future.successful(expectedResult))
+      when(connector.getDividendsIncomeData(eqTo(nino), eqTo(taxYear))(any[HeaderCarrier]())).thenReturn(Future.successful(expectedResult))
 
       val result = await(service.getDividendsIncomeData(nino, taxYear))
 
@@ -71,9 +73,7 @@ class GetDividendsIncomeServiceSpec extends TestUtils {
         closeCompanyLoansWrittenOff = Some(StockDividendModel(Some("Close Company Loans WrittenOff Customer Reference"), 6743.23))
       ))
 
-      (connectorTYS.getDividendsIncomeData(_: String, _: Int)(_: HeaderCarrier))
-        .expects(nino, specificTaxYear, *)
-        .returning(Future.successful(expectedResult))
+      when(connectorTYS.getDividendsIncomeData(eqTo(nino), eqTo(specificTaxYear))(any[HeaderCarrier]())).thenReturn(Future.successful(expectedResult))
 
       val result = await(service.getDividendsIncomeData(nino, specificTaxYear))
 
@@ -93,9 +93,7 @@ class GetDividendsIncomeServiceSpec extends TestUtils {
         closeCompanyLoansWrittenOff = Some(StockDividendModel(Some("Close Company Loans WrittenOff Customer Reference"), 6743.23))
       ))
 
-      (connectorTYS.getDividendsIncomeData(_: String, _: Int)(_: HeaderCarrier))
-        .expects(nino, specificTaxYearPlusOne, *)
-        .returning(Future.successful(expectedResult))
+      when(connectorTYS.getDividendsIncomeData(eqTo(nino), eqTo(specificTaxYearPlusOne))(any[HeaderCarrier]())).thenReturn(Future.successful(expectedResult))
 
       val result = await(service.getDividendsIncomeData(nino, specificTaxYearPlusOne))
 

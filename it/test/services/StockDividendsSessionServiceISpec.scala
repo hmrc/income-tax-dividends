@@ -17,12 +17,13 @@
 package services
 
 import connectors.{IncomeSourceConnector, IncomeTaxUserDataConnector}
-import org.scalamock.scalatest.MockFactory
+import org.mongodb.scala.SingleObservableFuture
+import org.scalatestplus.mockito.MockitoSugar
 import repositories.StockDividendsUserDataRepository
 import utils.IntegrationTest
 
 
-class StockDividendsSessionServiceISpec extends IntegrationTest with MockFactory {
+class StockDividendsSessionServiceISpec extends IntegrationTest with MockitoSugar {
 
   val stockDividendsUserDataRepository: StockDividendsUserDataRepository = app.injector.instanceOf[StockDividendsUserDataRepository]
   val getDividendsIncomeService: GetDividendsIncomeService = app.injector.instanceOf[GetDividendsIncomeService]

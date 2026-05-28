@@ -20,6 +20,7 @@ import config.AppConfig
 import connectors.httpParsers.CreateUpdateAnnualIncomeSourceHttpParser.{CreateUpdateAnnualIncomeSourceHttpReads, CreateUpdateAnnualIncomeSourceResponse}
 import models.CreateOrAmendDividendsModel
 import play.api.libs.json.Json
+import play.api.libs.ws.WSBodyWritables.writeableOf_JsValue
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 import utils.TaxYearUtils.convertSpecificTaxYear

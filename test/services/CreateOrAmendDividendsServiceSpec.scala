@@ -16,6 +16,10 @@
 
 package services
 
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchersSugar.eqTo
+import org.mockito.Mockito.when
+
 import com.codahale.metrics.SharedMetricRegistries
 import connectors.{CreateOrAmendDividendsConnector, CreateUpdateAnnualIncomeSourceConnector}
 import connectors.httpParsers.CreateOrAmendDividendsHttpParser.CreateOrAmendDividendsResponse
@@ -41,9 +45,7 @@ class CreateOrAmendDividendsServiceSpec extends TestUtils {
 
       val expectedResult: CreateOrAmendDividendsResponse = Right(CreateOrAmendDividendsResponseModel("transactionRef"))
 
-      (connector.createOrAmendDividends(_: String, _: Int, _: CreateOrAmendDividendsModel)(_: HeaderCarrier))
-        .expects("12345678", taxYear, *, *)
-        .returning(Future.successful(expectedResult))
+      when(connector.createOrAmendDividends(eqTo("12345678"), eqTo(taxYear), any[CreateOrAmendDividendsModel]())(any[HeaderCarrier]())).thenReturn(Future.successful(expectedResult))
 
       val result = await(service.createOrAmendDividends("12345678", taxYear, CreateOrAmendDividendsModel(Some(12345.66), None)))
 
@@ -54,9 +56,7 @@ class CreateOrAmendDividendsServiceSpec extends TestUtils {
 
       val expectedResult: CreateOrAmendDividendsResponse = Right(CreateOrAmendDividendsResponseModel("transactionRef"))
 
-      (connector2.createUpdateAnnualIncomeSource(_: String, _: Int, _: CreateOrAmendDividendsModel)(_: HeaderCarrier))
-        .expects("12345678", specificTaxYear, *, *)
-        .returning(Future.successful(expectedResult))
+      when(connector2.createUpdateAnnualIncomeSource(eqTo("12345678"), eqTo(specificTaxYear), any[CreateOrAmendDividendsModel]())(any[HeaderCarrier]())).thenReturn(Future.successful(expectedResult))
 
       val result = await(service.createOrAmendDividends("12345678", specificTaxYear, CreateOrAmendDividendsModel(Some(12345.66), None)))
 
@@ -67,9 +67,7 @@ class CreateOrAmendDividendsServiceSpec extends TestUtils {
 
       val expectedResult: CreateOrAmendDividendsResponse = Right(CreateOrAmendDividendsResponseModel("transactionRef"))
 
-      (connector2.createUpdateAnnualIncomeSource(_: String, _: Int, _: CreateOrAmendDividendsModel)(_: HeaderCarrier))
-        .expects("12345678", specificTaxYearPlusOne, *, *)
-        .returning(Future.successful(expectedResult))
+      when(connector2.createUpdateAnnualIncomeSource(eqTo("12345678"), eqTo(specificTaxYearPlusOne), any[CreateOrAmendDividendsModel]())(any[HeaderCarrier]())).thenReturn(Future.successful(expectedResult))
 
       val result = await(service.createOrAmendDividends("12345678", specificTaxYearPlusOne, CreateOrAmendDividendsModel(Some(12345.66), None)))
 

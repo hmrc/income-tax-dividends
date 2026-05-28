@@ -16,6 +16,10 @@
 
 package controllers
 
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchersSugar.eqTo
+import org.mockito.Mockito.when
+
 import models.taskList.{SectionTitle, TaskListSection}
 import play.api.http.Status.OK
 import services.CommonTaskListService
@@ -38,9 +42,7 @@ class CommonTaskListControllerSpec extends TestUtils {
   )
 
   private def mockDividendsService(): Unit = {
-    (commonTaskListService.get(_: Int, _: String, _: String)(_: ExecutionContext, _: HeaderCarrier))
-      .expects(*, *, *, *, *)
-      .returning(Future.successful(TaskListSection(SectionTitle.DividendsTitle, None)))
+    when(commonTaskListService.get(any[Int](), any[String](), any[String]())(any[ExecutionContext](), any[HeaderCarrier]())).thenReturn(Future.successful(TaskListSection(SectionTitle.DividendsTitle, None)))
   }
 
   ".getCommonTaskList" should {

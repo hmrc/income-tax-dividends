@@ -16,9 +16,12 @@
 
 package controllers
 
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchersSugar.eqTo
+import org.mockito.Mockito.when
+
 import models.User
 import models.mongo.{DataNotFound, DatabaseError, StockDividendsUserDataModel}
-import org.scalamock.handlers.CallHandler3
 import play.api.http.Status._
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.FakeRequest
@@ -47,30 +50,24 @@ class GetStockDividendsSessionDataControllerSpec extends TestUtils {
     Right(None)
 
   def mockGetSessionDataSuccess():
-  CallHandler3[Int, User[_], ExecutionContext, Future[Either[DatabaseError, Option[StockDividendsUserDataModel]]]] = {
+  Unit = {
     val response = responseWithData
-    (dividendsSessionService
-      .getSessionData( _: Int)(_: User[_], _: ExecutionContext))
-      .expects(*, *, *)
-      .returning(Future.successful(response))
+    when(dividendsSessionService
+      .getSessionData( any[Int]())(any[User[_]](), any[ExecutionContext]())).thenReturn(Future.successful(response))
   }
 
   def mockGetSessionDataNotFound():
-  CallHandler3[Int, User[_], ExecutionContext, Future[Either[DatabaseError, Option[StockDividendsUserDataModel]]]] = {
+  Unit = {
     val response = Left(DataNotFound)
-    (dividendsSessionService
-      .getSessionData( _: Int)(_: User[_], _: ExecutionContext))
-      .expects(*, *, *)
-      .returning(Future.successful(response))
+    when(dividendsSessionService
+      .getSessionData( any[Int]())(any[User[_]](), any[ExecutionContext]())).thenReturn(Future.successful(response))
   }
 
   def mockGetSessionDataEmptyData():
-  CallHandler3[Int, User[_], ExecutionContext, Future[Either[DatabaseError, Option[StockDividendsUserDataModel]]]] = {
+  Unit = {
     val response = responseWithoutData
-    (dividendsSessionService
-      .getSessionData( _: Int)(_: User[_], _: ExecutionContext))
-      .expects(*, *, *)
-      .returning(Future.successful(response))
+    when(dividendsSessionService
+      .getSessionData( any[Int]())(any[User[_]](), any[ExecutionContext]())).thenReturn(Future.successful(response))
   }
 
   "calling .getSessionData" should {

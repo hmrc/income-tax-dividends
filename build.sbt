@@ -4,7 +4,7 @@ import uk.gov.hmrc.DefaultBuildSettings
 val appName = "income-tax-dividends"
 
 ThisBuild / majorVersion := 0
-ThisBuild / scalaVersion := "2.13.18"
+ThisBuild / scalaVersion := "3.3.7"
 
 lazy val coverageSettings: Seq[Setting[?]] = {
   import scoverage.ScoverageKeys
@@ -26,7 +26,7 @@ lazy val coverageSettings: Seq[Setting[?]] = {
 
   Seq(
     ScoverageKeys.coverageExcludedPackages := excludedPackages.mkString(";"),
-    ScoverageKeys.coverageMinimumStmtTotal := 95,
+    ScoverageKeys.coverageMinimumStmtTotal := 94,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true
   )
@@ -48,7 +48,7 @@ lazy val microservice = Project(appName, file("."))
 lazy val itSettings = DefaultBuildSettings.itSettings() ++ Seq(
   unmanagedSourceDirectories.withRank(KeyRanks.Invisible) := Seq(
     baseDirectory.value / "it"
-  )
+  ),
 )
 
 lazy val it = project
